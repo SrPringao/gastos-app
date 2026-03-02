@@ -1,6 +1,7 @@
 import { TrendingDownIcon, ReceiptIcon } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+import { getCurrentUserId } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
 import {
@@ -8,6 +9,7 @@ import {
   getSpentByAccountThisMonth,
   getRecentExpenses,
 } from "@/lib/services/dashboard";
+import { redirect } from "next/navigation";
 import { MetricsCard } from "@/components/dashboard/metrics-card";
 import { AccountsCard } from "@/components/dashboard/accounts-card";
 import { RecentExpensesCard } from "@/components/dashboard/recent-expenses-card";
@@ -15,6 +17,9 @@ import { SpentByAccountCard } from "@/components/dashboard/spent-by-account-card
 import { MonthlyBudgetCard } from "@/components/dashboard/monthly-budget-card";
 
 export default async function DashboardPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/login");
+
   const [
     accounts,
     categories,
@@ -22,11 +27,11 @@ export default async function DashboardPage() {
     spentByAccount,
     recentExpenses,
   ] = await Promise.all([
-    getAccounts(),
-    getCategories(),
-    getTotalSpentThisMonth(),
-    getSpentByAccountThisMonth(),
-    getRecentExpenses(5),
+    getAccounts(userId),
+    getCategories(userId),
+    getTotalSpentThisMonth(userId),
+    getSpentByAccountThisMonth(userId),
+    getRecentExpenses(userId, 5),
   ]);
 
   const now = new Date();

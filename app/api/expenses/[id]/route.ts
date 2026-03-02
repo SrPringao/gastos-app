@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateExpense, getExpenseById } from "@/lib/services/expenses";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
@@ -33,9 +34,13 @@ export async function PATCH(
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID invalido" }, { status: 400 });
     }
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const body = await request.json();
 
-    const result = await updateExpense(id, {
+    const result = await updateExpense(userId, id, {
       amount: body.amount,
       accountId: body.accountId,
       categoryId: body.categoryId ?? null,

@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createExpense } from "@/lib/services/expenses";
-import { getExpenses } from "@/lib/services/expenses";
+import { createExpense, getExpenses } from "@/lib/services/expenses";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
       parseInt(searchParams.get("limit") || "100", 10),
       500
     );
 
-    const expenses = await getExpenses(limit);
+    const expenses = await getExpenses(userId, limit);
     return NextResponse.json(expenses);
   } catch (error) {
     console.error("[API] GET /api/expenses:", error);
@@ -23,6 +27,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const body = await request.json();
 
     const amount = parseFloat(body.amount);
@@ -33,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await createExpense({
+    const result = await createExpense(userId, {
       amount,
       accountId: Number(body.accountId),
       categoryId: body.categoryId ? Number(body.categoryId) : null,

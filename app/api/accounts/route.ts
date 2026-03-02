@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccounts, createAccount } from "@/lib/services/accounts";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const accounts = await getAccounts();
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+    const accounts = await getAccounts(userId);
     return NextResponse.json(accounts);
   } catch (error) {
     console.error("[API] GET /api/accounts:", error);
@@ -16,8 +21,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const body = await request.json();
-    const result = await createAccount({
+    const result = await createAccount(userId, {
       name: body.name,
       type: body.type,
       color: body.color ?? null,

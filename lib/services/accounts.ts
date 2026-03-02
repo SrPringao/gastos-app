@@ -2,8 +2,13 @@ import { db } from "@/lib/db";
 import { accounts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function getAccounts() {
-  return db.select().from(accounts).orderBy(accounts.name);
+export async function getAccounts(userId: string | null) {
+  if (!userId) return [];
+  return db
+    .select()
+    .from(accounts)
+    .where(eq(accounts.userId, userId))
+    .orderBy(accounts.name);
 }
 
 export async function getAccountById(id: number) {
@@ -35,7 +40,10 @@ export type UpdateAccountInput = {
   creditLimit?: string | null;
 };
 
-export async function createAccount(input: CreateAccountInput) {
+export async function createAccount(
+  userId: string,
+  input: CreateAccountInput
+) {
   const { name, type, color, imageUrl, cutoffDay, paymentDay, creditLimit } =
     input;
 
@@ -47,6 +55,7 @@ export async function createAccount(input: CreateAccountInput) {
   }
 
   await db.insert(accounts).values({
+    userId,
     name: name.trim(),
     type,
     color: color ?? null,
@@ -59,10 +68,17 @@ export async function createAccount(input: CreateAccountInput) {
   return { success: true };
 }
 
-export async function updateAccount(id: number, input: UpdateAccountInput) {
+export async function updateAccount(
+  userId: string,
+  id: number,
+  input: UpdateAccountInput
+) {
   const existing = await getAccountById(id);
   if (!existing) {
     return { error: "Cuenta no encontrada" };
+  }
+  if (existing.userId && existing.userId !== userId) {
+    return { error: "No autorizado" };
   }
 
   const { name, type, color, imageUrl, cutoffDay, paymentDay, creditLimit } =

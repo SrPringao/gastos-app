@@ -1,8 +1,14 @@
 import { db } from "@/lib/db";
 import { categories } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
-export async function getCategories() {
-  return db.select().from(categories).orderBy(categories.name);
+export async function getCategories(userId: string | null) {
+  if (!userId) return [];
+  return db
+    .select()
+    .from(categories)
+    .where(eq(categories.userId, userId))
+    .orderBy(categories.name);
 }
 
 export type CreateCategoryInput = {
@@ -10,7 +16,10 @@ export type CreateCategoryInput = {
   color?: string | null;
 };
 
-export async function createCategory(input: CreateCategoryInput) {
+export async function createCategory(
+  userId: string,
+  input: CreateCategoryInput
+) {
   const { name, color } = input;
 
   if (!name?.trim()) {
@@ -18,6 +27,7 @@ export async function createCategory(input: CreateCategoryInput) {
   }
 
   await db.insert(categories).values({
+    userId,
     name: name.trim(),
     color: color || null,
   });

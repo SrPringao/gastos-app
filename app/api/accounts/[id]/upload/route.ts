@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getAccountById, updateAccount } from "@/lib/services/accounts";
 
 const BUCKET_NAME = "account-images";
@@ -16,9 +16,18 @@ export async function POST(
       return NextResponse.json({ error: "ID invalido" }, { status: 400 });
     }
 
+    const { getCurrentUserId } = await import("@/lib/auth");
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
     const account = await getAccountById(id);
     if (!account) {
       return NextResponse.json({ error: "Cuenta no encontrada" }, { status: 404 });
+    }
+    if (account.userId && account.userId !== userId) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const formData = await request.formData();
@@ -43,7 +52,7 @@ export async function POST(
       );
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createClient();
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${id}-${Date.now()}.${ext}`;
     const buffer = await file.arrayBuffer();
@@ -67,7 +76,7 @@ export async function POST(
       .from(BUCKET_NAME)
       .getPublicUrl(path);
 
-    const updateResult = await updateAccount(id, { imageUrl: urlData.publicUrl });
+    const updateResult = await updateAccount(userId, id, { imageUrl: urlData.publicUrl });
     if (updateResult.error) {
       return NextResponse.json({ error: updateResult.error }, { status: 500 });
     }

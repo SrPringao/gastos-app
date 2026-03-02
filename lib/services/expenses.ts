@@ -18,7 +18,7 @@ export type UpdateExpenseInput = {
   description?: string | null;
 };
 
-export async function createExpense(input: CreateExpenseInput) {
+export async function createExpense(userId: string, input: CreateExpenseInput) {
   const { amount, accountId, categoryId, date, description } = input;
 
   const amountCents = Math.round(amount * 100);
@@ -30,6 +30,7 @@ export async function createExpense(input: CreateExpenseInput) {
   }
 
   await db.insert(expenses).values({
+    userId,
     amount: amountCents,
     accountId,
     categoryId: categoryId ?? null,
@@ -49,15 +50,21 @@ export async function getExpenseById(id: number) {
   return result[0] ?? null;
 }
 
-export async function getExpenses(limit = 100) {
+export async function getExpenses(userId: string | null, limit = 100) {
+  if (!userId) return [];
   return db
     .select()
     .from(expenses)
+    .where(eq(expenses.userId, userId))
     .orderBy(desc(expenses.date))
     .limit(limit);
 }
 
-export async function getExpensesWithDetails(limit = 100) {
+export async function getExpensesWithDetails(
+  userId: string | null,
+  limit = 100
+) {
+  if (!userId) return [];
   return db
     .select({
       id: expenses.id,
@@ -74,14 +81,22 @@ export async function getExpensesWithDetails(limit = 100) {
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
     .leftJoin(categories, eq(expenses.categoryId, categories.id))
+    .where(eq(expenses.userId, userId))
     .orderBy(desc(expenses.date))
     .limit(limit);
 }
 
-export async function updateExpense(id: number, input: UpdateExpenseInput) {
+export async function updateExpense(
+  userId: string,
+  id: number,
+  input: UpdateExpenseInput
+) {
   const existing = await getExpenseById(id);
   if (!existing) {
     return { error: "Gasto no encontrado" };
+  }
+  if (existing.userId && existing.userId !== userId) {
+    return { error: "No autorizado" };
   }
 
   const { amount, accountId, categoryId, date, description } = input;

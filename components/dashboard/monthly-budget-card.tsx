@@ -13,10 +13,6 @@ type MonthlyBudgetCardProps = {
   monthLabel: string;
 };
 
-function getStorageKey(monthKey: string) {
-  return `budget:${monthKey}`;
-}
-
 export function MonthlyBudgetCard({
   totalSpentCents,
   monthKey,
@@ -25,13 +21,19 @@ export function MonthlyBudgetCard({
   const [budgetCents, setBudgetCents] = useState<number>(0);
   const [draftPesos, setDraftPesos] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const raw = localStorage.getItem(getStorageKey(monthKey));
-    const parsed = raw ? Number(raw) : 0;
-    const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-    setBudgetCents(normalized);
-    setDraftPesos(normalized > 0 ? (normalized / 100).toFixed(2) : "");
+    async function fetchBudget() {
+      const res = await fetch(`/api/monthly-budget?month=${monthKey}`);
+      if (res.ok) {
+        const data = await res.json();
+        const cents = typeof data.amount === "number" ? data.amount : 0;
+        setBudgetCents(cents);
+        setDraftPesos(cents > 0 ? (cents / 100).toFixed(2) : "");
+      }
+    }
+    fetchBudget();
   }, [monthKey]);
 
   const remainingCents = budgetCents - totalSpentCents;
@@ -40,12 +42,23 @@ export function MonthlyBudgetCard({
     return Math.min(100, Math.round((totalSpentCents / budgetCents) * 100));
   }, [budgetCents, totalSpentCents]);
 
-  function saveBudget() {
+  async function saveBudget() {
     const parsed = Number(draftPesos);
     const nextCents = Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : 0;
-    setBudgetCents(nextCents);
-    localStorage.setItem(getStorageKey(monthKey), String(nextCents));
-    setIsEditing(false);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/monthly-budget", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: monthKey, amount: nextCents / 100 }),
+      });
+      if (res.ok) {
+        setBudgetCents(nextCents);
+        setIsEditing(false);
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
   function cancelEdit() {
@@ -110,7 +123,7 @@ export function MonthlyBudgetCard({
               value={draftPesos}
               onChange={(e) => setDraftPesos(e.target.value)}
             />
-            <Button type="button" size="icon-sm" onClick={saveBudget}>
+            <Button type="button" size="icon-sm" onClick={saveBudget} disabled={saving}>
               <CheckIcon className="size-4" />
             </Button>
             <Button type="button" variant="outline" size="icon-sm" onClick={cancelEdit}>

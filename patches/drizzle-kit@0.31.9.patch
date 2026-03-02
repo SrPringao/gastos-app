@@ -1,0 +1,30 @@
+diff --git a/bin.cjs b/bin.cjs
+index 327fdfde1aac8ddf7a0db6dc357796757be8986a..9841d1206707b26add73ff4f42f6c5d9907d388f 100755
+--- a/bin.cjs
++++ b/bin.cjs
+@@ -18400,9 +18400,9 @@ AND
+         progressCallback("checks", checksCount, "fetching");
+       }
+       for (const checkConstraintRow of checkConstraints) {
+-        const constraintName = checkConstraintRow["CONSTRAINT_NAME"];
+-        const constraintValue = checkConstraintRow["CHECK_CLAUSE"];
+-        const tableName = checkConstraintRow["TABLE_NAME"];
++        const constraintName = checkConstraintRow["CONSTRAINT_NAME"] ?? checkConstraintRow["constraint_name"];
++        const constraintValue = checkConstraintRow["CHECK_CLAUSE"] ?? checkConstraintRow["check_clause"];
++        const tableName = checkConstraintRow["TABLE_NAME"] ?? checkConstraintRow["table_name"];
+         const tableInResult = result[tableName];
+         tableInResult.checkConstraint[constraintName] = {
+           name: constraintName,
+@@ -19573,9 +19573,9 @@ WHERE
+               progressCallback("checks", checksCount, "fetching");
+             }
+             for (const checks of tableChecks) {
+-              let checkValue = checks.constraint_definition;
+-              const constraintName = checks.constraint_name;
+-              checkValue = checkValue.replace(/^CHECK\s*\(\(/, "").replace(/\)\)\s*$/, "");
++              let checkValue = checks.constraint_definition ?? checks.CONSTRAINT_DEFINITION ?? "";
++              const constraintName = checks.constraint_name ?? checks.CONSTRAINT_NAME;
++              checkValue = (checkValue || "").replace(/^CHECK\s*\(\(/, "").replace(/\)\)\s*$/, "");
+               checkConstraints[constraintName] = {
+                 name: constraintName,
+                 value: checkValue

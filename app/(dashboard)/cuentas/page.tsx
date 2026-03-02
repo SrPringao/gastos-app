@@ -1,12 +1,17 @@
+import { getCurrentUserId } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
 import { AccountsCard } from "@/components/dashboard/accounts-card";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 export default async function CuentasPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/login");
+
   const [accounts, categories] = await Promise.all([
-    getAccounts(),
-    getCategories(),
+    getAccounts(userId),
+    getCategories(userId),
   ]);
 
   return (

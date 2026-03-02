@@ -6,11 +6,16 @@ import {
   getSpentByMonthLastNMonths,
   getExpenseCountThisMonth,
 } from "@/lib/services/dashboard";
+import { getCurrentUserId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const [
       totalSpent,
       countThisMonth,
@@ -18,11 +23,11 @@ export async function GET() {
       byCategory,
       byAccount,
     ] = await Promise.all([
-      getTotalSpentThisMonth(),
-      getExpenseCountThisMonth(),
-      getSpentByMonthLastNMonths(6),
-      getSpentByCategoryThisMonth(),
-      getSpentByAccountThisMonth(),
+      getTotalSpentThisMonth(userId),
+      getExpenseCountThisMonth(userId),
+      getSpentByMonthLastNMonths(userId, 6),
+      getSpentByCategoryThisMonth(userId),
+      getSpentByAccountThisMonth(userId),
     ]);
 
     return NextResponse.json({

@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboardIcon,
   CreditCardIcon,
   ReceiptIcon,
   PieChartIcon,
+  LogOut,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
@@ -20,6 +22,13 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.refresh();
+    router.push("/login");
+  }
 
   return (
     <aside className="border-border bg-sidebar text-sidebar-foreground flex h-screen w-64 flex-col border-r">
@@ -50,6 +59,16 @@ export function AppSidebar() {
           );
         })}
       </nav>
+      <div className="border-t p-4">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+          onClick={handleSignOut}
+        >
+          <LogOut className="size-5 shrink-0 opacity-70" />
+          Cerrar sesion
+        </Button>
+      </div>
     </aside>
   );
 }

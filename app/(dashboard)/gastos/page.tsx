@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth";
 import {
   getTotalSpentThisMonth,
   getSpentByAccountThisMonth,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/services/dashboard";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
+import { redirect } from "next/navigation";
 import { QuickAddExpense } from "@/components/quick-add-expense";
 import { ExpensesList } from "@/components/expenses-list";
 import { ExpensesMetrics } from "@/components/expenses-dashboard/expenses-metrics";
@@ -18,6 +20,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const dynamic = "force-dynamic";
 
 export default async function GastosPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/login");
+
   const [
     accounts,
     categories,
@@ -27,13 +32,13 @@ export default async function GastosPage() {
     byCategory,
     byAccount,
   ] = await Promise.all([
-    getAccounts(),
-    getCategories(),
-    getTotalSpentThisMonth(),
-    getExpenseCountThisMonth(),
-    getSpentByMonthLastNMonths(6),
-    getSpentByCategoryThisMonth(),
-    getSpentByAccountThisMonth(),
+    getAccounts(userId),
+    getCategories(userId),
+    getTotalSpentThisMonth(userId),
+    getExpenseCountThisMonth(userId),
+    getSpentByMonthLastNMonths(userId, 6),
+    getSpentByCategoryThisMonth(userId),
+    getSpentByAccountThisMonth(userId),
   ]);
 
   const now = new Date();

@@ -4,9 +4,14 @@ import {
   getSpentByAccountThisMonth,
   getRecentExpenses,
 } from "@/lib/services/dashboard";
+import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
       parseInt(searchParams.get("limit") || "5", 10),
@@ -14,9 +19,9 @@ export async function GET(request: NextRequest) {
     );
 
     const [totalSpent, spentByAccount, recentExpenses] = await Promise.all([
-      getTotalSpentThisMonth(),
-      getSpentByAccountThisMonth(),
-      getRecentExpenses(limit),
+      getTotalSpentThisMonth(userId),
+      getSpentByAccountThisMonth(userId),
+      getRecentExpenses(userId, limit),
     ]);
 
     return NextResponse.json({

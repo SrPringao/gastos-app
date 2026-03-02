@@ -14,7 +14,7 @@ function getMonthBounds(year?: number, month?: number) {
   return { start, end };
 }
 
-export async function getTotalSpentThisMonth() {
+export async function getTotalSpentThisMonth(userId: string) {
   const { start, end } = getMonthBounds();
 
   const result = await db
@@ -24,6 +24,7 @@ export async function getTotalSpentThisMonth() {
     .from(expenses)
     .where(
       and(
+        eq(expenses.userId, userId),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
@@ -32,7 +33,7 @@ export async function getTotalSpentThisMonth() {
   return result[0]?.total ?? 0;
 }
 
-export async function getSpentByAccountThisMonth() {
+export async function getSpentByAccountThisMonth(userId: string) {
   const { start, end } = getMonthBounds();
 
   return db
@@ -46,6 +47,7 @@ export async function getSpentByAccountThisMonth() {
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
     .where(
       and(
+        eq(expenses.userId, userId),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
@@ -53,7 +55,7 @@ export async function getSpentByAccountThisMonth() {
     .groupBy(expenses.accountId, accounts.name, accounts.type);
 }
 
-export async function getRecentExpenses(limit = 5) {
+export async function getRecentExpenses(userId: string, limit = 5) {
   return db
     .select({
       id: expenses.id,
@@ -66,11 +68,12 @@ export async function getRecentExpenses(limit = 5) {
     })
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
+    .where(eq(expenses.userId, userId))
     .orderBy(sql`${expenses.date} DESC`)
     .limit(limit);
 }
 
-export async function getSpentByCategoryThisMonth() {
+export async function getSpentByCategoryThisMonth(userId: string) {
   const { start, end } = getMonthBounds();
 
   return db
@@ -83,6 +86,7 @@ export async function getSpentByCategoryThisMonth() {
     .leftJoin(categories, eq(expenses.categoryId, categories.id))
     .where(
       and(
+        eq(expenses.userId, userId),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
@@ -90,7 +94,7 @@ export async function getSpentByCategoryThisMonth() {
     .groupBy(expenses.categoryId, categories.name);
 }
 
-export async function getSpentByMonthLastNMonths(n: number) {
+export async function getSpentByMonthLastNMonths(userId: string, n: number) {
   const now = new Date();
   const rows: { month: string; total: number; year: number; monthNum: number }[] = [];
 
@@ -108,6 +112,7 @@ export async function getSpentByMonthLastNMonths(n: number) {
       .from(expenses)
       .where(
         and(
+          eq(expenses.userId, userId),
           sql`DATE(${expenses.date}) >= ${start}::date`,
           sql`DATE(${expenses.date}) <= ${end}::date`
         )
@@ -124,7 +129,7 @@ export async function getSpentByMonthLastNMonths(n: number) {
   return rows.reverse();
 }
 
-export async function getExpenseCountThisMonth() {
+export async function getExpenseCountThisMonth(userId: string) {
   const { start, end } = getMonthBounds();
 
   const result = await db
@@ -134,6 +139,7 @@ export async function getExpenseCountThisMonth() {
     .from(expenses)
     .where(
       and(
+        eq(expenses.userId, userId),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
