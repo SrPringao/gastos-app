@@ -2,20 +2,44 @@ import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 
-function getMonthBounds(year?: number, month?: number) {
-  const d = year != null && month != null
-    ? new Date(year, month - 1, 1)
-    : new Date();
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
+function getMonthBounds(year?: number, month?: number, monthKey?: string) {
+  let y: number;
+  let m: number;
+  if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
+    const [yy, mm] = monthKey.split("-").map(Number);
+    y = yy;
+    m = mm;
+  } else if (year != null && month != null) {
+    y = year;
+    m = month;
+  } else {
+    const d = new Date();
+    y = d.getFullYear();
+    m = d.getMonth() + 1;
+  }
   const start = `${y}-${String(m).padStart(2, "0")}-01`;
   const lastDay = new Date(y, m, 0).getDate();
   const end = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   return { start, end };
 }
 
-export async function getTotalSpentThisMonth(userId: string) {
-  const { start, end } = getMonthBounds();
+export async function getMonthsWithExpenses(userId: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      month: sql<string>`TO_CHAR(DATE(${expenses.date}), 'YYYY-MM')`,
+    })
+    .from(expenses)
+    .where(eq(expenses.userId, userId))
+    .groupBy(sql`TO_CHAR(DATE(${expenses.date}), 'YYYY-MM')`)
+    .orderBy(sql`TO_CHAR(DATE(${expenses.date}), 'YYYY-MM') DESC`);
+  return rows.map((r) => r.month);
+}
+
+export async function getTotalSpentThisMonth(
+  userId: string,
+  monthKey?: string
+) {
+  const { start, end } = getMonthBounds(undefined, undefined, monthKey);
 
   const result = await db
     .select({
@@ -33,8 +57,11 @@ export async function getTotalSpentThisMonth(userId: string) {
   return result[0]?.total ?? 0;
 }
 
-export async function getSpentByAccountThisMonth(userId: string) {
-  const { start, end } = getMonthBounds();
+export async function getSpentByAccountThisMonth(
+  userId: string,
+  monthKey?: string
+) {
+  const { start, end } = getMonthBounds(undefined, undefined, monthKey);
 
   return db
     .select({
@@ -55,7 +82,22 @@ export async function getSpentByAccountThisMonth(userId: string) {
     .groupBy(expenses.accountId, accounts.name, accounts.type);
 }
 
-export async function getRecentExpenses(userId: string, limit = 5) {
+export async function getRecentExpenses(
+  userId: string,
+  limit = 5,
+  monthKey?: string
+) {
+  const baseWhere = eq(expenses.userId, userId);
+  const bounds = monthKey
+    ? getMonthBounds(undefined, undefined, monthKey)
+    : null;
+  const conditions = bounds
+    ? and(
+        baseWhere,
+        sql`DATE(${expenses.date}) >= ${bounds.start}::date`,
+        sql`DATE(${expenses.date}) <= ${bounds.end}::date`
+      )
+    : baseWhere;
   return db
     .select({
       id: expenses.id,
@@ -68,13 +110,16 @@ export async function getRecentExpenses(userId: string, limit = 5) {
     })
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
-    .where(eq(expenses.userId, userId))
+    .where(conditions)
     .orderBy(sql`${expenses.date} DESC`)
     .limit(limit);
 }
 
-export async function getSpentByCategoryThisMonth(userId: string) {
-  const { start, end } = getMonthBounds();
+export async function getSpentByCategoryThisMonth(
+  userId: string,
+  monthKey?: string
+) {
+  const { start, end } = getMonthBounds(undefined, undefined, monthKey);
 
   return db
     .select({
@@ -94,12 +139,21 @@ export async function getSpentByCategoryThisMonth(userId: string) {
     .groupBy(expenses.categoryId, categories.name);
 }
 
-export async function getSpentByMonthLastNMonths(userId: string, n: number) {
-  const now = new Date();
+export async function getSpentByMonthLastNMonths(
+  userId: string,
+  n: number,
+  endMonthKey?: string
+) {
+  const baseDate = endMonthKey && /^\d{4}-\d{2}$/.test(endMonthKey)
+    ? (() => {
+        const [y, m] = endMonthKey.split("-").map(Number);
+        return new Date(y, m - 1, 1);
+      })()
+    : new Date();
   const rows: { month: string; total: number; year: number; monthNum: number }[] = [];
 
   for (let i = 0; i < n; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const d = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
     const y = d.getFullYear();
     const m = d.getMonth() + 1;
     const { start, end } = getMonthBounds(y, m);
@@ -129,8 +183,11 @@ export async function getSpentByMonthLastNMonths(userId: string, n: number) {
   return rows.reverse();
 }
 
-export async function getExpenseCountThisMonth(userId: string) {
-  const { start, end } = getMonthBounds();
+export async function getExpenseCountThisMonth(
+  userId: string,
+  monthKey?: string
+) {
+  const { start, end } = getMonthBounds(undefined, undefined, monthKey);
 
   const result = await db
     .select({

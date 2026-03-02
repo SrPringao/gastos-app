@@ -13,8 +13,11 @@ export async function GET(request: NextRequest) {
       parseInt(searchParams.get("limit") || "100", 10),
       500
     );
+    const month = searchParams.get("month") || undefined;
+    const monthKey =
+      month && /^\d{4}-\d{2}$/.test(month) ? month : undefined;
 
-    const expenses = await getExpensesWithDetails(userId, limit);
+    const expenses = await getExpensesWithDetails(userId, limit, monthKey);
     return NextResponse.json(expenses);
   } catch (error) {
     console.error("[API] GET /api/expenses/list:", error);

@@ -29,25 +29,32 @@ type ExpenseWithDetails = {
 type ExpensesListProps = {
   accounts: { id: number; name: string; type: string }[];
   categories: { id: number; name: string }[];
+  monthKey?: string;
 };
 
-export function ExpensesList({ accounts, categories }: ExpensesListProps) {
+export function ExpensesList({ accounts, categories, monthKey }: ExpensesListProps) {
   const router = useRouter();
   const [expenses, setExpenses] = useState<ExpenseWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/expenses/list?limit=100")
+    const url = monthKey
+      ? `/api/expenses/list?limit=100&month=${monthKey}`
+      : "/api/expenses/list?limit=100";
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setExpenses(data);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [monthKey]);
 
   function onEditSuccess() {
     router.refresh();
-    fetch("/api/expenses/list?limit=100")
+    const url = monthKey
+      ? `/api/expenses/list?limit=100&month=${monthKey}`
+      : "/api/expenses/list?limit=100";
+    fetch(url)
       .then((res) => res.json())
       .then(setExpenses);
   }

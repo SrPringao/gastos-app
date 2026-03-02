@@ -15,10 +15,23 @@ import { AccountsCard } from "@/components/dashboard/accounts-card";
 import { RecentExpensesCard } from "@/components/dashboard/recent-expenses-card";
 import { SpentByAccountCard } from "@/components/dashboard/spent-by-account-card";
 import { MonthlyBudgetCard } from "@/components/dashboard/monthly-budget-card";
+import { MonthSelector } from "@/components/month-selector";
+import { Suspense } from "react";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
+
+  const params = await searchParams;
+  const monthParam = params.month;
+  const monthKey =
+    monthParam && /^\d{4}-\d{2}$/.test(monthParam)
+      ? monthParam
+      : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
   const [
     accounts,
@@ -29,23 +42,29 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     getAccounts(userId),
     getCategories(userId),
-    getTotalSpentThisMonth(userId),
-    getSpentByAccountThisMonth(userId),
-    getRecentExpenses(userId, 5),
+    getTotalSpentThisMonth(userId, monthKey),
+    getSpentByAccountThisMonth(userId, monthKey),
+    getRecentExpenses(userId, 5, monthKey),
   ]);
 
-  const now = new Date();
-  const monthName = now.toLocaleDateString("es-MX", { month: "long" });
+  const [y, m] = monthKey.split("-").map(Number);
+  const monthName = new Date(y, m - 1, 1).toLocaleDateString("es-MX", {
+    month: "long",
+  });
   const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Resumen de tus gastos y metodos de pago
-        </p>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Resumen de tus gastos y metodos de pago
+          </p>
+        </div>
+        <Suspense fallback={null}>
+          <MonthSelector />
+        </Suspense>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12">
