@@ -29,25 +29,32 @@ type ExpenseWithDetails = {
 type ExpensesListProps = {
   accounts: { id: number; name: string; type: string }[];
   categories: { id: number; name: string }[];
+  monthKey?: string;
 };
 
-export function ExpensesList({ accounts, categories }: ExpensesListProps) {
+export function ExpensesList({ accounts, categories, monthKey }: ExpensesListProps) {
   const router = useRouter();
   const [expenses, setExpenses] = useState<ExpenseWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/expenses/list?limit=100")
+    const url = monthKey
+      ? `/api/expenses/list?limit=100&month=${monthKey}`
+      : "/api/expenses/list?limit=100";
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setExpenses(data);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [monthKey]);
 
   function onEditSuccess() {
     router.refresh();
-    fetch("/api/expenses/list?limit=100")
+    const url = monthKey
+      ? `/api/expenses/list?limit=100&month=${monthKey}`
+      : "/api/expenses/list?limit=100";
+    fetch(url)
       .then((res) => res.json())
       .then(setExpenses);
   }
@@ -73,7 +80,7 @@ export function ExpensesList({ accounts, categories }: ExpensesListProps) {
       {expenses.map((exp) => (
         <div
           key={exp.id}
-          className="border-border flex items-center justify-between rounded-lg border bg-background/50 p-4"
+          className="border-border flex min-h-[60px] items-center justify-between gap-3 rounded-lg border bg-background/50 p-4"
         >
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">

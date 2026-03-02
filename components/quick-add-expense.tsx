@@ -22,6 +22,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-media-query";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -54,6 +63,7 @@ type Step = "amount" | "account" | "details";
 
 export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("amount");
   const [error, setError] = useState<string | null>(null);
@@ -87,8 +97,12 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
     }
   }
 
+  function parseAmount(value: string): number {
+    return parseFloat(value.replace(/,/g, ".")) || 0;
+  }
+
   function handleNextFromAmount() {
-    const parsed = parseFloat(amount);
+    const parsed = parseAmount(amount);
     if (isNaN(parsed) || parsed <= 0) {
       setError("Ingresa un monto valido");
       return;
@@ -109,7 +123,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsedAmount = parseFloat(amount);
+    const parsedAmount = parseAmount(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       setError("Monto invalido");
       return;
@@ -162,16 +176,19 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
     router.refresh();
   }
 
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="lg" className="gap-2">
-          <PlusIcon className="size-5" />
-          Agregar gasto
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        {addingAccount ? (
+  const trigger = (
+    <Button
+      size="lg"
+      className="h-12 w-full gap-2 sm:h-10 sm:w-auto sm:min-w-[140px]"
+    >
+      <PlusIcon className="size-5 shrink-0" />
+      Agregar gasto
+    </Button>
+  );
+
+  const content = (
+    <>
+      {addingAccount ? (
           <>
             <DialogHeader>
               <DialogTitle>Agregar metodo de pago</DialogTitle>
@@ -225,42 +242,65 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
           </>
         ) : step === "amount" ? (
           <>
-            <DialogHeader>
-              <DialogTitle>Nuevo gasto</DialogTitle>
-              <DialogDescription>
-                Ingresa el monto del gasto. Luego seleccionaras el metodo de pago.
+            <DialogHeader className="sm:text-left">
+              <DialogTitle className="sr-only">Nuevo gasto</DialogTitle>
+              <DialogDescription className="sr-only">
+                Ingresa el monto y opcionalmente una nota.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <div>
-                <Label htmlFor="amount">Monto</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  autoFocus
-                  className="mt-1 text-lg"
-                />
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-muted-foreground text-sm">Monto</span>
+                <div className="flex items-baseline justify-center gap-0.5">
+                  <span className="text-5xl font-bold tracking-tight sm:text-6xl">$</span>
+                  <input
+                    id="amount-input"
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9.,]/g, "").replace(/,/g, ".");
+                      if (v === "" || /^\d*\.?\d{0,2}$/.test(v)) setAmount(v);
+                    }}
+                    placeholder="0"
+                    autoFocus
+                    aria-label="Monto"
+                    className="border-0 bg-transparent p-0 text-5xl font-bold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/60 focus:ring-0 sm:text-6xl w-full min-w-[80px] max-w-[240px]"
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="description">Descripcion (opcional)</Label>
-                <Input
-                  id="description"
+              <div className="flex justify-center gap-2">
+                {[100, 200, 500, 1000].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() =>
+                      setAmount((prev) => String(parseAmount(prev) + preset))
+                    }
+                    className="bg-muted hover:bg-muted/80 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  >
+                    ${preset >= 1000 ? "1k" : preset}
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+                <label htmlFor="description-input" className="sr-only">
+                  Descripcion (opcional)
+                </label>
+                <input
+                  id="description-input"
+                  type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Ej: Comida, uber..."
-                  className="mt-1"
+                  placeholder="Anadir una nota"
+                  className="bg-transparent w-full text-sm outline-none placeholder:text-muted-foreground"
                 />
               </div>
-              {error && <p className="text-destructive text-sm">{error}</p>}
+              {error && <p className="text-destructive text-center text-sm">{error}</p>}
               <Button
                 onClick={handleNextFromAmount}
-                className="gap-2"
-                disabled={!amount}
+                className="h-12 gap-2 rounded-xl"
+                disabled={!amount || parseAmount(amount) <= 0}
               >
                 Siguiente
                 <ChevronRightIcon className="size-4" />
@@ -274,7 +314,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
               <DialogDescription>
                 {amount && (
                   <span className="font-medium text-foreground">
-                    {formatCurrency(parseFloat(amount) * 100)}
+                    {formatCurrency(Math.round(parseAmount(amount) * 100))}
                   </span>
                 )}{" "}
                 - Selecciona como pagaste
@@ -290,7 +330,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                     type="button"
                     onClick={() => handleSelectAccount(acc.id)}
                     className={cn(
-                      "border-border flex items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                      "border-border flex min-h-[64px] items-center gap-4 rounded-xl border p-4 text-left transition-colors active:bg-accent",
                       "hover:bg-accent hover:border-accent-foreground/20"
                     )}
                   >
@@ -389,7 +429,24 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
             </form>
           </>
         )}
-      </DialogContent>
+    </>
+  );
+
+  return isMobile ? (
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto">
+        <SheetHeader className="sr-only">
+          <SheetTitle>Nuevo gasto</SheetTitle>
+          <SheetDescription>Agregar un nuevo gasto</SheetDescription>
+        </SheetHeader>
+        <div className="pb-6 pt-2">{content}</div>
+      </SheetContent>
+    </Sheet>
+  ) : (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">{content}</DialogContent>
     </Dialog>
   );
 }

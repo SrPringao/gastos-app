@@ -70,9 +70,9 @@ export function AccountsCard({ accounts, categories }: AccountsCardProps) {
 
   return (
     <Card className="col-span-1 md:col-span-2">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>Metodos de pago</CardTitle>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <QuickAddExpense accounts={accounts} categories={categories} />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export type CreateExpenseInput = {
   amount: number;
@@ -60,11 +60,27 @@ export async function getExpenses(userId: string | null, limit = 100) {
     .limit(limit);
 }
 
+function getMonthEnd(monthKey: string): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  const lastDay = new Date(y, m, 0).getDate();
+  return `${monthKey}-${String(lastDay).padStart(2, "0")}`;
+}
+
 export async function getExpensesWithDetails(
   userId: string | null,
-  limit = 100
+  limit = 100,
+  monthKey?: string
 ) {
   if (!userId) return [];
+  const baseWhere = eq(expenses.userId, userId);
+  const conditions =
+    monthKey && /^\d{4}-\d{2}$/.test(monthKey)
+      ? and(
+          baseWhere,
+          sql`DATE(${expenses.date}) >= ${`${monthKey}-01`}::date`,
+          sql`DATE(${expenses.date}) <= ${getMonthEnd(monthKey)}::date`
+        )
+      : baseWhere;
   return db
     .select({
       id: expenses.id,
@@ -81,7 +97,7 @@ export async function getExpensesWithDetails(
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
     .leftJoin(categories, eq(expenses.categoryId, categories.id))
-    .where(eq(expenses.userId, userId))
+    .where(conditions)
     .orderBy(desc(expenses.date))
     .limit(limit);
 }
