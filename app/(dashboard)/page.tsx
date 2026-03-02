@@ -16,6 +16,7 @@ import { RecentExpensesCard } from "@/components/dashboard/recent-expenses-card"
 import { SpentByAccountCard } from "@/components/dashboard/spent-by-account-card";
 import { MonthlyBudgetCard } from "@/components/dashboard/monthly-budget-card";
 import { MonthSelector } from "@/components/month-selector";
+import { QuickAddExpense } from "@/components/quick-add-expense";
 import { Suspense } from "react";
 
 export default async function DashboardPage({
@@ -54,20 +55,27 @@ export default async function DashboardPage({
   const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Resumen de tus gastos y metodos de pago
           </p>
         </div>
-        <Suspense fallback={null}>
-          <MonthSelector />
-        </Suspense>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div className="order-2 w-full sm:order-1 sm:w-auto">
+            <QuickAddExpense accounts={accounts} categories={categories} />
+          </div>
+          <div className="order-1 sm:order-2">
+            <Suspense fallback={null}>
+              <MonthSelector />
+            </Suspense>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12">
         <div className="xl:col-span-5">
           <MetricsCard
             title="Gastado este mes"

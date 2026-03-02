@@ -61,19 +61,21 @@ export default async function GastosPage({
   const monthLabel = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gastos</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Gastos</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Metricas, graficas e historial de transacciones
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="w-full sm:w-auto">
+            <QuickAddExpense accounts={accounts} categories={categories} />
+          </div>
           <Suspense fallback={null}>
             <MonthSelector />
           </Suspense>
-          <QuickAddExpense accounts={accounts} categories={categories} />
         </div>
       </div>
 
@@ -110,7 +112,7 @@ export default async function GastosPage({
         </Card>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Por metodo de pago (este mes)</CardTitle>

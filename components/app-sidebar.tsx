@@ -31,7 +31,7 @@ export function AppSidebar() {
   }
 
   return (
-    <aside className="border-border bg-sidebar text-sidebar-foreground flex h-screen w-64 flex-col border-r">
+    <aside className="border-border bg-sidebar text-sidebar-foreground hidden h-screen w-64 flex-col border-r md:flex">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/" className="font-semibold">
           Gastos

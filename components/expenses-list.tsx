@@ -80,7 +80,7 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
       {expenses.map((exp) => (
         <div
           key={exp.id}
-          className="border-border flex items-center justify-between rounded-lg border bg-background/50 p-4"
+          className="border-border flex min-h-[60px] items-center justify-between gap-3 rounded-lg border bg-background/50 p-4"
         >
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
