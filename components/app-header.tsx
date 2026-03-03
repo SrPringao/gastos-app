@@ -18,6 +18,7 @@ const navItems = [
   { href: "/cuentas", label: "Cuentas" },
   { href: "/gastos", label: "Gastos" },
   { href: "/categorias", label: "Categorias" },
+  { href: "/simulador", label: "Simulador" },
 ];
 
 export function AppHeader() {
