@@ -81,12 +81,48 @@ export const monthlyBudgets = pgTable(
   })
 );
 
+// Gastos fijos / recurrentes (no afectan métricas de gastos libres)
+export const fixedExpenses = pgTable("fixed_expenses", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  amount: integer("amount").notNull(), // en centavos
+  dayOfMonth: integer("day_of_month"), // día esperado de pago (informativo)
+  category: text("category"), // etiqueta libre opcional
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Registro de pagos mensuales de gastos fijos
+export const fixedExpensePayments = pgTable(
+  "fixed_expense_payments",
+  {
+    id: serial("id").primaryKey(),
+    fixedExpenseId: integer("fixed_expense_id")
+      .notNull()
+      .references(() => fixedExpenses.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    month: text("month").notNull(), // YYYY-MM
+    paidAt: timestamp("paid_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniquePerMonth: uniqueIndex("fixed_expense_payments_unique").on(
+      table.fixedExpenseId,
+      table.month
+    ),
+  })
+);
+
 // Relaciones para joins
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   categories: many(categories),
   expenses: many(expenses),
   monthlyBudgets: many(monthlyBudgets),
+  fixedExpenses: many(fixedExpenses),
 }));
 
 export const accountsRelations = relations(accounts, ({ many, one }) => ({
@@ -121,6 +157,19 @@ export const monthlyBudgetsRelations = relations(monthlyBudgets, ({ one }) => ({
   }),
 }));
 
+export const fixedExpensesRelations = relations(fixedExpenses, ({ one, many }) => ({
+  user: one(users, { fields: [fixedExpenses.userId], references: [users.id] }),
+  payments: many(fixedExpensePayments),
+}));
+
+export const fixedExpensePaymentsRelations = relations(fixedExpensePayments, ({ one }) => ({
+  fixedExpense: one(fixedExpenses, {
+    fields: [fixedExpensePayments.fixedExpenseId],
+    references: [fixedExpenses.id],
+  }),
+  user: one(users, { fields: [fixedExpensePayments.userId], references: [users.id] }),
+}));
+
 // Tipos para insert/select
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
@@ -132,3 +181,7 @@ export type Expense = InferSelectModel<typeof expenses>;
 export type NewExpense = InferInsertModel<typeof expenses>;
 export type MonthlyBudget = InferSelectModel<typeof monthlyBudgets>;
 export type NewMonthlyBudget = InferInsertModel<typeof monthlyBudgets>;
+export type FixedExpense = InferSelectModel<typeof fixedExpenses>;
+export type NewFixedExpense = InferInsertModel<typeof fixedExpenses>;
+export type FixedExpensePayment = InferSelectModel<typeof fixedExpensePayments>;
+export type NewFixedExpensePayment = InferInsertModel<typeof fixedExpensePayments>;

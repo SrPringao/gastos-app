@@ -8,15 +8,16 @@ import {
   ReceiptIcon,
   PieChartIcon,
   FlaskConicalIcon,
+  ReceiptTextIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
-  { href: "/categorias", label: "Categorias", icon: PieChartIcon },
+  { href: "/gastos-fijos", label: "Fijos", icon: ReceiptTextIcon },
   { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
+  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
 ];
 
 export function MobileNav() {
