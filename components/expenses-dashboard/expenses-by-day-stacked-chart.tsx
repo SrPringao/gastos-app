@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatCurrency } from "@/lib/utils/dates";
-import type { TooltipProps } from "recharts";
 
 type DailyAccountPoint = {
   date: string; // YYYY-MM-DD
@@ -37,7 +36,16 @@ type InternalAccount = {
   color: string | null;
 };
 
-type DayTooltipProps = TooltipProps<number, string> & {
+type DayTooltipEntry = {
+  dataKey?: string | number;
+  color?: string;
+  value?: number;
+  payload?: ChartPoint;
+};
+
+type DayTooltipProps = {
+  active?: boolean;
+  payload?: DayTooltipEntry[];
   accounts: InternalAccount[];
 };
 
@@ -51,10 +59,10 @@ function DayTooltip({ active, payload, accounts }: DayTooltipProps) {
 
   const items = payload
     .filter(
-      (entry) =>
+      (entry: DayTooltipEntry) =>
         typeof entry.value === "number" && (entry.value ?? 0) > 0
     )
-    .map((entry) => {
+    .map((entry: DayTooltipEntry) => {
       const account = accounts.find(
         (a) => `a_${a.id}` === String(entry.dataKey)
       );
@@ -173,7 +181,7 @@ export function ExpensesByDayStackedChart({ data }: Props) {
             tickFormatter={(v) => `$${v}`}
           />
           <Tooltip
-            content={(props) => (
+            content={(props: any) => (
               <DayTooltip {...props} accounts={accounts} />
             )}
           />
