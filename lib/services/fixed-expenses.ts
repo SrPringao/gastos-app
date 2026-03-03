@@ -56,6 +56,43 @@ export async function createFixedExpense(
   return { success: true };
 }
 
+export type UpdateFixedExpenseInput = {
+  name?: string;
+  amount?: number;
+  dayOfMonth?: number | null;
+  category?: string | null;
+};
+
+export async function updateFixedExpense(
+  userId: string,
+  id: number,
+  input: UpdateFixedExpenseInput
+) {
+  const existing = await getFixedExpenseById(id);
+  if (!existing) return { error: "Gasto fijo no encontrado" };
+  if (existing.userId !== userId) return { error: "No autorizado" };
+
+  const { name, amount, dayOfMonth, category } = input;
+
+  if (name !== undefined && !name.trim()) return { error: "El nombre es requerido" };
+  if (amount !== undefined) {
+    const cents = Math.round(amount * 100);
+    if (isNaN(cents) || cents <= 0) return { error: "Monto inválido" };
+  }
+
+  await db
+    .update(fixedExpenses)
+    .set({
+      ...(name !== undefined && { name: name.trim() }),
+      ...(amount !== undefined && { amount: Math.round(amount * 100) }),
+      ...(dayOfMonth !== undefined && { dayOfMonth: dayOfMonth ?? null }),
+      ...(category !== undefined && { category: category?.trim() || null }),
+    })
+    .where(eq(fixedExpenses.id, id));
+
+  return { success: true };
+}
+
 export async function deleteFixedExpense(userId: string, id: number) {
   const existing = await getFixedExpenseById(id);
   if (!existing) return { error: "Gasto fijo no encontrado" };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
-import { deleteFixedExpense, updateFixedExpense } from "@/lib/services/fixed-expenses";
+import { deleteCategory } from "@/lib/services/categories";
 
 export async function DELETE(
   _request: NextRequest,
@@ -15,13 +15,13 @@ export async function DELETE(
     if (!userId)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const result = await deleteFixedExpense(userId, id);
+    const result = await deleteCategory(userId, id);
     if (result.error)
       return NextResponse.json({ error: result.error }, { status: 400 });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[API] DELETE /api/fixed-expenses/[id]:", error);
-    return NextResponse.json({ error: "Error al eliminar gasto fijo" }, { status: 500 });
+    console.error("[API] DELETE /api/categories/[id]:", error);
+    return NextResponse.json({ error: "Error al eliminar categoría" }, { status: 500 });
   }
 }
