@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateExpense, getExpenseById } from "@/lib/services/expenses";
+import { updateExpense, getExpenseById, deleteExpense } from "@/lib/services/expenses";
 import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(
@@ -57,6 +57,36 @@ export async function PATCH(
     console.error("[API] PATCH /api/expenses/[id]:", error);
     return NextResponse.json(
       { error: "Error al actualizar gasto" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const id = Number((await params).id);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID invalido" }, { status: 400 });
+    }
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const result = await deleteExpense(userId, id);
+
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[API] DELETE /api/expenses/[id]:", error);
+    return NextResponse.json(
+      { error: "Error al eliminar gasto" },
       { status: 500 }
     );
   }

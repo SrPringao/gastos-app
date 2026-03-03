@@ -102,7 +102,7 @@ export default async function DashboardPage({
         </div>
 
         <div className="xl:col-span-7">
-          <SpentByAccountCard data={spentByAccount} />
+          <SpentByAccountCard data={spentByAccount} monthKey={monthKey} />
         </div>
         <div className="xl:col-span-5">
           <RecentExpensesCard

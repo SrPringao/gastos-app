@@ -78,6 +78,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   const [newAccountName, setNewAccountName] = useState("");
   const [newAccountType, setNewAccountType] =
     useState<"credit" | "debit" | "cash">("debit");
+  const [savingExpense, setSavingExpense] = useState(false);
 
   function resetForm() {
     setStep("amount");
@@ -122,6 +123,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (savingExpense) return;
     setError(null);
     const parsedAmount = parseAmount(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -133,25 +135,30 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
       return;
     }
 
-    const res = await fetch("/api/expenses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: parsedAmount,
-        accountId,
-        categoryId: categoryId || null,
-        date,
-        description: description.trim() || null,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Error al guardar");
-      return;
+    setSavingExpense(true);
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: parsedAmount,
+          accountId,
+          categoryId: categoryId || null,
+          date,
+          description: description.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Error al guardar");
+        return;
+      }
+      setOpen(false);
+      resetForm();
+      router.refresh();
+    } finally {
+      setSavingExpense(false);
     }
-    setOpen(false);
-    resetForm();
-    router.refresh();
   }
 
   async function handleAddAccount(e: React.FormEvent) {
@@ -300,9 +307,9 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
               <Button
                 onClick={handleNextFromAmount}
                 className="h-12 gap-2 rounded-xl"
-                disabled={!amount || parseAmount(amount) <= 0}
+                disabled={!amount || parseAmount(amount) <= 0 || savingExpense}
               >
-                Siguiente
+                {savingExpense ? "Guardando..." : "Siguiente"}
                 <ChevronRightIcon className="size-4" />
               </Button>
             </div>

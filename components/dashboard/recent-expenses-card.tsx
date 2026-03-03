@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditExpenseModal } from "@/components/edit-expense-modal";
+import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { formatCurrency, formatDate } from "@/lib/utils/dates";
 
 type RecentExpense = {
@@ -53,7 +54,7 @@ export function RecentExpensesCard({
                     {exp.accountName} - {formatDate(exp.date)}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <span className="font-medium">{formatCurrency(exp.amount)}</span>
                   <EditExpenseModal
                     expense={{
@@ -69,6 +70,11 @@ export function RecentExpensesCard({
                     }}
                     accounts={accounts}
                     categories={categories}
+                    onSuccess={() => router.refresh()}
+                  />
+                  <DeleteExpenseButton
+                    expenseId={exp.id}
+                    description={exp.description}
                     onSuccess={() => router.refresh()}
                   />
                 </div>

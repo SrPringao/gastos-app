@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PencilIcon, CreditCardIcon, WalletIcon, BanknoteIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CreditCardIcon, WalletIcon, BanknoteIcon } from "lucide-react";
 import { EditExpenseModal } from "@/components/edit-expense-modal";
+import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { formatCurrency, formatDate } from "@/lib/utils/dates";
 
 const typeIcons = {
@@ -49,7 +49,7 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
       .finally(() => setLoading(false));
   }, [monthKey]);
 
-  function onEditSuccess() {
+  function refreshList() {
     router.refresh();
     const url = monthKey
       ? `/api/expenses/list?limit=100&month=${monthKey}`
@@ -113,13 +113,18 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1">
             <span className="font-medium">{formatCurrency(exp.amount)}</span>
             <EditExpenseModal
               expense={exp}
               accounts={accounts}
               categories={categories}
-              onSuccess={onEditSuccess}
+              onSuccess={refreshList}
+            />
+            <DeleteExpenseButton
+              expenseId={exp.id}
+              description={exp.description}
+              onSuccess={refreshList}
             />
           </div>
         </div>
