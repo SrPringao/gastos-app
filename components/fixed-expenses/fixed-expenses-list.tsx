@@ -1,10 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { CheckIcon, TrashIcon, CalendarIcon, TagIcon } from "lucide-react";
+import { CheckIcon, TrashIcon, CalendarIcon, TagIcon, PencilIcon, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type FixedExpense = {
   id: number;
@@ -26,6 +34,130 @@ type FixedExpensesListProps = {
   monthKey: string;
 };
 
+function parseAmount(value: string): number {
+  return parseFloat(value.replace(/,/g, ".")) || 0;
+}
+
+function EditModal({
+  item,
+  onSave,
+  onClose,
+}: {
+  item: FixedExpense;
+  onSave: (updated: FixedExpense) => void;
+  onClose: () => void;
+}) {
+  const [amount, setAmount] = useState(String(item.amount / 100));
+  const [name, setName] = useState(item.name);
+  const [dayOfMonth, setDayOfMonth] = useState(item.dayOfMonth ? String(item.dayOfMonth) : "");
+  const [category, setCategory] = useState(item.category ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave() {
+    if (!name.trim()) { setError("Ingresa un nombre."); return; }
+    const parsed = parseAmount(amount);
+    if (isNaN(parsed) || parsed <= 0) { setError("Ingresa un monto válido."); return; }
+    setError("");
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/fixed-expenses/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          amount: parsed,
+          dayOfMonth: dayOfMonth ? Number(dayOfMonth) : null,
+          category: category.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Error al guardar"); return; }
+      onSave({
+        ...item,
+        name: name.trim(),
+        amount: Math.round(parsed * 100),
+        dayOfMonth: dayOfMonth ? Number(dayOfMonth) : null,
+        category: category.trim() || null,
+      });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Monto */}
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-muted-foreground text-sm">Monto mensual</span>
+        <div className="flex items-baseline justify-center gap-0.5">
+          <span className="text-4xl font-bold tracking-tight">$</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9.,]/g, "").replace(/,/g, ".");
+              if (v === "" || /^\d*\.?\d{0,2}$/.test(v)) setAmount(v);
+            }}
+            autoFocus
+            className="w-full min-w-[80px] max-w-[200px] border-0 bg-transparent p-0 text-4xl font-bold tracking-tight tabular-nums outline-none focus:ring-0"
+          />
+        </div>
+      </div>
+
+      {/* Nombre */}
+      <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+        <p className="text-muted-foreground mb-1 text-xs">Nombre</p>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full bg-transparent text-sm font-medium outline-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+          <p className="text-muted-foreground mb-1 text-xs">Día de pago</p>
+          <input
+            type="number"
+            min="1"
+            max="31"
+            value={dayOfMonth}
+            onChange={(e) => setDayOfMonth(e.target.value)}
+            placeholder="1 – 31"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+          <p className="text-muted-foreground mb-1 text-xs">Etiqueta</p>
+          <input
+            type="text"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Opcional"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+      </div>
+
+      {error && <p className="text-destructive text-center text-sm">{error}</p>}
+
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onClose} className="h-11 rounded-xl">
+          Cancelar
+        </Button>
+        <Button onClick={handleSave} disabled={saving} className="h-11 flex-1 rounded-xl gap-2">
+          {saving && <Loader2 className="size-4 animate-spin" />}
+          {saving ? "Guardando..." : "Guardar cambios"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function FixedExpensesList({
   initialItems,
   initialPayments,
@@ -36,6 +168,7 @@ export function FixedExpensesList({
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<FixedExpense | null>(null);
 
   function isPaid(id: number) {
     return payments.some((p) => p.fixedExpenseId === id && p.month === monthKey);
@@ -210,6 +343,12 @@ export function FixedExpensesList({
                       {isLoading ? "" : paid ? "Pagado" : "Marcar como pagado"}
                     </button>
                     <button
+                      onClick={() => setEditingItem(item)}
+                      className="text-muted-foreground hover:text-foreground rounded-full p-1.5 transition-colors"
+                    >
+                      <PencilIcon className="size-4" />
+                    </button>
+                    <button
                       onClick={() => setConfirmDeleteId(item.id)}
                       className="text-muted-foreground hover:text-destructive rounded-full p-1.5 transition-colors"
                     >
@@ -222,6 +361,25 @@ export function FixedExpensesList({
           );
         })}
       </div>
+
+      {/* Modal de edición */}
+      <Dialog open={!!editingItem} onOpenChange={(v) => { if (!v) setEditingItem(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Editar gasto fijo</DialogTitle>
+            <DialogDescription className="sr-only">Editar los datos del gasto fijo</DialogDescription>
+          </DialogHeader>
+          {editingItem && (
+            <EditModal
+              item={editingItem}
+              onSave={(updated) => {
+                setItems((prev) => prev.map((i) => i.id === updated.id ? updated : i));
+              }}
+              onClose={() => setEditingItem(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
