@@ -17,6 +17,7 @@ import { ExpensesBudgetProgressChart } from "@/components/expenses-dashboard/exp
 import { ExpensesByAccountChart } from "@/components/expenses-dashboard/expenses-by-account-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthSelector } from "@/components/month-selector";
+import { BudgetAlert } from "@/components/expenses-dashboard/budget-alert";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
@@ -79,10 +80,15 @@ export default async function GastosPage({
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8 space-y-4">
         <ExpensesMetrics
           totalSpent={totalSpent}
           countThisMonth={countThisMonth}
+          monthLabel={monthLabel}
+        />
+        <BudgetAlert
+          totalSpentCents={totalSpent}
+          monthlyBudgetCents={monthlyBudget}
           monthLabel={monthLabel}
         />
       </div>
