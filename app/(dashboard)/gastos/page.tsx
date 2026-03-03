@@ -2,18 +2,18 @@ import { getCurrentUserId } from "@/lib/auth";
 import {
   getTotalSpentThisMonth,
   getSpentByAccountThisMonth,
-  getSpentByCategoryThisMonth,
-  getSpentByMonthLastNMonths,
   getExpenseCountThisMonth,
+  getDailySpentByAccountThisMonth,
 } from "@/lib/services/dashboard";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
+import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
 import { redirect } from "next/navigation";
 import { QuickAddExpense } from "@/components/quick-add-expense";
 import { ExpensesList } from "@/components/expenses-list";
 import { ExpensesMetrics } from "@/components/expenses-dashboard/expenses-metrics";
-import { ExpensesTrendChart } from "@/components/expenses-dashboard/expenses-trend-chart";
-import { ExpensesByCategoryChart } from "@/components/expenses-dashboard/expenses-by-category-chart";
+import { ExpensesByDayStackedChart } from "@/components/expenses-dashboard/expenses-by-day-stacked-chart";
+import { ExpensesBudgetProgressChart } from "@/components/expenses-dashboard/expenses-budget-progress-chart";
 import { ExpensesByAccountChart } from "@/components/expenses-dashboard/expenses-by-account-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthSelector } from "@/components/month-selector";
@@ -41,16 +41,16 @@ export default async function GastosPage({
     categories,
     totalSpent,
     countThisMonth,
-    byMonth,
-    byCategory,
+    dailyByAccount,
+    monthlyBudget,
     byAccount,
   ] = await Promise.all([
     getAccounts(userId),
     getCategories(userId),
     getTotalSpentThisMonth(userId, monthKey),
     getExpenseCountThisMonth(userId, monthKey),
-    getSpentByMonthLastNMonths(userId, 6, monthKey),
-    getSpentByCategoryThisMonth(userId, monthKey),
+    getDailySpentByAccountThisMonth(userId, monthKey),
+    getMonthlyBudget(userId, monthKey),
     getSpentByAccountThisMonth(userId, monthKey),
   ]);
 
@@ -90,24 +90,38 @@ export default async function GastosPage({
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Gasto por mes (ultimos 6 meses)</CardTitle>
+            <CardTitle>Gasto por dia (este mes)</CardTitle>
             <p className="text-muted-foreground text-sm font-normal">
-              Evolucion del total gastado
+              Barras apiladas por metodo de pago
             </p>
           </CardHeader>
           <CardContent>
-            <ExpensesTrendChart data={byMonth} />
+            <ExpensesByDayStackedChart data={dailyByAccount} />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Por categoria (este mes)</CardTitle>
+            <CardTitle>Progreso vs presupuesto mensual</CardTitle>
             <p className="text-muted-foreground text-sm font-normal">
-              Distribucion del gasto
+              Acumulado diario comparado con tu presupuesto
             </p>
           </CardHeader>
           <CardContent>
-            <ExpensesByCategoryChart data={byCategory} />
+            <ExpensesBudgetProgressChart
+              data={dailyByAccount.reduce<
+                { date: string; totalCents: number }[]
+              >((acc, row) => {
+                const existing = acc.find((d) => d.date === row.date);
+                if (existing) {
+                  existing.totalCents += row.total;
+                } else {
+                  acc.push({ date: row.date, totalCents: row.total });
+                }
+                return acc;
+              }, [])}
+              monthlyBudgetCents={monthlyBudget}
+              monthLabel={monthLabel}
+            />
           </CardContent>
         </Card>
       </div>

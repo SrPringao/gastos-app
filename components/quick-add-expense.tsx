@@ -8,6 +8,7 @@ import {
   WalletIcon,
   BanknoteIcon,
   ChevronRightIcon,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,9 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   const [newAccountType, setNewAccountType] =
     useState<"credit" | "debit" | "cash">("debit");
   const [savingExpense, setSavingExpense] = useState(false);
+
+  const selectedAccount =
+    accounts.find((acc) => acc.id === accountId) ?? null;
 
   function resetForm() {
     setStep("amount");
@@ -309,7 +313,10 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 className="h-12 gap-2 rounded-xl"
                 disabled={!amount || parseAmount(amount) <= 0 || savingExpense}
               >
-                {savingExpense ? "Guardando..." : "Siguiente"}
+                {savingExpense && (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                )}
+                <span>{savingExpense ? "Guardando..." : "Siguiente"}</span>
                 <ChevronRightIcon className="size-4" />
               </Button>
             </div>
@@ -383,54 +390,95 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
           </>
         ) : (
           <>
-            <DialogHeader>
-              <DialogTitle>Detalles</DialogTitle>
-              <DialogDescription>
-                Categoria y fecha son opcionales.
+            <DialogHeader className="sm:text-left">
+              <DialogTitle className="text-base font-semibold">
+                Detalles del gasto
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Ajusta la categoria y la fecha. Ambos campos son opcionales.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div>
-                <Label htmlFor="category">Categoria (opcional)</Label>
-                <select
-                  id="category"
-                  value={categoryId ?? ""}
-                  onChange={(e) =>
-                    setCategoryId(
-                      e.target.value ? Number(e.target.value) : null
-                    )
-                  }
-                  className={cn(
-                    "border-input dark:bg-input/30 mt-1 h-9 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-                  )}
-                >
-                  <option value="">Sin categoria</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-muted-foreground text-xs">Monto</p>
+                  <p className="text-2xl font-semibold tracking-tight tabular-nums">
+                    {formatCurrency(
+                      Math.round(parseAmount(amount || "0") * 100)
+                    )}
+                  </p>
+                </div>
+                {selectedAccount && (
+                  <div className="text-right">
+                    <p className="text-muted-foreground text-xs">Metodo</p>
+                    <p className="font-medium truncate max-w-[160px]">
+                      {selectedAccount.name}
+                    </p>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label>Fecha</Label>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-muted-foreground text-xs font-medium">
+                  Categoria (opcional)
+                </span>
+                <Select
+                  value={categoryId ? String(categoryId) : "none"}
+                  onValueChange={(v) =>
+                    setCategoryId(v === "none" ? null : Number(v))
+                  }
+                >
+                  <SelectTrigger className="h-11 w-full rounded-full border-border/60 bg-muted/40 px-4 text-sm">
+                    <SelectValue placeholder="Sin categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin categoria</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-muted-foreground text-xs font-medium">
+                  Fecha
+                </span>
                 <DatePickerModern
                   value={date}
                   onChange={setDate}
-                  className="mt-2"
+                  className="rounded-full border-dashed bg-muted/40"
                 />
               </div>
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              <div className="flex gap-2">
+
+              {error && (
+                <p className="text-destructive text-center text-sm">{error}</p>
+              )}
+
+              <div className="flex gap-2 pt-1">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setStep("account")}
+                  disabled={savingExpense}
+                  className="h-11 rounded-xl"
                 >
                   Atras
                 </Button>
-                <Button type="submit" className="flex-1">
-                  Guardar gasto
+                <Button
+                  type="submit"
+                  className="h-11 flex-1 gap-2 rounded-xl"
+                  disabled={savingExpense}
+                >
+                  {savingExpense && (
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span>{savingExpense ? "Guardando..." : "Guardar gasto"}</span>
                 </Button>
               </div>
             </form>
@@ -442,12 +490,15 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   return isMobile ? (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto">
+      <SheetContent
+        side="bottom"
+        className="max-h-[90dvh] min-h-[65vh] overflow-y-auto"
+      >
         <SheetHeader className="sr-only">
           <SheetTitle>Nuevo gasto</SheetTitle>
           <SheetDescription>Agregar un nuevo gasto</SheetDescription>
         </SheetHeader>
-        <div className="pb-6 pt-2">{content}</div>
+        <div className="px-4 pb-6 pt-4">{content}</div>
       </SheetContent>
     </Sheet>
   ) : (

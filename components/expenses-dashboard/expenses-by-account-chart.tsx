@@ -8,21 +8,43 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import { formatCurrency } from "@/lib/utils/dates";
 
-type Point = { name: string; total: number; totalPesos: number };
+const typeLabels: Record<string, string> = {
+  credit: "Credito",
+  debit: "Debito",
+  cash: "Efectivo",
+};
+
+type Point = {
+  name: string;
+  total: number;
+  totalPesos: number;
+  color?: string | null;
+};
 
 type Props = {
-  data: { accountId: number; accountName: string; accountType: string; total: number }[];
+  data: {
+    accountId: number;
+    accountName: string;
+    accountType: string;
+    accountColor?: string | null;
+    total: number;
+  }[];
 };
 
 export function ExpensesByAccountChart({ data }: Props) {
-  const points: Point[] = data.map((d) => ({
-    name: d.accountName,
-    total: d.total / 100,
-    totalPesos: d.total,
-  }));
+  const points: Point[] = data.map((d) => {
+    const typeLabel = typeLabels[d.accountType] || d.accountType;
+    return {
+      name: `${d.accountName} · ${typeLabel}`,
+      total: d.total / 100,
+      totalPesos: d.total,
+      color: d.accountColor,
+    };
+  });
 
   if (points.length === 0) {
     return (
@@ -63,10 +85,16 @@ export function ExpensesByAccountChart({ data }: Props) {
           />
           <Bar
             dataKey="total"
-            fill="var(--chart-2)"
             radius={[0, 4, 4, 0]}
             name="Gastado"
-          />
+          >
+            {points.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={entry.color || "var(--chart-2)"}
+              />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

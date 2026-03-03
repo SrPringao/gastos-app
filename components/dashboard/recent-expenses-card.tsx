@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { EditExpenseModal } from "@/components/edit-expense-modal";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { formatCurrency, formatDate } from "@/lib/utils/dates";
+import { ArrowRightIcon } from "lucide-react";
 
 type RecentExpense = {
   id: number;
@@ -31,8 +33,17 @@ export function RecentExpensesCard({
 
   return (
     <Card className="h-full">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle>Gastos recientes</CardTitle>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1 px-2 text-xs sm:text-sm"
+          onClick={() => router.push("/gastos")}
+        >
+          Ver historial
+          <ArrowRightIcon className="size-3.5 sm:size-4" />
+        </Button>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
         {expenses.length === 0 ? (

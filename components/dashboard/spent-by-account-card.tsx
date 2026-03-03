@@ -9,6 +9,7 @@ type SpentByAccount = {
   accountId: number;
   accountName: string;
   accountType: string;
+  accountColor?: string | null;
   total: number;
 };
 
@@ -73,9 +74,11 @@ export function SpentByAccountCard({ data, monthKey }: SpentByAccountCardProps) 
                   </div>
                   <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                     <div
-                      className="bg-primary h-full rounded-full transition-all"
+                      className="h-full rounded-full transition-all"
                       style={{
                         width: `${total > 0 ? Math.max(4, Math.round((item.total / total) * 100)) : 0}%`,
+                        backgroundColor:
+                          item.accountColor || "hsl(var(--primary))",
                       }}
                     />
                   </div>

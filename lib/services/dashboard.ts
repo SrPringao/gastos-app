@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
-import { eq, sql, and } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 function getMonthBounds(year?: number, month?: number, monthKey?: string) {
   let y: number;
@@ -68,6 +68,7 @@ export async function getSpentByAccountThisMonth(
       accountId: expenses.accountId,
       accountName: accounts.name,
       accountType: accounts.type,
+      accountColor: accounts.color,
       total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)::int`,
     })
     .from(expenses)
@@ -79,7 +80,8 @@ export async function getSpentByAccountThisMonth(
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
     )
-    .groupBy(expenses.accountId, accounts.name, accounts.type);
+    .groupBy(expenses.accountId, accounts.name, accounts.type, accounts.color)
+    .orderBy(sql`COALESCE(SUM(${expenses.amount}), 0)::int DESC`);
 }
 
 export async function getRecentExpenses(
@@ -111,7 +113,11 @@ export async function getRecentExpenses(
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
     .where(conditions)
-    .orderBy(sql`${expenses.date} DESC`)
+    .orderBy(
+      desc(expenses.date),
+      desc(expenses.createdAt),
+      desc(expenses.id)
+    )
     .limit(limit);
 }
 
@@ -203,4 +209,46 @@ export async function getExpenseCountThisMonth(
     );
 
   return result[0]?.count ?? 0;
+}
+
+export type DailyAccountSpend = {
+  date: string;
+  accountId: number;
+  accountName: string;
+  accountColor: string | null;
+  total: number;
+};
+
+export async function getDailySpentByAccountThisMonth(
+  userId: string,
+  monthKey?: string
+): Promise<DailyAccountSpend[]> {
+  const { start, end } = getMonthBounds(undefined, undefined, monthKey);
+
+  const rows = await db
+    .select({
+      date: sql<string>`DATE(${expenses.date})::text`,
+      accountId: expenses.accountId,
+      accountName: accounts.name,
+      accountColor: accounts.color,
+      total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)::int`,
+    })
+    .from(expenses)
+    .innerJoin(accounts, eq(expenses.accountId, accounts.id))
+    .where(
+      and(
+        eq(expenses.userId, userId),
+        sql`DATE(${expenses.date}) >= ${start}::date`,
+        sql`DATE(${expenses.date}) <= ${end}::date`
+      )
+    )
+    .groupBy(
+      sql`DATE(${expenses.date})`,
+      expenses.accountId,
+      accounts.name,
+      accounts.color
+    )
+    .orderBy(sql`DATE(${expenses.date}) ASC`);
+
+  return rows;
 }
