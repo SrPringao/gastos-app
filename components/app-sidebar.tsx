@@ -7,6 +7,8 @@ import {
   CreditCardIcon,
   ReceiptIcon,
   PieChartIcon,
+  FlaskConicalIcon,
+  ReceiptTextIcon,
   LogOut,
 } from "lucide-react";
 
@@ -17,7 +19,9 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
+  { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
+  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
 ];
 
 export function AppSidebar() {

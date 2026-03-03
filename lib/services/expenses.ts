@@ -69,18 +69,27 @@ function getMonthEnd(monthKey: string): string {
 export async function getExpensesWithDetails(
   userId: string | null,
   limit = 100,
-  monthKey?: string
+  monthKey?: string,
+  accountId?: number
 ) {
   if (!userId) return [];
   const baseWhere = eq(expenses.userId, userId);
-  const conditions =
-    monthKey && /^\d{4}-\d{2}$/.test(monthKey)
-      ? and(
-          baseWhere,
-          sql`DATE(${expenses.date}) >= ${`${monthKey}-01`}::date`,
-          sql`DATE(${expenses.date}) <= ${getMonthEnd(monthKey)}::date`
-        )
-      : baseWhere;
+  
+  const conditionsList = [baseWhere];
+  
+  if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
+    conditionsList.push(
+      sql`DATE(${expenses.date}) >= ${`${monthKey}-01`}::date`,
+      sql`DATE(${expenses.date}) <= ${getMonthEnd(monthKey)}::date`
+    );
+  }
+  
+  if (accountId !== undefined) {
+    conditionsList.push(eq(expenses.accountId, accountId));
+  }
+  
+  const conditions = conditionsList.length > 1 ? and(...conditionsList) : baseWhere;
+  
   return db
     .select({
       id: expenses.id,
@@ -138,5 +147,18 @@ export async function updateExpense(
     })
     .where(eq(expenses.id, id));
 
+  return { success: true };
+}
+
+export async function deleteExpense(userId: string, id: number) {
+  const existing = await getExpenseById(id);
+  if (!existing) {
+    return { error: "Gasto no encontrado" };
+  }
+  if (existing.userId && existing.userId !== userId) {
+    return { error: "No autorizado" };
+  }
+
+  await db.delete(expenses).where(eq(expenses.id, id));
   return { success: true };
 }
