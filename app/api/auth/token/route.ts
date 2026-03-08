@@ -26,7 +26,7 @@ export async function GET() {
   }
 }
 
-const VALID_EXPIRES: ExpiresIn[] = ["7d", "30d", "90d"];
+const VALID_EXPIRES: ExpiresIn[] = ["7d", "30d", "90d", "365d"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!VALID_EXPIRES.includes(expiresIn)) {
       return NextResponse.json(
-        { error: "expiresIn debe ser 7d, 30d o 90d" },
+        { error: "expiresIn debe ser 7d, 30d, 90d o 365d" },
         { status: 400 }
       );
     }
