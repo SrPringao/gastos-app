@@ -10,6 +10,7 @@ import {
   FlaskConicalIcon,
   ReceiptTextIcon,
   LogOut,
+  RefreshCw,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -36,10 +37,20 @@ export function AppSidebar() {
 
   return (
     <aside className="border-border bg-sidebar text-sidebar-foreground hidden h-screen w-64 flex-col border-r md:flex">
-      <div className="flex h-14 items-center border-b px-4">
+      <div className="flex h-14 items-center justify-between border-b px-4">
         <Link href="/" className="font-semibold">
           Gastos
         </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.refresh()}
+          className="shrink-0"
+          title="Actualizar"
+        >
+          <RefreshCw className="size-5" />
+          <span className="sr-only">Actualizar</span>
+        </Button>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MenuIcon, LogOut } from "lucide-react";
+import { MenuIcon, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -76,7 +76,16 @@ export function AppHeader() {
       <Link href="/" className="font-semibold">
         Gastos
       </Link>
-      <div className="w-10" />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => router.refresh()}
+        className="shrink-0"
+        title="Actualizar"
+      >
+        <RefreshCw className="size-5" />
+        <span className="sr-only">Actualizar</span>
+      </Button>
     </header>
   );
 }
