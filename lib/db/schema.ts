@@ -94,6 +94,18 @@ export const fixedExpenses = pgTable("fixed_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tokens de API para acceso externo (Atajos, automatizaciones)
+export const apiTokens = pgTable("api_tokens", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  name: text("name"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Registro de pagos mensuales de gastos fijos
 export const fixedExpensePayments = pgTable(
   "fixed_expense_payments",
@@ -123,6 +135,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
   monthlyBudgets: many(monthlyBudgets),
   fixedExpenses: many(fixedExpenses),
+  apiTokens: many(apiTokens),
+}));
+
+export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
+  user: one(users, { fields: [apiTokens.userId], references: [users.id] }),
 }));
 
 export const accountsRelations = relations(accounts, ({ many, one }) => ({
@@ -185,3 +202,5 @@ export type FixedExpense = InferSelectModel<typeof fixedExpenses>;
 export type NewFixedExpense = InferInsertModel<typeof fixedExpenses>;
 export type FixedExpensePayment = InferSelectModel<typeof fixedExpensePayments>;
 export type NewFixedExpensePayment = InferInsertModel<typeof fixedExpensePayments>;
+export type ApiToken = InferSelectModel<typeof apiTokens>;
+export type NewApiToken = InferInsertModel<typeof apiTokens>;
