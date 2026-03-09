@@ -121,11 +121,48 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+  }
+  
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
   }
+  
   button, a, [role="button"] {
     touch-action: manipulation;
+  }
+  
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  
+  /* Prevenir scroll del body en móviles iOS para evitar el bounce scroll */
+  @media (max-width: 768px) {
+    html {
+      height: 100%;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      overscroll-behavior: none;
+      touch-action: pan-x pan-y;
+    }
+    
+    body {
+      height: 100%;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      position: fixed;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+    }
   }
 }

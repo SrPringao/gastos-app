@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -28,6 +29,13 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  function handleRefresh() {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), 1500);
+  }
 
   async function handleSignOut() {
     await fetch("/api/auth/signout", { method: "POST" });
@@ -44,11 +52,14 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.refresh()}
+        onClick={handleRefresh}
+        disabled={isRefreshing}
           className="shrink-0"
           title="Actualizar"
         >
-          <RefreshCw className="size-5" />
+          <RefreshCw
+            className={`size-5 opacity-70 ${isRefreshing ? "animate-spin" : ""}`}
+          />
           <span className="sr-only">Actualizar</span>
         </Button>
       </div>
