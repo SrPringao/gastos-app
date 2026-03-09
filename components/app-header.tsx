@@ -14,13 +14,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navItems = [
+const primaryNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
+  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
+];
+
+const secondaryNavItems = [
+  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
-  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
 ];
 
 export function AppHeader() {
@@ -61,7 +64,41 @@ export function AppHeader() {
             </SheetHeader>
             <nav className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-1">
-                {navItems.map((item) => {
+                {primaryNavItems.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/" && pathname.startsWith(item.href));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
+                    >
+                      <item.icon
+                        className={cn(
+                          "size-5 shrink-0 transition-transform group-hover:scale-110",
+                          isActive && "text-primary"
+                        )}
+                        strokeWidth={isActive ? 2.5 : 2}
+                      />
+                      <span className="flex-1">{item.label}</span>
+                      {isActive && (
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                      {!isActive && (
+                        <ChevronRightIcon className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                      )}
+                    </Link>
+                  );
+                })}
+                <div className="my-2 border-t border-border" />
+                {secondaryNavItems.map((item) => {
                   const isActive =
                     pathname === item.href ||
                     (item.href !== "/" && pathname.startsWith(item.href));

@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
     const accountIdParam = searchParams.get("accountId");
     const accountId = accountIdParam ? parseInt(accountIdParam, 10) : undefined;
 
-    const expenses = await getExpensesWithDetails(userId, limit, monthKey, accountId);
+    const date = searchParams.get("date") || undefined;
+    const dateStr =
+      date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined;
+
+    const expenses = await getExpensesWithDetails(userId, limit, monthKey, accountId, dateStr);
     return NextResponse.json(expenses);
   } catch (error) {
     console.error("[API] GET /api/expenses/list:", error);

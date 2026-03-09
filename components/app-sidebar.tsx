@@ -17,13 +17,16 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const navItems = [
+const primaryNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
+  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
+];
+
+const secondaryNavItems = [
+  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
-  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
 ];
 
 export function AppSidebar() {
@@ -64,7 +67,28 @@ export function AppSidebar() {
         </Button>
       </div>
       <nav className="flex-1 space-y-1 p-4">
-        {navItems.map((item) => {
+        {primaryNavItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/" && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "hover:bg-sidebar-accent/50"
+              )}
+            >
+              <item.icon className="size-5 shrink-0 opacity-70" />
+              {item.label}
+            </Link>
+          );
+        })}
+        <div className="my-2 border-t border-sidebar-border" />
+        {secondaryNavItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));

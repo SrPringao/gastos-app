@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 import { QuickAddExpense } from "@/components/quick-add-expense";
 import { ExpensesList } from "@/components/expenses-list";
 import { ExpensesMetrics } from "@/components/expenses-dashboard/expenses-metrics";
-import { ExpensesByDayStackedChart } from "@/components/expenses-dashboard/expenses-by-day-stacked-chart";
+import { ExpensesByDayCard } from "@/components/expenses-dashboard/expenses-by-day-card";
 import { ExpensesBudgetProgressChart } from "@/components/expenses-dashboard/expenses-budget-progress-chart";
 import { ExpensesByAccountChart } from "@/components/expenses-dashboard/expenses-by-account-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,17 +94,7 @@ export default async function GastosPage({
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gasto por dia (este mes)</CardTitle>
-            <p className="text-muted-foreground text-sm font-normal">
-              Barras apiladas por metodo de pago
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ExpensesByDayStackedChart data={dailyByAccount} />
-          </CardContent>
-        </Card>
+        <ExpensesByDayCard data={dailyByAccount} />
         <Card>
           <CardHeader>
             <CardTitle>Progreso vs presupuesto mensual</CardTitle>

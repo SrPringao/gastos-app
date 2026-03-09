@@ -70,14 +70,17 @@ export async function getExpensesWithDetails(
   userId: string | null,
   limit = 100,
   monthKey?: string,
-  accountId?: number
+  accountId?: number,
+  dateStr?: string
 ) {
   if (!userId) return [];
   const baseWhere = eq(expenses.userId, userId);
   
   const conditionsList = [baseWhere];
   
-  if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    conditionsList.push(sql`DATE(${expenses.date}) = ${dateStr}::date`);
+  } else if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
     conditionsList.push(
       sql`DATE(${expenses.date}) >= ${`${monthKey}-01`}::date`,
       sql`DATE(${expenses.date}) <= ${getMonthEnd(monthKey)}::date`

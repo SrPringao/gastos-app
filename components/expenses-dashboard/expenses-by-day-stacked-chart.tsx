@@ -28,6 +28,7 @@ type ChartPoint = {
 
 type Props = {
   data: DailyAccountPoint[];
+  onBarClick?: (date: string) => void;
 };
 
 type InternalAccount = {
@@ -106,7 +107,7 @@ function DayTooltip({ active, payload, accounts }: DayTooltipProps) {
   );
 }
 
-export function ExpensesByDayStackedChart({ data }: Props) {
+export function ExpensesByDayStackedChart({ data, onBarClick }: Props) {
   if (data.length === 0) {
     return (
       <p className="text-muted-foreground flex h-[260px] items-center justify-center text-sm">
@@ -197,6 +198,15 @@ export function ExpensesByDayStackedChart({ data }: Props) {
                   : `var(--chart-${(index % 5) + 1})`
               }
               radius={index === accounts.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+              onClick={
+                onBarClick
+                  ? (data: { payload?: ChartPoint }) => {
+                      const date = data?.payload?.date;
+                      if (typeof date === "string") onBarClick(date);
+                    }
+                  : undefined
+              }
+              style={onBarClick ? { cursor: "pointer" } : undefined}
             />
           ))}
         </BarChart>
