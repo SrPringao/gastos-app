@@ -140,7 +140,7 @@
     -webkit-user-select: text;
     user-select: text;
   }
-  
+
   /* Prevenir scroll del body en móviles iOS para evitar el bounce scroll */
   @media (max-width: 768px) {
     html {
