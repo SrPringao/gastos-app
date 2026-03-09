@@ -218,9 +218,9 @@ export function DayExpensesModal({ date, onOpenChange }: DayExpensesModalProps) 
                             contentStyle={{ borderRadius: "8px" }}
                           />
                           <Legend
-                            formatter={(value, entry: { payload?: { value: number } }) => (
+                            formatter={(value, entry) => (
                               <span className="text-muted-foreground text-xs">
-                                {value} {entry?.payload?.value ?? 0}%
+                                {value} {Number((entry?.payload as { value?: number })?.value ?? 0)}%
                               </span>
                             )}
                           />
