@@ -95,6 +95,35 @@ export const fixedExpenses = pgTable("fixed_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Patrimonio: saldos positivos y deudas manuales, independientes de expenses/fixedExpenses
+export const netWorthEntries = pgTable("net_worth_entries", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").references(() => accounts.id, {
+    onDelete: "set null",
+  }),
+  label: text("label").notNull(),
+  kind: text("kind", { enum: ["asset", "debt"] }).notNull(),
+  amount: integer("amount").notNull(), // en centavos
+  dueDate: timestamp("due_date"), // fecha maxima de pago, solo aplica a deudas
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Patrimonio: líneas del simulador de gastos previstos
+export const netWorthProjections = pgTable("net_worth_projections", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  amount: integer("amount").notNull(), // en centavos
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Tokens de API para acceso externo (Atajos, automatizaciones)
 export const apiTokens = pgTable("api_tokens", {
   id: serial("id").primaryKey(),
@@ -137,6 +166,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   monthlyBudgets: many(monthlyBudgets),
   fixedExpenses: many(fixedExpenses),
   apiTokens: many(apiTokens),
+  netWorthEntries: many(netWorthEntries),
+  netWorthProjections: many(netWorthProjections),
 }));
 
 export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
@@ -188,6 +219,24 @@ export const fixedExpensePaymentsRelations = relations(fixedExpensePayments, ({ 
   user: one(users, { fields: [fixedExpensePayments.userId], references: [users.id] }),
 }));
 
+export const netWorthEntriesRelations = relations(netWorthEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [netWorthEntries.userId],
+    references: [users.id],
+  }),
+  account: one(accounts, {
+    fields: [netWorthEntries.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const netWorthProjectionsRelations = relations(netWorthProjections, ({ one }) => ({
+  user: one(users, {
+    fields: [netWorthProjections.userId],
+    references: [users.id],
+  }),
+}));
+
 // Tipos para insert/select
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
@@ -205,3 +254,7 @@ export type FixedExpensePayment = InferSelectModel<typeof fixedExpensePayments>;
 export type NewFixedExpensePayment = InferInsertModel<typeof fixedExpensePayments>;
 export type ApiToken = InferSelectModel<typeof apiTokens>;
 export type NewApiToken = InferInsertModel<typeof apiTokens>;
+export type NetWorthEntry = InferSelectModel<typeof netWorthEntries>;
+export type NewNetWorthEntry = InferInsertModel<typeof netWorthEntries>;
+export type NetWorthProjection = InferSelectModel<typeof netWorthProjections>;
+export type NewNetWorthProjection = InferInsertModel<typeof netWorthProjections>;

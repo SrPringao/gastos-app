@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboardIcon,
   CreditCardIcon,
@@ -12,6 +12,9 @@ import {
   ReceiptTextIcon,
   LogOut,
   RefreshCw,
+  ChevronDownIcon,
+  WalletIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -23,16 +26,25 @@ const primaryNavItems = [
   { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
 ];
 
+const cuentasSubItems = [
+  { href: "/cuentas?tab=metodos-de-pago", tab: "metodos-de-pago", label: "Metodos de pago", icon: WalletIcon },
+  { href: "/cuentas?tab=patrimonio", tab: "patrimonio", label: "Patrimonio", icon: TrendingUpIcon },
+];
+
 const secondaryNavItems = [
-  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
   { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isCuentasActive = pathname.startsWith("/cuentas");
+  const [cuentasManuallyOpen, setCuentasManuallyOpen] = useState(false);
+  const cuentasOpen = isCuentasActive || cuentasManuallyOpen;
+  const activeTab = searchParams.get("tab") === "patrimonio" ? "patrimonio" : "metodos-de-pago";
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -88,6 +100,51 @@ export function AppSidebar() {
           );
         })}
         <div className="my-2 border-t border-sidebar-border" />
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setCuentasManuallyOpen((open) => !open)}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isCuentasActive
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "hover:bg-sidebar-accent/50"
+            )}
+          >
+            <CreditCardIcon className="size-5 shrink-0 opacity-70" />
+            <span className="flex-1 text-left">Cuentas</span>
+            <ChevronDownIcon
+              className={cn(
+                "size-4 shrink-0 opacity-70 transition-transform",
+                cuentasOpen && "rotate-180"
+              )}
+            />
+          </button>
+          {cuentasOpen && (
+            <div className="mt-1 space-y-1 pl-4">
+              {cuentasSubItems.map((item) => {
+                const isActive = isCuentasActive && activeTab === item.tab;
+                return (
+                  <Link
+                    key={item.tab}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "hover:bg-sidebar-accent/50"
+                    )}
+                  >
+                    <item.icon className="size-4 shrink-0 opacity-70" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {secondaryNavItems.map((item) => {
           const isActive =
             pathname === item.href ||
