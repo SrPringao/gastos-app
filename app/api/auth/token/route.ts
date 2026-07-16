@@ -1,41 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
 import { createApiToken, type ExpiresIn } from "@/lib/api-tokens";
-
-export async function GET() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.access_token) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-
-    return NextResponse.json({
-      access_token: session.access_token,
-      expires_at: session.expires_at,
-    });
-  } catch (err) {
-    console.error("[API] GET /api/auth/token:", err);
-    return NextResponse.json(
-      { error: "Error al obtener token" },
-      { status: 500 }
-    );
-  }
-}
 
 const VALID_EXPIRES: ExpiresIn[] = ["7d", "30d", "90d", "365d"];
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
@@ -49,7 +21,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { token, expiresAt } = await createApiToken(user.id, expiresIn);
+    const { token, expiresAt } = await createApiToken(
+      session.user.id,
+      expiresIn
+    );
 
     return NextResponse.json({
       token,

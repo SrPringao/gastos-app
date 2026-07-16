@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { getAccountById, updateAccount } from "@/lib/services/accounts";
 
-const BUCKET_NAME = "account-images";
 const MAX_SIZE = 2 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -52,36 +50,45 @@ export async function POST(
       );
     }
 
-    const supabase = await createClient();
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${id}-${Date.now()}.${ext}`;
-    const buffer = await file.arrayBuffer();
-
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(path, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("[API] Upload error:", uploadError);
+    const fileServerUrl = process.env.FILE_SERVER_URL;
+    const fileServerSecret = process.env.FILE_SERVER_SECRET;
+    if (!fileServerUrl || !fileServerSecret) {
+      console.error("[API] Faltan FILE_SERVER_URL / FILE_SERVER_SECRET");
       return NextResponse.json(
-        { error: "Error al subir la imagen. Crea el bucket 'account-images' en Supabase Storage." },
+        { error: "Servicio de imagenes no configurado" },
         { status: 500 }
       );
     }
 
-    const { data: urlData } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(path);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${id}-${Date.now()}.${ext}`;
+    const uploadForm = new FormData();
+    uploadForm.append("file", file, path);
 
-    const updateResult = await updateAccount(userId, id, { imageUrl: urlData.publicUrl });
+    const uploadResponse = await fetch(`${fileServerUrl}/upload`, {
+      method: "POST",
+      headers: { "X-Upload-Secret": fileServerSecret },
+      body: uploadForm,
+    });
+
+    if (!uploadResponse.ok) {
+      console.error("[API] Upload error:", await uploadResponse.text());
+      return NextResponse.json(
+        { error: "Error al subir la imagen" },
+        { status: 500 }
+      );
+    }
+
+    const { url: imageUrl } = (await uploadResponse.json()) as {
+      url: string;
+    };
+
+    const updateResult = await updateAccount(userId, id, { imageUrl });
     if (updateResult.error) {
       return NextResponse.json({ error: updateResult.error }, { status: 500 });
     }
 
-    return NextResponse.json({ imageUrl: urlData.publicUrl });
+    return NextResponse.json({ imageUrl });
   } catch (error) {
     console.error("[API] POST /api/accounts/[id]/upload:", error);
     return NextResponse.json(

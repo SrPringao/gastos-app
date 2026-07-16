@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { AuthError } from "next-auth";
+import { signIn } from "@/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,24 +15,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
-
-    const { error } = await supabase.auth.signInWithPassword({
+    await signIn("credentials", {
       email,
       password,
+      redirect: false,
     });
-
-    if (error) {
-      const msg =
-        error.message?.includes("Invalid login") ||
-        error.message?.includes("invalid_credentials")
-          ? "Correo o contraseña incorrectos"
-          : error.message ?? "Error al iniciar sesion";
-      return NextResponse.json({ error: msg }, { status: 401 });
-    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { error: "Correo o contraseña incorrectos" },
+        { status: 401 }
+      );
+    }
     console.error("[API] POST /api/auth/signin:", err);
     return NextResponse.json(
       { error: "Error al iniciar sesion" },

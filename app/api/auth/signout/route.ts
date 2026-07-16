@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/auth";
 
 export async function POST() {
   try {
-    const supabase = await createClient();
-    await supabase.auth.signOut();
+    await signOut({ redirect: false });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API] POST /api/auth/signout:", err);
