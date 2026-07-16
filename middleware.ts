@@ -20,12 +20,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(urlRedirect);
   }
 
-  if (session?.user && isAuthRoute) {
-    const urlRedirect = request.nextUrl.clone();
-    urlRedirect.pathname = "/";
-    return NextResponse.redirect(urlRedirect);
-  }
-
   return NextResponse.next();
 }
 

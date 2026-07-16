@@ -5,6 +5,15 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+async function findUserById(userId: string) {
+  const row = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row[0] ?? null;
+}
+
 export type CurrentUser = {
   id: string;
   email: string | null;
@@ -38,12 +47,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const row = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, session.user.id))
-    .limit(1);
-  const u = row[0];
+  const u = await findUserById(session.user.id);
   if (!u) return null;
 
   return {
@@ -56,4 +60,16 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function getCurrentUserId(): Promise<string | null> {
   const user = await getCurrentUser();
   return user?.id ?? null;
+}
+
+export async function resolveAuthRouteAccess(): Promise<
+  "guest" | "authenticated" | "stale"
+> {
+  const session = await auth();
+  if (!session?.user?.id) return "guest";
+
+  const user = await findUserById(session.user.id);
+  if (!user) return "stale";
+
+  return "authenticated";
 }
