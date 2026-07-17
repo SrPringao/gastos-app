@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   decimal,
   integer,
   pgTable,
@@ -32,6 +33,7 @@ export const accounts = pgTable("accounts", {
   cutoffDay: integer("cutoff_day"),
   paymentDay: integer("payment_day"),
   creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
+  isPlaceholder: boolean("is_placeholder").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -58,6 +60,7 @@ export const expenses = pgTable("expenses", {
   }),
   date: timestamp("date").notNull(),
   description: text("description"),
+  rawCardName: text("raw_card_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -136,6 +139,29 @@ export const apiTokens = pgTable("api_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Mapeo de nombres de tarjeta detectados por el Shortcut de iOS -> cuenta real
+export const cardNameMappings = pgTable(
+  "card_name_mappings",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rawName: text("raw_name").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    accountId: integer("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userNormalizedNameUnique: uniqueIndex(
+      "card_name_mappings_user_normalized_unique"
+    ).on(table.userId, table.normalizedName),
+  })
+);
+
 // Registro de pagos mensuales de gastos fijos
 export const fixedExpensePayments = pgTable(
   "fixed_expense_payments",
@@ -168,6 +194,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   apiTokens: many(apiTokens),
   netWorthEntries: many(netWorthEntries),
   netWorthProjections: many(netWorthProjections),
+  cardNameMappings: many(cardNameMappings),
 }));
 
 export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
@@ -180,6 +207,18 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
     references: [users.id],
   }),
   expenses: many(expenses),
+  cardNameMappings: many(cardNameMappings),
+}));
+
+export const cardNameMappingsRelations = relations(cardNameMappings, ({ one }) => ({
+  user: one(users, {
+    fields: [cardNameMappings.userId],
+    references: [users.id],
+  }),
+  account: one(accounts, {
+    fields: [cardNameMappings.accountId],
+    references: [accounts.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categories, ({ many, one }) => ({
@@ -258,3 +297,5 @@ export type NetWorthEntry = InferSelectModel<typeof netWorthEntries>;
 export type NewNetWorthEntry = InferInsertModel<typeof netWorthEntries>;
 export type NetWorthProjection = InferSelectModel<typeof netWorthProjections>;
 export type NewNetWorthProjection = InferInsertModel<typeof netWorthProjections>;
+export type CardNameMapping = InferSelectModel<typeof cardNameMappings>;
+export type NewCardNameMapping = InferInsertModel<typeof cardNameMappings>;

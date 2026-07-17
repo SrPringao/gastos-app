@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createExpense, getExpenses } from "@/lib/services/expenses";
 import { getCurrentUserId } from "@/lib/auth";
+import { parseAmountInput } from "@/lib/utils/parse-amount";
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
     const body = await request.json();
 
-    const amount = parseFloat(body.amount);
+    const amount = parseAmountInput(body.amount);
     if (isNaN(amount)) {
       return NextResponse.json(
         { error: "Monto invalido" },
@@ -41,9 +42,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hasCardName =
+      typeof body.cardName === "string" && body.cardName.trim().length > 0;
+
     const result = await createExpense(userId, {
       amount,
-      accountId: Number(body.accountId),
+      accountId: hasCardName ? undefined : Number(body.accountId),
+      cardName: hasCardName ? body.cardName : undefined,
       categoryId: body.categoryId ? Number(body.categoryId) : null,
       date: body.date || new Date().toISOString().slice(0, 10),
       description: body.description ?? null,

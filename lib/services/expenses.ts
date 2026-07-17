@@ -1,10 +1,12 @@
 import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
 
 export type CreateExpenseInput = {
   amount: number;
-  accountId: number;
+  accountId?: number;
+  cardName?: string;
   categoryId?: number | null;
   date: string;
   description?: string | null;
@@ -19,20 +21,31 @@ export type UpdateExpenseInput = {
 };
 
 export async function createExpense(userId: string, input: CreateExpenseInput) {
-  const { amount, accountId, categoryId, date, description } = input;
+  const { amount, accountId, cardName, categoryId, date, description } = input;
 
   const amountCents = Math.round(amount * 100);
   if (isNaN(amountCents) || amountCents <= 0) {
     return { error: "Monto invalido" };
   }
-  if (!accountId) {
-    return { error: "Selecciona un metodo de pago" };
+
+  let resolvedAccountId: number;
+  let rawCardName: string | null = null;
+
+  if (cardName && cardName.trim()) {
+    rawCardName = cardName.trim();
+    resolvedAccountId = await resolveAccountIdFromCardName(userId, rawCardName);
+  } else {
+    if (!accountId) {
+      return { error: "Selecciona un metodo de pago" };
+    }
+    resolvedAccountId = accountId;
   }
 
   await db.insert(expenses).values({
     userId,
     amount: amountCents,
-    accountId,
+    accountId: resolvedAccountId,
+    rawCardName,
     categoryId: categoryId ?? null,
     date: new Date(date),
     description: description || null,

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountsCard } from "@/components/dashboard/accounts-card";
+import { UnassignedCardsCard } from "@/components/dashboard/unassigned-cards-card";
 import { NetWorthCard } from "@/components/net-worth/net-worth-card";
 import { NetWorthSimulator } from "@/components/net-worth/net-worth-simulator";
 import type { Account, Category, NetWorthEntry, NetWorthProjection } from "@/lib/db/schema";
@@ -34,8 +35,9 @@ export function CuentasTabs({
         <TabsTrigger value="metodos-de-pago">Metodos de pago</TabsTrigger>
         <TabsTrigger value="patrimonio">Patrimonio</TabsTrigger>
       </TabsList>
-      <TabsContent value="metodos-de-pago" className="mt-6">
+      <TabsContent value="metodos-de-pago" className="mt-6 space-y-6">
         <AccountsCard accounts={accounts} categories={categories} />
+        <UnassignedCardsCard accounts={accounts} />
       </TabsContent>
       <TabsContent value="patrimonio" className="mt-6 space-y-6">
         <NetWorthCard accounts={accounts} entries={netWorthEntries} />

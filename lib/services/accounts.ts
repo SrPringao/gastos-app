@@ -1,14 +1,36 @@
 import { db } from "@/lib/db";
 import { accounts } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+
+const UNASSIGNED_ACCOUNT_NAME = "Sin asignar";
 
 export async function getAccounts(userId: string | null) {
   if (!userId) return [];
   return db
     .select()
     .from(accounts)
-    .where(eq(accounts.userId, userId))
+    .where(and(eq(accounts.userId, userId), eq(accounts.isPlaceholder, false)))
     .orderBy(accounts.name);
+}
+
+export async function getOrCreateUnassignedAccount(userId: string) {
+  const existing = await db
+    .select()
+    .from(accounts)
+    .where(and(eq(accounts.userId, userId), eq(accounts.isPlaceholder, true)))
+    .limit(1);
+  if (existing[0]) return existing[0];
+
+  const [created] = await db
+    .insert(accounts)
+    .values({
+      userId,
+      name: UNASSIGNED_ACCOUNT_NAME,
+      type: "cash",
+      isPlaceholder: true,
+    })
+    .returning();
+  return created;
 }
 
 export async function getAccountById(id: number) {

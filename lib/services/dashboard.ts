@@ -76,6 +76,7 @@ export async function getSpentByAccountThisMonth(
     .where(
       and(
         eq(expenses.userId, userId),
+        eq(accounts.isPlaceholder, false),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
@@ -238,6 +239,7 @@ export async function getDailySpentByAccountThisMonth(
     .where(
       and(
         eq(expenses.userId, userId),
+        eq(accounts.isPlaceholder, false),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
