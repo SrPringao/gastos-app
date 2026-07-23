@@ -137,6 +137,7 @@ export const apiTokens = pgTable("api_tokens", {
   name: text("name"),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
 });
 
 // Mapeo de nombres de tarjeta detectados por el Shortcut de iOS -> cuenta real

@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "crypto";
-import { and, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { apiTokens } from "@/lib/db/schema";
 
@@ -26,7 +26,8 @@ export function generateToken(): string {
 
 export async function createApiToken(
   userId: string,
-  expiresIn: ExpiresIn = "30d"
+  expiresIn: ExpiresIn = "30d",
+  name?: string
 ): Promise<{ token: string; expiresAt: Date }> {
   const token = generateToken();
   const tokenHash = hashToken(token);
@@ -37,9 +38,52 @@ export async function createApiToken(
     userId,
     tokenHash,
     expiresAt,
+    name: name?.trim() || null,
   });
 
   return { token, expiresAt };
+}
+
+export async function listApiTokens(userId: string) {
+  return db
+    .select({
+      id: apiTokens.id,
+      name: apiTokens.name,
+      createdAt: apiTokens.createdAt,
+      expiresAt: apiTokens.expiresAt,
+      revokedAt: apiTokens.revokedAt,
+    })
+    .from(apiTokens)
+    .where(eq(apiTokens.userId, userId))
+    .orderBy(desc(apiTokens.createdAt));
+}
+
+export async function revokeApiToken(
+  userId: string,
+  tokenId: number
+): Promise<boolean> {
+  const rows = await db
+    .update(apiTokens)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(apiTokens.id, tokenId),
+        eq(apiTokens.userId, userId),
+        isNull(apiTokens.revokedAt)
+      )
+    )
+    .returning({ id: apiTokens.id });
+
+  return rows.length > 0;
+}
+
+export async function deleteRevokedApiTokens(userId: string): Promise<number> {
+  const rows = await db
+    .delete(apiTokens)
+    .where(and(eq(apiTokens.userId, userId), isNotNull(apiTokens.revokedAt)))
+    .returning({ id: apiTokens.id });
+
+  return rows.length;
 }
 
 export async function validateApiToken(
@@ -58,7 +102,8 @@ export async function validateApiToken(
     .where(
       and(
         eq(apiTokens.tokenHash, tokenHash),
-        gt(apiTokens.expiresAt, now)
+        gt(apiTokens.expiresAt, now),
+        isNull(apiTokens.revokedAt)
       )
     )
     .limit(1);

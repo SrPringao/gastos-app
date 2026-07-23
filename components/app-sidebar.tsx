@@ -15,6 +15,7 @@ import {
   ChevronDownIcon,
   WalletIcon,
   TrendingUpIcon,
+  SettingsIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const cuentasSubItems = [
 const secondaryNavItems = [
   { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
+  { href: "/configuracion", label: "Configuracion", icon: SettingsIcon },
 ];
 
 export function AppSidebar() {
