@@ -44,11 +44,15 @@ export async function POST(request: NextRequest) {
 
     const hasCardName =
       typeof body.cardName === "string" && body.cardName.trim().length > 0;
+    const hasAccountName =
+      typeof body.accountName === "string" && body.accountName.trim().length > 0;
 
     const result = await createExpense(userId, {
       amount,
-      accountId: hasCardName ? undefined : Number(body.accountId),
+      accountId:
+        hasCardName || hasAccountName ? undefined : Number(body.accountId),
       cardName: hasCardName ? body.cardName : undefined,
+      accountName: hasAccountName ? body.accountName : undefined,
       categoryId: body.categoryId ? Number(body.categoryId) : null,
       date: body.date || new Date().toISOString().slice(0, 10),
       description: body.description ?? null,

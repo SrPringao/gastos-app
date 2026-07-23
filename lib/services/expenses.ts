@@ -2,11 +2,13 @@ import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
+import { getAccountByName } from "@/lib/services/accounts";
 
 export type CreateExpenseInput = {
   amount: number;
   accountId?: number;
   cardName?: string;
+  accountName?: string;
   categoryId?: number | null;
   date: string;
   description?: string | null;
@@ -21,7 +23,7 @@ export type UpdateExpenseInput = {
 };
 
 export async function createExpense(userId: string, input: CreateExpenseInput) {
-  const { amount, accountId, cardName, categoryId, date, description } = input;
+  const { amount, accountId, cardName, accountName, categoryId, date, description } = input;
 
   const amountCents = Math.round(amount * 100);
   if (isNaN(amountCents) || amountCents <= 0) {
@@ -34,6 +36,12 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
   if (cardName && cardName.trim()) {
     rawCardName = cardName.trim();
     resolvedAccountId = await resolveAccountIdFromCardName(userId, rawCardName);
+  } else if (accountName && accountName.trim()) {
+    const account = await getAccountByName(userId, accountName.trim());
+    if (!account) {
+      return { error: `No se encontro la cuenta "${accountName.trim()}"` };
+    }
+    resolvedAccountId = account.id;
   } else {
     if (!accountId) {
       return { error: "Selecciona un metodo de pago" };
