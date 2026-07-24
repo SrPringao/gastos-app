@@ -16,6 +16,7 @@ import {
   WalletIcon,
   TrendingUpIcon,
   SettingsIcon,
+  LinkIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -32,10 +33,17 @@ const cuentasSubItems = [
   { href: "/cuentas?tab=patrimonio", tab: "patrimonio", label: "Patrimonio", icon: TrendingUpIcon },
 ];
 
+const configuracionSubItems = [
+  {
+    href: "/configuracion/agregar-automatizacion",
+    label: "Agregar automatizacion",
+    icon: LinkIcon,
+  },
+];
+
 const secondaryNavItems = [
   { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
-  { href: "/configuracion", label: "Configuracion", icon: SettingsIcon },
 ];
 
 export function AppSidebar() {
@@ -47,6 +55,9 @@ export function AppSidebar() {
   const [cuentasManuallyOpen, setCuentasManuallyOpen] = useState(false);
   const cuentasOpen = isCuentasActive || cuentasManuallyOpen;
   const activeTab = searchParams.get("tab") === "patrimonio" ? "patrimonio" : "metodos-de-pago";
+  const isConfiguracionActive = pathname.startsWith("/configuracion");
+  const [configuracionManuallyOpen, setConfiguracionManuallyOpen] = useState(false);
+  const configuracionOpen = isConfiguracionActive || configuracionManuallyOpen;
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -167,6 +178,50 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setConfiguracionManuallyOpen((open) => !open)}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isConfiguracionActive
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "hover:bg-sidebar-accent/50"
+            )}
+          >
+            <SettingsIcon className="size-5 shrink-0 opacity-70" />
+            <span className="flex-1 text-left">Configuracion</span>
+            <ChevronDownIcon
+              className={cn(
+                "size-4 shrink-0 opacity-70 transition-transform",
+                configuracionOpen && "rotate-180"
+              )}
+            />
+          </button>
+          {configuracionOpen && (
+            <div className="mt-1 space-y-1 pl-4">
+              {configuracionSubItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "hover:bg-sidebar-accent/50"
+                    )}
+                  >
+                    <item.icon className="size-4 shrink-0 opacity-70" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
       <div className="border-t p-4">
         <Button

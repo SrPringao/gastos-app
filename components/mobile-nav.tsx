@@ -6,6 +6,7 @@ import {
   LayoutDashboardIcon,
   ReceiptIcon,
   FlaskConicalIcon,
+  SettingsIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,11 @@ const navItems = [
   { href: "/", label: "Inicio", icon: LayoutDashboardIcon },
   { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
   { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
+  {
+    href: "/configuracion/agregar-automatizacion",
+    label: "Config",
+    icon: SettingsIcon,
+  },
 ];
 
 export function MobileNav() {

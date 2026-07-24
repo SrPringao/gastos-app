@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConfiguracionPage() {
+export default async function AgregarAutomatizacionPage() {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
 
@@ -15,7 +15,9 @@ export default async function ConfiguracionPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Configuracion</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Agregar automatizacion
+        </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Administra tus tokens de acceso para Atajos y automatizaciones
         </p>
