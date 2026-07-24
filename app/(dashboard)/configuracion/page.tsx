@@ -1,6 +1,7 @@
 import { getCurrentUserId } from "@/lib/auth";
 import { listApiTokens } from "@/lib/api-tokens";
 import { ApiTokensManager } from "@/components/api-tokens-manager";
+import { InstallShortcutBanner } from "@/components/install-shortcut-banner";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,7 @@ export default async function ConfiguracionPage() {
           Administra tus tokens de acceso para Atajos y automatizaciones
         </p>
       </div>
+      <InstallShortcutBanner />
       <ApiTokensManager
         initialTokens={tokens.map((t) => ({
           ...t,
