@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { MenuIcon, LogOut, RefreshCw, LayoutDashboardIcon, CreditCardIcon, ReceiptIcon, PieChartIcon, FlaskConicalIcon, ReceiptTextIcon, ChevronRightIcon } from "lucide-react";
+import { MenuIcon, LogOut, RefreshCw, LayoutDashboardIcon, CreditCardIcon, ReceiptIcon, PieChartIcon, FlaskConicalIcon, ReceiptTextIcon, ChevronRightIcon, ChevronDownIcon, SettingsIcon, LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -26,11 +26,22 @@ const secondaryNavItems = [
   { href: "/categorias", label: "Categorias", icon: PieChartIcon },
 ];
 
+const configuracionSubItems = [
+  {
+    href: "/configuracion/agregar-automatizacion",
+    label: "Agregar automatizacion",
+    icon: LinkIcon,
+  },
+];
+
 export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isConfiguracionActive = pathname.startsWith("/configuracion");
+  const [configuracionManuallyOpen, setConfiguracionManuallyOpen] = useState(false);
+  const configuracionOpen = isConfiguracionActive || configuracionManuallyOpen;
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -131,6 +142,67 @@ export function AppHeader() {
                     </Link>
                   );
                 })}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setConfiguracionManuallyOpen((prev) => !prev)
+                    }
+                    className={cn(
+                      "group flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
+                      isConfiguracionActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
+                  >
+                    <SettingsIcon
+                      className={cn(
+                        "size-5 shrink-0 transition-transform group-hover:scale-110",
+                        isConfiguracionActive && "text-primary"
+                      )}
+                      strokeWidth={isConfiguracionActive ? 2.5 : 2}
+                    />
+                    <span className="flex-1 text-left">Configuracion</span>
+                    <ChevronDownIcon
+                      className={cn(
+                        "size-4 shrink-0 transition-transform",
+                        configuracionOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  {configuracionOpen && (
+                    <div className="mt-1 flex flex-col gap-1 pl-4">
+                      {configuracionSubItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
+                              isActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                          >
+                            <item.icon
+                              className={cn(
+                                "size-4 shrink-0 transition-transform group-hover:scale-110",
+                                isActive && "text-primary"
+                              )}
+                              strokeWidth={isActive ? 2.5 : 2}
+                            />
+                            <span className="flex-1">{item.label}</span>
+                            {isActive && (
+                              <div className="h-2 w-2 rounded-full bg-primary" />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </nav>
             <div className="border-t p-4">

@@ -158,7 +158,7 @@ export function ApiTokensManager({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between">
+      <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle className="flex items-center gap-2">
             <KeyRoundIcon className="size-5 opacity-70" />
@@ -168,7 +168,7 @@ export function ApiTokensManager({
             Usalos en el Atajo de iOS o automatizaciones para registrar gastos
           </CardDescription>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
           {hasRevoked && (
             <Button
               type="button"
