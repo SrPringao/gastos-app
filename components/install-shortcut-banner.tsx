@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { CheckIcon, CopyIcon, DownloadIcon, SmartphoneIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -14,6 +16,7 @@ import {
 
 const SHORTCUT_URL =
   "https://www.icloud.com/shortcuts/0e56642c06aa413bba99a12582a259c4";
+const DEFAULT_NAME_BASE = "Shortcut Apple Pay";
 
 function isMobileUserAgent(): boolean {
   if (typeof navigator === "undefined") return false;
@@ -23,6 +26,7 @@ function isMobileUserAgent(): boolean {
 export function InstallShortcutBanner() {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -32,8 +36,11 @@ export function InstallShortcutBanner() {
     setIsMobile(isMobileUserAgent());
   }, []);
 
-  async function handleInstallClick() {
+  function handleOpenBanner() {
     setOpen(true);
+  }
+
+  async function handleCreate() {
     setCreating(true);
     setError(null);
     try {
@@ -42,7 +49,8 @@ export function InstallShortcutBanner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           expiresIn: "365d",
-          name: "Shortcut Apple Pay",
+          name: name.trim() || undefined,
+          autoNameBase: name.trim() ? undefined : DEFAULT_NAME_BASE,
         }),
       });
       const data = await res.json();
@@ -73,6 +81,7 @@ export function InstallShortcutBanner() {
   function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) {
+      setName("");
       setToken(null);
       setError(null);
       setCopied(false);
@@ -96,7 +105,7 @@ export function InstallShortcutBanner() {
               Genera tu token y agrega la automatizacion en un solo paso
             </p>
           </div>
-          <Button type="button" size="sm" onClick={handleInstallClick}>
+          <Button type="button" size="sm" onClick={handleOpenBanner}>
             <DownloadIcon className="size-4" />
             Instalar
           </Button>
@@ -105,19 +114,42 @@ export function InstallShortcutBanner() {
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-sm">
-          {creating ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
-              Generando tu token...
-            </div>
-          ) : error ? (
+          {!token ? (
             <>
               <DialogHeader className="text-left">
-                <DialogTitle>Ocurrio un error</DialogTitle>
-                <DialogDescription>{error}</DialogDescription>
+                <DialogTitle>Nombra tu token</DialogTitle>
+                <DialogDescription>
+                  Te ayuda a identificarlo despues, por ejemplo con el nombre
+                  de tu telefono. Si lo dejas en blanco le ponemos un nombre
+                  por ti.
+                </DialogDescription>
               </DialogHeader>
-              <div className="mt-4 flex justify-end">
-                <Button type="button" onClick={() => setOpen(false)}>
-                  Cerrar
+              <div className="space-y-1.5">
+                <Label htmlFor="shortcut-token-name">Nombre (opcional)</Label>
+                <Input
+                  id="shortcut-token-name"
+                  placeholder="Ej. iPhone de Franco"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {error && <p className="text-destructive text-sm">{error}</p>}
+              <div className="mt-4 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={creating}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={creating}
+                >
+                  {creating ? "Generando..." : "Generar token"}
                 </Button>
               </div>
             </>

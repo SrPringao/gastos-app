@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const expiresIn = body.expiresIn ?? "30d";
     const name = typeof body.name === "string" ? body.name : undefined;
+    const autoNameBase =
+      typeof body.autoNameBase === "string" ? body.autoNameBase : undefined;
 
     if (!VALID_EXPIRES.includes(expiresIn)) {
       return NextResponse.json(
@@ -49,7 +51,8 @@ export async function POST(request: NextRequest) {
     const { token, expiresAt } = await createApiToken(
       session.user.id,
       expiresIn,
-      name
+      name,
+      { autoNameBase }
     );
 
     return NextResponse.json({

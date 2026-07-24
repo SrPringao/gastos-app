@@ -24,21 +24,49 @@ export function generateToken(): string {
   return PREFIX + random;
 }
 
+async function resolveUniqueTokenName(
+  userId: string,
+  baseName: string
+): Promise<string> {
+  const existing = await db
+    .select({ name: apiTokens.name })
+    .from(apiTokens)
+    .where(eq(apiTokens.userId, userId));
+
+  const existingNames = new Set(existing.map((t) => t.name));
+
+  if (!existingNames.has(baseName)) return baseName;
+
+  let n = 2;
+  while (existingNames.has(`${baseName} (${n})`)) {
+    n++;
+  }
+  return `${baseName} (${n})`;
+}
+
 export async function createApiToken(
   userId: string,
   expiresIn: ExpiresIn = "30d",
-  name?: string
+  name?: string,
+  options?: { autoNameBase?: string }
 ): Promise<{ token: string; expiresAt: Date }> {
   const token = generateToken();
   const tokenHash = hashToken(token);
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + DAYS[expiresIn]);
 
+  const trimmedName = name?.trim();
+  const finalName = trimmedName
+    ? trimmedName
+    : options?.autoNameBase
+      ? await resolveUniqueTokenName(userId, options.autoNameBase)
+      : null;
+
   await db.insert(apiTokens).values({
     userId,
     tokenHash,
     expiresAt,
-    name: name?.trim() || null,
+    name: finalName,
   });
 
   return { token, expiresAt };
