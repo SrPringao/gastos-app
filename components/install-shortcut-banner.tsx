@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckIcon, CopyIcon, DownloadIcon, SmartphoneIcon } from "lucide-react";
+import {
+  CheckIcon,
+  CopyIcon,
+  DownloadIcon,
+  PencilLineIcon,
+  ZapIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,27 +20,54 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const SHORTCUT_URL =
-  "https://www.icloud.com/shortcuts/0e56642c06aa413bba99a12582a259c4";
-const DEFAULT_NAME_BASE = "Shortcut Apple Pay";
+type ShortcutKind = "automatico" | "manual";
+
+const SHORTCUTS: Record<
+  ShortcutKind,
+  {
+    url: string;
+    defaultNameBase: string;
+    icon: typeof ZapIcon;
+    title: string;
+    description: string;
+    dialogDescription: string;
+  }
+> = {
+  automatico: {
+    url: "https://www.icloud.com/shortcuts/0e56642c06aa413bba99a12582a259c4",
+    defaultNameBase: "Shortcut Apple Pay",
+    icon: ZapIcon,
+    title: "Instala el Atajo automatico (Apple Pay)",
+    description: "Se activa solo al pagar con Apple Pay y registra el gasto",
+    dialogDescription:
+      "Te ayuda a identificarlo despues, por ejemplo con el nombre de tu telefono. Si lo dejas en blanco le ponemos un nombre por ti.",
+  },
+  manual: {
+    url: "https://www.icloud.com/shortcuts/8b6261da109446ddad64839a703503ab",
+    defaultNameBase: "Shortcut Gasto Manual",
+    icon: PencilLineIcon,
+    title: "Instala el Atajo manual (agregar gasto)",
+    description:
+      "Para cuando no se dispara la automatizacion, por ejemplo pagos en efectivo",
+    dialogDescription:
+      "Te ayuda a identificarlo despues, por ejemplo con el nombre de tu telefono. Si lo dejas en blanco le ponemos un nombre por ti.",
+  },
+};
 
 function isMobileUserAgent(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 
-export function InstallShortcutBanner() {
-  const [isMobile, setIsMobile] = useState(false);
+function ShortcutInstallCard({ kind }: { kind: ShortcutKind }) {
+  const config = SHORTCUTS[kind];
+  const Icon = config.icon;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(isMobileUserAgent());
-  }, []);
 
   function handleOpenBanner() {
     setOpen(true);
@@ -50,7 +83,7 @@ export function InstallShortcutBanner() {
         body: JSON.stringify({
           expiresIn: "365d",
           name: name.trim() || undefined,
-          autoNameBase: name.trim() ? undefined : DEFAULT_NAME_BASE,
+          autoNameBase: name.trim() ? undefined : config.defaultNameBase,
         }),
       });
       const data = await res.json();
@@ -75,7 +108,7 @@ export function InstallShortcutBanner() {
 
   function handleContinue() {
     setOpen(false);
-    window.location.href = SHORTCUT_URL;
+    window.location.href = config.url;
   }
 
   function handleOpenChange(next: boolean) {
@@ -88,21 +121,17 @@ export function InstallShortcutBanner() {
     }
   }
 
-  if (!isMobile) return null;
-
   return (
     <>
-      <Card className="mb-6 border-primary/30 bg-primary/5">
+      <Card className="mb-4 border-primary/30 bg-primary/5">
         <CardContent className="flex items-center gap-4">
           <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-full">
-            <SmartphoneIcon className="text-primary size-5" />
+            <Icon className="text-primary size-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">
-              Instala el Atajo de Apple Pay
-            </p>
+            <p className="text-sm font-medium">{config.title}</p>
             <p className="text-muted-foreground text-xs">
-              Genera tu token y agrega la automatizacion en un solo paso
+              {config.description}
             </p>
           </div>
           <Button type="button" size="sm" onClick={handleOpenBanner}>
@@ -118,16 +147,14 @@ export function InstallShortcutBanner() {
             <>
               <DialogHeader className="text-left">
                 <DialogTitle>Nombra tu token</DialogTitle>
-                <DialogDescription>
-                  Te ayuda a identificarlo despues, por ejemplo con el nombre
-                  de tu telefono. Si lo dejas en blanco le ponemos un nombre
-                  por ti.
-                </DialogDescription>
+                <DialogDescription>{config.dialogDescription}</DialogDescription>
               </DialogHeader>
               <div className="space-y-1.5">
-                <Label htmlFor="shortcut-token-name">Nombre (opcional)</Label>
+                <Label htmlFor={`shortcut-token-name-${kind}`}>
+                  Nombre (opcional)
+                </Label>
                 <Input
-                  id="shortcut-token-name"
+                  id={`shortcut-token-name-${kind}`}
                   placeholder="Ej. iPhone de Franco"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -198,5 +225,22 @@ export function InstallShortcutBanner() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+export function InstallShortcutBanner() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(isMobileUserAgent());
+  }, []);
+
+  if (!isMobile) return null;
+
+  return (
+    <div className="mb-6">
+      <ShortcutInstallCard kind="automatico" />
+      <ShortcutInstallCard kind="manual" />
+    </div>
   );
 }
