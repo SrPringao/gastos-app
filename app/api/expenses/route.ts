@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createExpense, getExpenses } from "@/lib/services/expenses";
 import { getCurrentUserId } from "@/lib/auth";
 import { parseAmountInput } from "@/lib/utils/parse-amount";
+import { todayDateString } from "@/lib/utils/dates";
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,7 +55,10 @@ export async function POST(request: NextRequest) {
       cardName: hasCardName ? body.cardName : undefined,
       accountName: hasAccountName ? body.accountName : undefined,
       categoryId: body.categoryId ? Number(body.categoryId) : null,
-      date: body.date || new Date().toISOString().slice(0, 10),
+      date:
+        typeof body.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.date)
+          ? body.date
+          : todayDateString(),
       description: body.description ?? null,
     });
 

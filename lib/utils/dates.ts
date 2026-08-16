@@ -1,3 +1,19 @@
+export const APP_TIMEZONE = "America/Mexico_City";
+
+/**
+ * Fecha de calendario YYYY-MM-DD en la zona de la app.
+ * toISOString() usa UTC y en Mexico (UTC-6/-5) despues de las 6-7 pm
+ * ya es el dia siguiente.
+ */
+export function todayDateString(timeZone = APP_TIMEZONE): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export function getDaysUntilPayment(
   cutoffDay: number | null,
   paymentDay: number | null
