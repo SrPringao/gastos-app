@@ -3,6 +3,38 @@ import { accounts, categories, expenses } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
 import { getAccountByName } from "@/lib/services/accounts";
+import { getTotalSpentThisMonth } from "@/lib/services/dashboard";
+import { notifyBudgetMilestone } from "@/lib/services/push-notifications";
+
+function monthKeyFromExpenseDate(date: string | Date): string | null {
+  if (typeof date === "string") {
+    const key = date.slice(0, 7);
+    return /^\d{4}-\d{2}$/.test(key) ? key : null;
+  }
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+async function maybeNotifyBudget(
+  userId: string,
+  monthKey: string | null,
+  previousSpentCents: number,
+  newSpentCents: number
+) {
+  if (!monthKey) return;
+  try {
+    await notifyBudgetMilestone(
+      userId,
+      monthKey,
+      previousSpentCents,
+      newSpentCents
+    );
+  } catch (error) {
+    console.error("[push] notifyBudgetMilestone:", error);
+  }
+}
 
 export type CreateExpenseInput = {
   amount: number;
@@ -58,6 +90,12 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
     date: new Date(date),
     description: description || null,
   });
+
+  const monthKey = monthKeyFromExpenseDate(date);
+  if (monthKey) {
+    const newSpent = await getTotalSpentThisMonth(userId, monthKey);
+    await maybeNotifyBudget(userId, monthKey, newSpent - amountCents, newSpent);
+  }
 
   return { success: true };
 }
@@ -170,6 +208,21 @@ export async function updateExpense(
       ...(description !== undefined && { description: description || null }),
     })
     .where(eq(expenses.id, id));
+
+  const newAmountCents =
+    amount !== undefined ? Math.round(amount * 100) : existing.amount;
+  const monthKey = monthKeyFromExpenseDate(
+    date !== undefined ? date : existing.date
+  );
+  const oldMonthKey = monthKeyFromExpenseDate(existing.date);
+  if (monthKey) {
+    const newSpent = await getTotalSpentThisMonth(userId, monthKey);
+    const previousSpent =
+      monthKey === oldMonthKey
+        ? newSpent - (newAmountCents - existing.amount)
+        : newSpent - newAmountCents;
+    await maybeNotifyBudget(userId, monthKey, previousSpent, newSpent);
+  }
 
   return { success: true };
 }
