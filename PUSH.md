@@ -67,8 +67,8 @@ await sendToUser({
 | Campo    | Obligatorio | Que hace |
 |----------|-------------|----------|
 | `userId` | si          | A quien. Es el uuid de `users.id`. |
-| `title`  | si          | Titulo del banner. |
-| `body`   | si          | Texto corto. Sin HTML. Payload chico (< 3 KB). |
+| `title`  | si          | Lo que iOS pone en **negrita**. No pongas "Gastos": iOS ya muestra la app aparte. |
+| `body`   | si          | La linea de detalle debajo. Corto, sin HTML. Payload < 3 KB. |
 | `url`    | no          | Ruta al tocar. Default `/`. Ej. `/gastos`, `/gastos-fijos`. |
 | `tag`    | no          | Id del aviso. El mismo tag **reemplaza** el banner anterior (util para "40%" -> "80%" sin apilar 10). |
 | `data`   | no          | Extra JSON para el SW. Casi nunca lo necesitas. |
@@ -119,6 +119,52 @@ No llames `sendToUser` dos veces por el mismo evento (guardar + cron + API). Un 
 
 ---
 
+## Como se ve en iPhone (diseno)
+
+iOS arma el banner asi, y **no puedes quitar** la linea `from Gastos`. La pone el sistema con el `name` / `short_name` del manifest. En una PWA no hay forma de dejar solo el icono + el texto.
+
+```
+[icono]  Presupuesto al 80%          Ahora
+         from Gastos
+         Ya gastaste $8,000 de $10,000
+```
+
+Por eso **nunca** uses `title: "Gastos"`. Si lo haces, queda:
+
+```
+Gastos
+from Gastos
+Esta es una notificacion de prueba
+```
+
+Eso es lo que viste: se duplica el nombre y se ve largo.
+
+Patron correcto:
+
+```ts
+await sendToUser({
+  userId,
+  title: "Presupuesto al 80%",           // negrita: que paso
+  body: "Ya gastaste $8,000 de $10,000", // detalle
+  url: "/gastos",
+  tag: "budget-80",
+});
+```
+
+Donde se "disena":
+
+| Lo que ves | Donde se controla | Se puede? |
+|------------|-------------------|-----------|
+| Titulo en negrita | `title` en `sendToUser` | si |
+| Texto de abajo | `body` en `sendToUser` | si |
+| `from Gastos` | iOS + `app/manifest.ts` (`name` / `short_name`) | no se oculta; solo puedes cambiar el nombre de la app |
+| Icono gris con G | icono de la PWA (`public/icon.svg`, `apple-touch-icon`) | si, con un PNG 180/192. iOS casi ignora el `icon` del SW |
+| Color, HTML, imagen grande | Web Push en iOS | no |
+
+`public/sw.js` solo muestra lo que mando `sendToUser`. Para un aviso nuevo no lo edites: cambia `title` y `body` en la llamada.
+
+---
+
 ## Archivos del canal (no los toques para un aviso nuevo)
 
 | Pieza | Ruta |
@@ -128,7 +174,8 @@ No llames `sendToUser` dos veces por el mismo evento (guardar + cron + API). Un 
 | Helpers del navegador | `lib/push-notifications.ts` |
 | Service Worker | `public/sw.js` |
 | Prompt de permiso | `components/push-notification-prompt.tsx` |
-| Tarjeta de prueba (dashboard) | `components/push-notifications-card.tsx` |
+| Tarjeta en Config | `components/push-notifications-card.tsx` |
+| Resumen diario (cron) | `GET /api/cron/daily-summary` |
 | GET clave publica | `/api/push-notifications/vapid-public-key` |
 | Guardar dispositivo | `POST /api/push-notifications/subscribe` |
 | Listar / borrar | `/api/push-notifications/subscriptions` |
@@ -146,11 +193,31 @@ Todavia no hay tabla de preferencias (`weekly_insights`, etc.). Cuando quieras t
 2. Env: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 3. App en HTTPS (o localhost). En iPhone tiene que ser el host real con HTTPS.
 4. PWA instalada con Safari y abierta desde el icono.
-5. Permiso aceptado (modal o tarjeta del dashboard).
+5. Permiso aceptado (modal al instalar o Config → Activar).
 6. Fila en BD con endpoint `https://web.push.apple.com/...`.
 7. Mismas VAPID keys que cuando se suscribio.
 8. Ajustes iOS → Notificaciones → Gastos, no silenciadas.
 
 Si el subscribe funciona y no llega el banner: casi siempre es que no esta en standalone, VAPID distintas, o la suscripcion ya murio (410). Quita el dispositivo y vuelve a activar.
 
-Para probar el canal sin evento de negocio: dashboard → **Enviar prueba**.
+Para probar el canal sin evento de negocio: Config → **Enviar prueba**.
+
+---
+
+## Resumen diario automatico
+
+Cada noche (10:00 pm hora Mexico, `0 4 * * *` UTC) Vercel llama `GET /api/cron/daily-summary`.
+
+Para cada usuario con al menos un dispositivo suscrito:
+
+- Suma los gastos del dia calendario en `America/Mexico_City`.
+- Si no registro ninguno, **no manda** aviso.
+- Si si: `title` tipo `3 gastos hoy`, `body` tipo `Registraste $1,240.00`, `tag` `daily-summary-YYYY-MM-DD`.
+
+Protegido con `CRON_SECRET` (header `Authorization: Bearer ...`). En Vercel, pon la misma variable. El cron de Vercel manda ese Bearer solo.
+
+No lo pruebes a mano sin el secret. Un ejemplo:
+
+```bash
+curl -H "Authorization: Bearer TU_CRON_SECRET" https://tu-dominio/api/cron/daily-summary
+```

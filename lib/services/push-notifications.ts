@@ -3,6 +3,9 @@ import webpush, { WebPushError } from "web-push";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { pushSubscriptions } from "@/lib/db/schema";
+import { formatCurrency, todayDateString } from "@/lib/utils/dates";
+import { getSpentOnDate, getTotalSpentThisMonth } from "@/lib/services/dashboard";
+import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
 
 export type SubscribeInput = {
   endpoint: string;
@@ -200,4 +203,71 @@ export async function sendToUser(
   }
 
   return { sent, failed };
+}
+
+export async function sendDailyExpenseSummaries(): Promise<{
+  users: number;
+  notified: number;
+  skipped: number;
+}> {
+  const dateStr = todayDateString();
+  const subscribers = await db
+    .selectDistinct({ userId: pushSubscriptions.userId })
+    .from(pushSubscriptions);
+
+  let notified = 0;
+  let skipped = 0;
+
+  for (const row of subscribers) {
+    const { total, count } = await getSpentOnDate(row.userId, dateStr);
+    if (count === 0) {
+      skipped += 1;
+      continue;
+    }
+
+    const title = count === 1 ? "1 gasto hoy" : `${count} gastos hoy`;
+    const body = `Registraste ${formatCurrency(total)}`;
+    const result = await sendToUser({
+      userId: row.userId,
+      title,
+      body,
+      url: "/gastos",
+      tag: `daily-summary-${dateStr}`,
+    });
+    if (result.sent > 0) notified += 1;
+    else skipped += 1;
+  }
+
+  return { users: subscribers.length, notified, skipped };
+}
+
+function budgetStep(percent: number): number {
+  if (percent < 10) return 0;
+  return Math.floor(percent / 10) * 10;
+}
+
+export async function notifyBudgetMilestone(
+  userId: string,
+  monthKey: string,
+  previousSpentCents: number,
+  newSpentCents: number
+): Promise<void> {
+  if (!/^\d{4}-\d{2}$/.test(monthKey)) return;
+
+  const budget = await getMonthlyBudget(userId, monthKey);
+  if (budget == null || budget <= 0) return;
+
+  const oldPct = (Math.max(0, previousSpentCents) / budget) * 100;
+  const newPct = (Math.max(0, newSpentCents) / budget) * 100;
+  const oldStep = budgetStep(oldPct);
+  const newStep = budgetStep(newPct);
+  if (newStep < 10 || newStep <= oldStep) return;
+
+  await sendToUser({
+    userId,
+    title: `Presupuesto al ${newStep}%`,
+    body: `Llevas ${formatCurrency(newSpentCents)} de ${formatCurrency(budget)} este mes`,
+    url: "/gastos",
+    tag: `budget-${monthKey}-${newStep}`,
+  });
 }

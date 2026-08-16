@@ -17,7 +17,6 @@ import { SpentByAccountCard } from "@/components/dashboard/spent-by-account-card
 import { MonthlyBudgetCard } from "@/components/dashboard/monthly-budget-card";
 import { MonthSelector } from "@/components/month-selector";
 import { QuickAddExpense } from "@/components/quick-add-expense";
-import { PushNotificationsCard } from "@/components/push-notifications-card";
 import { Suspense } from "react";
 
 export default async function DashboardPage({
@@ -75,8 +74,6 @@ export default async function DashboardPage({
           </div>
         </div>
       </div>
-
-      <PushNotificationsCard />
 
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12">
         <div className="xl:col-span-5">

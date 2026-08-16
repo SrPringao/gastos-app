@@ -15,11 +15,11 @@ export async function POST(request: NextRequest) {
     const title =
       typeof body.title === "string" && body.title.trim()
         ? body.title.trim()
-        : "Gastos";
+        : "Notificacion de prueba";
     const notificationBody =
       typeof body.body === "string" && body.body.trim()
         ? body.body.trim()
-        : "Esta es una notificacion de prueba";
+        : "Si ves esto, el canal funciona.";
     const url =
       typeof body.url === "string" && body.url.trim() ? body.url.trim() : "/";
 

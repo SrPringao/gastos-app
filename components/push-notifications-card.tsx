@@ -23,6 +23,7 @@ export function PushNotificationsCard() {
   const [message, setMessage] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false);
   const [needsInstall, setNeedsInstall] = useState(false);
+  const [needsHttps, setNeedsHttps] = useState(false);
 
   async function loadDevices() {
     const res = await fetch("/api/push-notifications/subscriptions");
@@ -32,11 +33,17 @@ export function PushNotificationsCard() {
   }
 
   useEffect(() => {
-    if ("Notification" in window && Notification.permission === "denied") {
-      setBlocked(true);
-    }
-    if (isIosDevice() && !isStandalonePwa()) {
+    const standalone = isStandalonePwa();
+    const ios = isIosDevice();
+    if (!window.isSecureContext) {
+      setNeedsHttps(true);
+    } else if (ios && !standalone) {
       setNeedsInstall(true);
+    } else if (
+      "Notification" in window &&
+      Notification.permission === "denied"
+    ) {
+      setBlocked(true);
     }
     loadDevices().finally(() => setLoading(false));
   }, []);
@@ -94,6 +101,8 @@ export function PushNotificationsCard() {
     }
   }
 
+  const cannotEnable = busy || blocked || needsInstall || needsHttps;
+
   return (
     <Card className="mb-4">
       <CardContent className="space-y-3">
@@ -102,22 +111,28 @@ export function PushNotificationsCard() {
             <BellIcon className="text-primary size-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">Notificaciones push</p>
+            <p className="text-sm font-medium">Notificaciones</p>
             <p className="text-muted-foreground text-xs">
-              Canal de prueba. En iPhone instala la PWA y abrela desde el icono.
+              Activalas en este dispositivo para el resumen diario y avisos.
             </p>
           </div>
         </div>
 
-        {blocked && (
-          <p className="text-destructive text-xs">
-            El permiso esta bloqueado. Activalo en Ajustes del sistema.
+        {needsHttps && (
+          <p className="text-muted-foreground text-xs">
+            Problema HTTPS.
           </p>
         )}
         {needsInstall && (
           <p className="text-muted-foreground text-xs">
             En iPhone: Safari, Compartir, Anadir a pantalla de inicio, y abre la
             app desde ahi.
+          </p>
+        )}
+        {blocked && (
+          <p className="text-destructive text-xs">
+            El permiso esta bloqueado. Activalo en Ajustes del iPhone,
+            Notificaciones, Gastos.
           </p>
         )}
         {message && <p className="text-muted-foreground text-xs">{message}</p>}
@@ -127,7 +142,7 @@ export function PushNotificationsCard() {
             type="button"
             size="sm"
             onClick={handleEnable}
-            disabled={busy || blocked || needsInstall}
+            disabled={cannotEnable}
           >
             {busy ? "Espera..." : "Activar en este dispositivo"}
           </Button>

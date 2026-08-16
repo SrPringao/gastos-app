@@ -6,9 +6,9 @@ self.addEventListener("push", (event) => {
     data = { body: event.data ? event.data.text() : "Nueva notificacion" };
   }
 
-  const title = data.title || "Gastos";
+  const title = data.title || "Nueva notificacion";
   const options = {
-    body: data.body || "Tienes una nueva notificacion",
+    body: data.body || "",
     icon: "/icon.svg",
     badge: "/icon.svg",
     data: { url: data.url || "/", ...(data.data || {}) },

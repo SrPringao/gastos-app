@@ -20,6 +20,17 @@ import {
 
 const DISMISS_KEY = "gastos-push-prompt-dismissed";
 
+function canAskPermission(): boolean {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    return false;
+  }
+  if (!window.isSecureContext) return false;
+  if (isIosDevice() && !isStandalonePwa()) return false;
+  if (Notification.permission === "denied") return false;
+  if (localStorage.getItem(DISMISS_KEY) === "1") return false;
+  return true;
+}
+
 export function PushNotificationPrompt() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,12 +38,10 @@ export function PushNotificationPrompt() {
 
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function maybePrompt() {
-      if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
-      if (Notification.permission === "denied") return;
-      if (isIosDevice() && !isStandalonePwa()) return;
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
+      if (!canAskPermission()) return;
 
       try {
         await navigator.serviceWorker.ready;
@@ -46,15 +55,34 @@ export function PushNotificationPrompt() {
           await subscribeCurrentDevice();
           return;
         }
-        if (!cancelled) setOpen(true);
+        if (!cancelled) {
+          timer = setTimeout(() => {
+            if (!cancelled) setOpen(true);
+          }, 600);
+        }
       } catch {
         // El canal no debe romper la app si el SW o VAPID fallan
       }
     }
 
     maybePrompt();
+
+    function onInstalled() {
+      maybePrompt();
+    }
+
+    window.addEventListener("appinstalled", onInstalled);
+    const media = window.matchMedia("(display-mode: standalone)");
+    const onDisplayMode = () => {
+      maybePrompt();
+    };
+    media.addEventListener("change", onDisplayMode);
+
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("appinstalled", onInstalled);
+      media.removeEventListener("change", onDisplayMode);
     };
   }, []);
 
@@ -70,9 +98,11 @@ export function PushNotificationPrompt() {
       const ok = await subscribeCurrentDevice();
       if (!ok) {
         if (Notification.permission === "denied") {
-          setError("El permiso quedo bloqueado. Activalo en Ajustes del sistema.");
+          setError(
+            "El permiso quedo bloqueado. Activalo en Ajustes del sistema."
+          );
         } else {
-          setError("No se pudo activar. Revisa que la PWA este instalada.");
+          setError("No se pudo activar. Abre la app desde el icono de inicio.");
         }
         return;
       }
@@ -91,8 +121,9 @@ export function PushNotificationPrompt() {
             Activar notificaciones
           </DialogTitle>
           <DialogDescription>
-            Te avisamos en este dispositivo aunque tengas la app cerrada. En
-            iPhone solo funciona si la abriste desde el icono de inicio.
+            La app ya esta en tu telefono. Activa los avisos para el resumen
+            diario de gastos y otros recordatorios. En iPhone solo funciona
+            desde el icono de inicio.
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-destructive text-sm">{error}</p>}
