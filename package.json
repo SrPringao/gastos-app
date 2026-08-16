@@ -27,13 +27,15 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",

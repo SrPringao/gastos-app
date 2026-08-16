@@ -1,8 +1,10 @@
 import { relations } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   decimal,
   integer,
+  index,
   pgTable,
   serial,
   text,
@@ -163,6 +165,34 @@ export const cardNameMappings = pgTable(
   })
 );
 
+// Dispositivos suscritos a Web Push (un registro por endpoint)
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    endpointHash: text("endpoint_hash").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    deviceType: text("device_type"),
+    expirationTime: bigint("expiration_time", { mode: "number" }),
+    lastSeenAt: timestamp("last_seen_at"),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    endpointHashUnique: uniqueIndex("push_subscriptions_endpoint_hash_unique").on(
+      table.endpointHash
+    ),
+    userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+  })
+);
+
 // Registro de pagos mensuales de gastos fijos
 export const fixedExpensePayments = pgTable(
   "fixed_expense_payments",
@@ -196,6 +226,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   netWorthEntries: many(netWorthEntries),
   netWorthProjections: many(netWorthProjections),
   cardNameMappings: many(cardNameMappings),
+  pushSubscriptions: many(pushSubscriptions),
 }));
 
 export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
@@ -277,6 +308,13 @@ export const netWorthProjectionsRelations = relations(netWorthProjections, ({ on
   }),
 }));
 
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Tipos para insert/select
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
@@ -300,3 +338,5 @@ export type NetWorthProjection = InferSelectModel<typeof netWorthProjections>;
 export type NewNetWorthProjection = InferInsertModel<typeof netWorthProjections>;
 export type CardNameMapping = InferSelectModel<typeof cardNameMappings>;
 export type NewCardNameMapping = InferInsertModel<typeof cardNameMappings>;
+export type PushSubscriptionRow = InferSelectModel<typeof pushSubscriptions>;
+export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;

@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 
 export default function DashboardLayout({
   children,
@@ -45,6 +46,7 @@ export default function DashboardLayout({
         </main>
       </div>
       <MobileNav />
+      <PushNotificationPrompt />
     </div>
   );
 }
