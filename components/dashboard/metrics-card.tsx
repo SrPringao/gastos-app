@@ -22,13 +22,17 @@ export function MetricsCard({
   const displayValue = formatAsCurrency ? formatCurrency(value) : String(value);
 
   return (
-    <Card className="relative h-full overflow-hidden">
+    <Card className="relative h-full">
       {featured && (
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-[0.15] blur-3xl"
-          style={{ background: "var(--gradient-signal)" }}
-        />
+          className="pointer-events-none absolute inset-0 isolate overflow-hidden rounded-[30px] [clip-path:inset(0_round_30px)] [mask-image:linear-gradient(#000,#000)] [-webkit-mask-image:linear-gradient(#000,#000)] [transform:translateZ(0)]"
+        >
+          <div
+            className="absolute -top-24 -right-24 size-64 rounded-full opacity-[0.15] blur-3xl"
+            style={{ background: "var(--gradient-signal)" }}
+          />
+        </div>
       )}
       <CardContent className="relative flex h-full flex-col justify-between gap-4">
         <div className="flex items-center justify-between gap-2">

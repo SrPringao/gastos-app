@@ -15,7 +15,6 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 
 const CHART_COLORS = [
@@ -146,12 +145,14 @@ export function ExpensesRangeModal({
         map.set(name, { total: exp.amount, color });
       }
     }
-    return Array.from(map.entries()).map(([name, { total: t, color }]) => ({
-      name,
-      value: total > 0 ? Math.round((t / total) * 100) : 0,
-      cents: t,
-      color: color && color.trim() ? color : undefined,
-    }));
+    return Array.from(map.entries())
+      .map(([name, { total: t, color }]) => ({
+        name,
+        value: total > 0 ? Math.round((t / total) * 100) : 0,
+        cents: t,
+        color: color && color.trim() ? color : undefined,
+      }))
+      .sort((a, b) => b.cents - a.cents);
   }, [expenses, total]);
 
   const byCategory = useMemo(() => {
@@ -160,10 +161,9 @@ export function ExpensesRangeModal({
       const name = exp.categoryName ?? "Sin categoria";
       map.set(name, (map.get(name) ?? 0) + exp.amount);
     }
-    return Array.from(map.entries()).map(([name, cents]) => ({
-      name,
-      cents,
-    }));
+    return Array.from(map.entries())
+      .map(([name, cents]) => ({ name, cents }))
+      .sort((a, b) => b.cents - a.cents);
   }, [expenses]);
 
   const isMultiDay = !!to && to !== from;
@@ -194,8 +194,8 @@ export function ExpensesRangeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-3xl lg:max-w-5xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-3xl lg:max-w-5xl">
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
@@ -208,8 +208,8 @@ export function ExpensesRangeModal({
             No hay gastos registrados en este periodo.
           </p>
         ) : (
-          <div className="space-y-4">
-            <div className="bg-muted flex items-end justify-between gap-4 rounded-xl p-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="bg-muted flex shrink-0 items-end justify-between gap-4 rounded-xl p-4">
               <div>
                 <p className="text-muted-foreground text-sm">Total</p>
                 <p className="font-figures text-2xl font-medium">{formatCurrency(total)}</p>
@@ -219,8 +219,8 @@ export function ExpensesRangeModal({
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-8">
-              <div className="min-w-0 flex-1">
+            <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_16rem] md:gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <div className="min-h-0 min-w-0 overflow-y-auto pr-1">
                 <p className="text-muted-foreground mb-2 text-sm font-medium">
                   Detalle de gastos
                 </p>
@@ -251,13 +251,13 @@ export function ExpensesRangeModal({
                 )}
               </div>
 
-              <div className="hidden shrink-0 flex-col gap-6 md:flex md:w-[260px] lg:w-[300px]">
+              <div className="hidden min-h-0 flex-col gap-6 overflow-y-auto md:flex">
                 {byAccount.length > 0 && (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground mb-2 text-center text-sm font-medium">
+                  <div>
+                    <p className="text-muted-foreground mb-3 text-sm font-medium">
                       Por metodo de pago
                     </p>
-                    <div className="h-[220px] w-full">
+                    <div className="mx-auto h-[160px] w-[160px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -266,8 +266,8 @@ export function ExpensesRangeModal({
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            innerRadius={52}
-                            outerRadius={78}
+                            innerRadius={48}
+                            outerRadius={72}
                             paddingAngle={2}
                           >
                             {byAccount.map((entry, i) => (
@@ -293,16 +293,33 @@ export function ExpensesRangeModal({
                               fontFamily: "var(--font-mono)",
                             }}
                           />
-                          <Legend
-                            formatter={(value, entry) => (
-                              <span className="text-muted-foreground text-xs">
-                                {value} {Number((entry?.payload as { value?: number })?.value ?? 0)}%
-                              </span>
-                            )}
-                          />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
+                    <ul className="mt-4 space-y-2">
+                      {byAccount.map((entry, i) => (
+                        <li
+                          key={entry.name}
+                          className="flex items-center justify-between gap-3 text-sm"
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span
+                              className="size-2.5 shrink-0 rounded-full"
+                              style={{
+                                background:
+                                  entry.color ?? CHART_COLORS[i % CHART_COLORS.length],
+                              }}
+                            />
+                            <span className="text-muted-foreground truncate">
+                              {entry.name}
+                            </span>
+                          </span>
+                          <span className="font-figures shrink-0 tabular-nums">
+                            {entry.value}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
