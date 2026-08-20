@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CreditCardIcon, SearchIcon, ArrowUpDownIcon, XIcon } from "lucide-react";
 import { EditExpenseModal } from "@/components/edit-expense-modal";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
-import { formatCurrency, formatDate } from "@/lib/utils/dates";
+import { formatCurrency, formatDate, dbDateToInputValue } from "@/lib/utils/dates";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -54,6 +54,8 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
   const [search, setSearch] = useState("");
   const [accountFilter, setAccountFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [sort, setSort] = useState<SortOption>("date-desc");
 
   useEffect(() => {
@@ -100,6 +102,14 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
       }
     }
 
+    if (dateFrom) {
+      result = result.filter((e) => dbDateToInputValue(e.date) >= dateFrom);
+    }
+
+    if (dateTo) {
+      result = result.filter((e) => dbDateToInputValue(e.date) <= dateTo);
+    }
+
     result.sort((a, b) => {
       switch (sort) {
         case "date-desc":
@@ -114,15 +124,22 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
     });
 
     return result;
-  }, [expenses, search, accountFilter, categoryFilter, sort]);
+  }, [expenses, search, accountFilter, categoryFilter, dateFrom, dateTo, sort]);
 
   const hasActiveFilters =
-    search.trim() !== "" || accountFilter !== "all" || categoryFilter !== "all" || sort !== "date-desc";
+    search.trim() !== "" ||
+    accountFilter !== "all" ||
+    categoryFilter !== "all" ||
+    dateFrom !== "" ||
+    dateTo !== "" ||
+    sort !== "date-desc";
 
   function clearFilters() {
     setSearch("");
     setAccountFilter("all");
     setCategoryFilter("all");
+    setDateFrom("");
+    setDateTo("");
     setSort("date-desc");
   }
 
@@ -146,6 +163,20 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
     () => filtered.reduce((sum, e) => sum + e.amount, 0),
     [filtered]
   );
+
+  // Marca el primer gasto de cada dia (para el separador) sin romper el orden actual
+  const dateSeparators = useMemo(() => {
+    const seen = new Set<string>();
+    const map = new Map<number, string>();
+    for (const e of filtered) {
+      const key = dbDateToInputValue(e.date);
+      if (!seen.has(key)) {
+        seen.add(key);
+        map.set(e.id, formatDate(e.date));
+      }
+    }
+    return map;
+  }, [filtered]);
 
   if (loading) {
     return (
@@ -210,6 +241,27 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
             </SelectContent>
           </Select>
 
+          {/* Filtro por fecha */}
+          <div className="flex items-center gap-1">
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              max={dateTo || undefined}
+              className="w-auto"
+              aria-label="Desde"
+            />
+            <span className="text-muted-foreground text-xs">a</span>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              min={dateFrom || undefined}
+              className="w-auto"
+              aria-label="Hasta"
+            />
+          </div>
+
           {/* Ordenar */}
           <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
             <SelectTrigger className="w-auto min-w-[160px]">
@@ -263,54 +315,58 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
       ) : (
         <div className="space-y-2">
           {filtered.map((exp) => (
-            <div
-              key={exp.id}
-              className="border-border flex min-h-[60px] items-center justify-between gap-3 rounded-lg border bg-background/50 p-4"
-            >
-              <div className="flex min-w-0 flex-1 items-center gap-4">
-                <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
-                  {exp.accountImageUrl ? (
-                    <img
-                      src={exp.accountImageUrl}
-                      alt={exp.accountName}
-                      className="size-8 rounded object-cover"
-                    />
-                  ) : (
-                    <CreditCardIcon
-                      className="size-5"
-                      style={
-                        exp.accountColor
-                          ? { color: exp.accountColor }
-                          : { color: "var(--muted-foreground)" }
-                      }
-                    />
-                  )}
+            <div key={exp.id}>
+              {dateSeparators.has(exp.id) && (
+                <p className="text-muted-foreground/70 mt-4 mb-1.5 px-1 text-[11px] font-medium tracking-wide uppercase first:mt-0">
+                  {dateSeparators.get(exp.id)}
+                </p>
+              )}
+              <div className="border-border flex min-h-[60px] items-center justify-between gap-3 rounded-lg border bg-background/50 p-4">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
+                    {exp.accountImageUrl ? (
+                      <img
+                        src={exp.accountImageUrl}
+                        alt={exp.accountName}
+                        className="size-8 rounded object-cover"
+                      />
+                    ) : (
+                      <CreditCardIcon
+                        className="size-5"
+                        style={
+                          exp.accountColor
+                            ? { color: exp.accountColor }
+                            : { color: "var(--muted-foreground)" }
+                        }
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {exp.description || "Sin descripcion"}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {exp.accountName}
+                      {exp.categoryName && ` - ${exp.categoryName}`}
+                      {" - "}
+                      {formatDate(exp.date)}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium">
-                    {exp.description || "Sin descripcion"}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {exp.accountName}
-                    {exp.categoryName && ` - ${exp.categoryName}`}
-                    {" - "}
-                    {formatDate(exp.date)}
-                  </p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="font-medium">{formatCurrency(exp.amount)}</span>
+                  <EditExpenseModal
+                    expense={exp}
+                    accounts={accounts}
+                    categories={categories}
+                    onSuccess={refreshList}
+                  />
+                  <DeleteExpenseButton
+                    expenseId={exp.id}
+                    description={exp.description}
+                    onSuccess={refreshList}
+                  />
                 </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <span className="font-medium">{formatCurrency(exp.amount)}</span>
-                <EditExpenseModal
-                  expense={exp}
-                  accounts={accounts}
-                  categories={categories}
-                  onSuccess={refreshList}
-                />
-                <DeleteExpenseButton
-                  expenseId={exp.id}
-                  description={exp.description}
-                  onSuccess={refreshList}
-                />
               </div>
             </div>
           ))}

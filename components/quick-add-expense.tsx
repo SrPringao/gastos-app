@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/dates";
+import { formatCurrency, todayDateString } from "@/lib/utils/dates";
 import type { Account } from "@/lib/db/schema";
 import type { Category } from "@/lib/db/schema";
 
@@ -62,9 +62,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   const [description, setDescription] = useState("");
   const [accountId, setAccountId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [date, setDate] = useState(
-    () => new Date().toISOString().slice(0, 10)
-  );
+  const [date, setDate] = useState(() => todayDateString());
   const [addingAccount, setAddingAccount] = useState(false);
   const [newAccountName, setNewAccountName] = useState("");
   const [newAccountType, setNewAccountType] =
@@ -80,7 +78,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
     setDescription("");
     setAccountId(null);
     setCategoryId(null);
-    setDate(new Date().toISOString().slice(0, 10));
+    setDate(todayDateString());
     setError(null);
   }
 
