@@ -115,27 +115,26 @@ export function AccountsCard({ accounts, categories }: AccountsCardProps) {
               return (
                 <div
                   key={acc.id}
-                  className="border-border flex items-center justify-between rounded-lg border bg-background/50 p-4"
+                  className="border-border bg-secondary/30 flex items-center justify-between rounded-xl border p-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     {acc.imageUrl ? (
                       <img
                         src={acc.imageUrl}
                         alt={acc.name}
-                        className="size-10 shrink-0 rounded-lg object-cover border"
+                        className="border-border size-10 shrink-0 rounded-full border object-cover"
                       />
                     ) : (
                       <div
-                        className="flex size-10 shrink-0 items-center justify-center rounded-lg"
-                        style={{
-                          backgroundColor: acc.color
-                            ? `${acc.color}20`
-                            : undefined,
-                          ...(acc.color && { border: `2px solid ${acc.color}` }),
-                        }}
+                        className="ring-border bg-background flex size-10 shrink-0 items-center justify-center rounded-full ring-1"
+                        style={
+                          acc.color
+                            ? { boxShadow: `inset 0 0 0 1px ${acc.color}66` }
+                            : undefined
+                        }
                       >
                         <Icon
-                          className="size-5"
+                          className="size-4"
                           style={
                             acc.color
                               ? { color: acc.color }
@@ -153,7 +152,10 @@ export function AccountsCard({ accounts, categories }: AccountsCardProps) {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     {daysUntilPayment !== null && (
-                      <Badge variant={daysUntilPayment <= 7 ? "warning" : "secondary"}>
+                      <Badge
+                        variant={daysUntilPayment <= 7 ? "warning" : "secondary"}
+                        className="font-figures"
+                      >
                         {daysUntilPayment} dias
                       </Badge>
                     )}

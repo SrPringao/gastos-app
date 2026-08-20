@@ -82,9 +82,10 @@ function DayTooltip({ active, payload, accounts }: DayTooltipProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
+    <div className="bg-popover text-popover-foreground rounded-[10px] border px-3 py-2 text-xs shadow-[var(--glow-card)]">
       <div className="mb-1 font-medium">
-        {point.date} · Total del dia: {totalFormatted}
+        {point.date} · Total del dia:{" "}
+        <span className="font-figures">{totalFormatted}</span>
       </div>
       <div className="space-y-0.5">
         {items.map((item) => (
@@ -99,7 +100,7 @@ function DayTooltip({ active, payload, accounts }: DayTooltipProps) {
               />
               <span>{item.label}</span>
             </span>
-            <span>{item.value}</span>
+            <span className="font-figures">{item.value}</span>
           </div>
         ))}
       </div>

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { MenuIcon, LogOut, RefreshCw, LayoutDashboardIcon, CreditCardIcon, ReceiptIcon, PieChartIcon, FlaskConicalIcon, ReceiptTextIcon, ChevronRightIcon, ChevronDownIcon, SettingsIcon, LinkIcon } from "lucide-react";
+import { MenuIcon, LogOut, RefreshCw, ChevronRightIcon, ChevronDownIcon } from "lucide-react";
+import { navGroups, isNavItemActive } from "@/lib/nav-config";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sheet,
   SheetContent,
@@ -14,34 +16,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const primaryNavItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
-  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
-];
-
-const secondaryNavItems = [
-  { href: "/cuentas", label: "Cuentas", icon: CreditCardIcon },
-  { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
-  { href: "/categorias", label: "Categorias", icon: PieChartIcon },
-];
-
-const configuracionSubItems = [
-  {
-    href: "/configuracion/agregar-automatizacion",
-    label: "Agregar automatizacion",
-    icon: LinkIcon,
-  },
-];
-
 export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const isConfiguracionActive = pathname.startsWith("/configuracion");
-  const [configuracionManuallyOpen, setConfiguracionManuallyOpen] = useState(false);
-  const configuracionOpen = isConfiguracionActive || configuracionManuallyOpen;
+  const [manuallyOpen, setManuallyOpen] = useState<Record<string, boolean>>({});
+  const activeTab = searchParams.get("tab") ?? undefined;
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -69,118 +51,28 @@ export function AppHeader() {
             <SheetHeader className="border-b p-6">
               <SheetTitle className="text-left">
                 <Link href="/" className="text-xl font-bold" onClick={() => setOpen(false)}>
-                  Gastos
+                  ExpenseBro
                 </Link>
               </SheetTitle>
             </SheetHeader>
             <nav className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col gap-1">
-                {primaryNavItems.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/" && pathname.startsWith(item.href));
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "group flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          "size-5 shrink-0 transition-transform group-hover:scale-110",
-                          isActive && "text-primary"
-                        )}
-                        strokeWidth={isActive ? 2.5 : 2}
-                      />
-                      <span className="flex-1">{item.label}</span>
-                      {isActive && (
-                        <div className="h-2 w-2 rounded-full bg-primary" />
-                      )}
-                      {!isActive && (
-                        <ChevronRightIcon className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
-                      )}
-                    </Link>
-                  );
-                })}
-                <div className="my-2 border-t border-border" />
-                {secondaryNavItems.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/" && pathname.startsWith(item.href));
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "group flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          "size-5 shrink-0 transition-transform group-hover:scale-110",
-                          isActive && "text-primary"
-                        )}
-                        strokeWidth={isActive ? 2.5 : 2}
-                      />
-                      <span className="flex-1">{item.label}</span>
-                      {isActive && (
-                        <div className="h-2 w-2 rounded-full bg-primary" />
-                      )}
-                      {!isActive && (
-                        <ChevronRightIcon className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
-                      )}
-                    </Link>
-                  );
-                })}
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfiguracionManuallyOpen((prev) => !prev)
-                    }
-                    className={cn(
-                      "group flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
-                      isConfiguracionActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                {navGroups.map((group, groupIndex) => (
+                  <div key={group.label} className="contents">
+                    {groupIndex > 0 && (
+                      <div className="my-2 border-t border-border" />
                     )}
-                  >
-                    <SettingsIcon
-                      className={cn(
-                        "size-5 shrink-0 transition-transform group-hover:scale-110",
-                        isConfiguracionActive && "text-primary"
-                      )}
-                      strokeWidth={isConfiguracionActive ? 2.5 : 2}
-                    />
-                    <span className="flex-1 text-left">Configuracion</span>
-                    <ChevronDownIcon
-                      className={cn(
-                        "size-4 shrink-0 transition-transform",
-                        configuracionOpen && "rotate-180"
-                      )}
-                    />
-                  </button>
-                  {configuracionOpen && (
-                    <div className="mt-1 flex flex-col gap-1 pl-4">
-                      {configuracionSubItems.map((item) => {
-                        const isActive = pathname === item.href;
+                    {group.items.map((item) => {
+                      const isActive = isNavItemActive(pathname, item);
+
+                      if (!item.subItems) {
                         return (
                           <Link
                             key={item.href}
                             href={item.href}
                             onClick={() => setOpen(false)}
                             className={cn(
-                              "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
+                              "group flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
                               isActive
                                 ? "bg-primary/10 text-primary"
                                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -188,7 +80,7 @@ export function AppHeader() {
                           >
                             <item.icon
                               className={cn(
-                                "size-4 shrink-0 transition-transform group-hover:scale-110",
+                                "size-5 shrink-0 transition-transform group-hover:scale-110",
                                 isActive && "text-primary"
                               )}
                               strokeWidth={isActive ? 2.5 : 2}
@@ -197,12 +89,85 @@ export function AppHeader() {
                             {isActive && (
                               <div className="h-2 w-2 rounded-full bg-primary" />
                             )}
+                            {!isActive && (
+                              <ChevronRightIcon className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                            )}
                           </Link>
                         );
-                      })}
-                    </div>
-                  )}
-                </div>
+                      }
+
+                      const isOpen = isActive || manuallyOpen[item.label];
+                      return (
+                        <div key={item.label}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setManuallyOpen((prev) => ({
+                                ...prev,
+                                [item.label]: !prev[item.label],
+                              }))
+                            }
+                            className={cn(
+                              "group flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all",
+                              isActive
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                          >
+                            <item.icon
+                              className={cn(
+                                "size-5 shrink-0 transition-transform group-hover:scale-110",
+                                isActive && "text-primary"
+                              )}
+                              strokeWidth={isActive ? 2.5 : 2}
+                            />
+                            <span className="flex-1 text-left">{item.label}</span>
+                            <ChevronDownIcon
+                              className={cn(
+                                "size-4 shrink-0 transition-transform",
+                                isOpen && "rotate-180"
+                              )}
+                            />
+                          </button>
+                          {isOpen && (
+                            <div className="mt-1 flex flex-col gap-1 pl-4">
+                              {item.subItems.map((sub) => {
+                                const subActive = sub.tab
+                                  ? isActive && activeTab === sub.tab
+                                  : pathname === sub.href;
+                                return (
+                                  <Link
+                                    key={sub.tab ?? sub.href}
+                                    href={sub.href}
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                      "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
+                                      subActive
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                                    )}
+                                  >
+                                    <sub.icon
+                                      className={cn(
+                                        "size-4 shrink-0 transition-transform group-hover:scale-110",
+                                        subActive && "text-primary"
+                                      )}
+                                      strokeWidth={subActive ? 2.5 : 2}
+                                    />
+                                    <span className="flex-1">{sub.label}</span>
+                                    {subActive && (
+                                      <div className="h-2 w-2 rounded-full bg-primary" />
+                                    )}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             </nav>
             <div className="border-t p-4">
@@ -219,21 +184,24 @@ export function AppHeader() {
         </SheetContent>
       </Sheet>
       <Link href="/" className="font-semibold">
-        Gastos
+        ExpenseBro
       </Link>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        className="shrink-0"
-        title="Actualizar"
-      >
-        <RefreshCw
-          className={`size-5 ${isRefreshing ? "animate-spin" : ""}`}
-        />
-        <span className="sr-only">Actualizar</span>
-      </Button>
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="shrink-0"
+          title="Actualizar"
+        >
+          <RefreshCw
+            className={`size-5 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          <span className="sr-only">Actualizar</span>
+        </Button>
+      </div>
     </header>
   );
 }

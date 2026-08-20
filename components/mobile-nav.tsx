@@ -2,34 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboardIcon,
-  ReceiptIcon,
-  FlaskConicalIcon,
-  SettingsIcon,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/", label: "Inicio", icon: LayoutDashboardIcon },
-  { href: "/gastos", label: "Gastos", icon: ReceiptIcon },
-  { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
-  {
-    href: "/configuracion/agregar-automatizacion",
-    label: "Config",
-    icon: SettingsIcon,
-  },
-];
+import { mobileNavItems, isNavItemActive } from "@/lib/nav-config";
 
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-border/60 fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] backdrop-blur-2xl md:hidden" style={{ backgroundColor: 'rgba(255, 255, 255, 0.94)' }}>
-      {navItems.map((item) => {
-        const isActive =
-          pathname === item.href ||
-          (item.href !== "/" && pathname.startsWith(item.href));
+    <nav className="glass-surface fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:hidden">
+      {mobileNavItems.map((item) => {
+        const isActive = isNavItemActive(pathname, item);
         return (
           <Link
             key={item.href}
@@ -51,10 +33,10 @@ export function MobileNav() {
                 isActive ? "opacity-100" : "opacity-60"
               )}
             >
-              {item.label}
+              {item.mobileLabel ?? item.label}
             </span>
             {isActive && (
-              <div className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary" />
+              <div className="bg-primary shadow-[var(--glow-violet-sm)] absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full" />
             )}
           </Link>
         );

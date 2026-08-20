@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/dates";
 
 type MetricsCardProps = {
@@ -7,26 +7,48 @@ type MetricsCardProps = {
   subtitle?: string;
   icon?: React.ReactNode;
   formatAsCurrency?: boolean;
+  /** Metrica protagonista del dashboard: lleva el glow degradado de marca detras */
+  featured?: boolean;
 };
 
-export function MetricsCard({ title, value, subtitle, icon, formatAsCurrency = false }: MetricsCardProps) {
+export function MetricsCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  formatAsCurrency = false,
+  featured = false,
+}: MetricsCardProps) {
   const displayValue = formatAsCurrency ? formatCurrency(value) : String(value);
 
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-muted-foreground text-sm font-medium">
-          {title}
-        </CardTitle>
-        {icon && (
-          <div className="text-muted-foreground opacity-70">{icon}</div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold tracking-tight">{displayValue}</div>
-        {subtitle && (
-          <p className="text-muted-foreground mt-1 text-xs">{subtitle}</p>
-        )}
+    <Card className="relative h-full overflow-hidden">
+      {featured && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-[0.15] blur-3xl"
+          style={{ background: "var(--gradient-signal)" }}
+        />
+      )}
+      <CardContent className="relative flex h-full flex-col justify-between gap-4">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            {title}
+          </p>
+          {icon && (
+            <div className="bg-secondary text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+              {icon}
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="font-figures text-3xl font-medium tracking-tight sm:text-[2rem]">
+            {displayValue}
+          </div>
+          {subtitle && (
+            <p className="text-muted-foreground mt-1.5 text-sm">{subtitle}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

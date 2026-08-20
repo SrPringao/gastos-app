@@ -65,7 +65,7 @@ export default async function GastosPage({
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Gastos</h1>
+          <h1 className="text-heading-sm tracking-tight">Gastos</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Metricas, graficas e historial de transacciones
           </p>
@@ -136,14 +136,11 @@ export default async function GastosPage({
         </Card>
       </div>
 
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">Historial</h2>
-        <ExpensesList
-          accounts={accounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
-          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
-          monthKey={monthKey}
-        />
-      </div>
+      <ExpensesList
+        accounts={accounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
+        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        monthKey={monthKey}
+      />
     </div>
   );
 }

@@ -178,7 +178,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   const trigger = (
     <Button
       size="lg"
-      className="h-12 w-full gap-2 sm:h-10 sm:w-auto sm:min-w-[140px]"
+      className="h-12 w-full gap-2 shadow-[var(--glow-violet-lg)] sm:h-10 sm:w-auto sm:min-w-[140px]"
     >
       <PlusIcon className="size-5 shrink-0" />
       Agregar gasto

@@ -9,17 +9,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div 
-      className="h-screen h-[100dvh] flex overflow-hidden w-full max-w-full md:flex-row"
-      style={{ 
+    <div
+      className="bg-muted/30 h-screen h-[100dvh] flex overflow-hidden w-full max-w-full md:flex-row"
+      style={{
         touchAction: 'none',
         overscrollBehavior: 'none'
       }}
     >
       <AppSidebar />
-      <div 
-        className="flex flex-col h-full w-full relative"
-        style={{ 
+      <div
+        className="flex flex-col h-full w-full relative md:ml-[17rem]"
+        style={{
           touchAction: 'none',
           overscrollBehavior: 'none'
         }}
@@ -32,9 +32,9 @@ export default function DashboardLayout({
         >
           <AppHeader />
         </div>
-        <main 
+        <main
           data-scrollable
-          className="flex-1 overflow-y-auto overflow-x-hidden w-full overscroll-contain bg-muted/30 pb-20 md:pb-0"
+          className="flex-1 overflow-y-auto overflow-x-hidden w-full overscroll-contain pb-20 md:pb-0"
           style={{ 
             WebkitOverflowScrolling: 'touch',
             touchAction: 'pan-y',

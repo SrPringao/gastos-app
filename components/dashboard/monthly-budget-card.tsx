@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PencilIcon, CheckIcon, XIcon, WalletIcon } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils/dates";
@@ -68,18 +68,19 @@ export function MonthlyBudgetCard({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">
-          Presupuesto mensual
-        </CardTitle>
-        <div className="text-muted-foreground opacity-70">
-          <WalletIcon className="size-5" />
+      <CardContent className="flex h-full flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            Presupuesto mensual
+          </p>
+          <div className="bg-secondary text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+            <WalletIcon className="size-4" />
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-3">
-        <div className="space-y-1">
+
+        <div>
           <p className="text-muted-foreground text-xs">{monthLabel}</p>
-          <p className="text-2xl font-bold tracking-tight">
+          <p className="font-figures text-3xl font-medium tracking-tight sm:text-[2rem]">
             {budgetCents > 0 ? formatCurrency(budgetCents) : "Sin definir"}
           </p>
         </div>
@@ -89,9 +90,9 @@ export function MonthlyBudgetCard({
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Consumido</span>
-                <span className="font-medium">{usagePercent}%</span>
+                <span className="font-figures font-medium">{usagePercent}%</span>
               </div>
-              <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+              <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
                 <div
                   className={`h-full rounded-full transition-all ${
                     usagePercent >= 100 ? "bg-destructive" : "bg-primary"
@@ -100,7 +101,7 @@ export function MonthlyBudgetCard({
                 />
               </div>
             </div>
-            <p className={`text-xs ${remainingCents < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+            <p className={`font-figures text-xs ${remainingCents < 0 ? "text-destructive" : "text-muted-foreground"}`}>
               {remainingCents >= 0
                 ? `Te quedan ${formatCurrency(remainingCents)}`
                 : `Te pasaste por ${formatCurrency(Math.abs(remainingCents))}`}

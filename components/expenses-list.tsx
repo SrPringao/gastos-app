@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangeFilter } from "@/components/date-range-filter";
 
 type ExpenseWithDetails = {
   id: number;
@@ -102,12 +103,16 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
       }
     }
 
-    if (dateFrom) {
-      result = result.filter((e) => dbDateToInputValue(e.date) >= dateFrom);
-    }
-
-    if (dateTo) {
-      result = result.filter((e) => dbDateToInputValue(e.date) <= dateTo);
+    if (dateFrom && !dateTo) {
+      // Solo se eligio un dia: filtra esa fecha exacta, no un rango abierto
+      result = result.filter((e) => dbDateToInputValue(e.date) === dateFrom);
+    } else {
+      if (dateFrom) {
+        result = result.filter((e) => dbDateToInputValue(e.date) >= dateFrom);
+      }
+      if (dateTo) {
+        result = result.filter((e) => dbDateToInputValue(e.date) <= dateTo);
+      }
     }
 
     result.sort((a, b) => {
@@ -180,198 +185,209 @@ export function ExpensesList({ accounts, categories, monthKey }: ExpensesListPro
 
   if (loading) {
     return (
-      <p className="text-muted-foreground py-8 text-center text-sm">
-        Cargando gastos...
-      </p>
+      <Card>
+        <CardContent>
+          <p className="text-muted-foreground py-8 text-center text-sm">
+            Cargando gastos...
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (expenses.length === 0) {
     return (
-      <p className="text-muted-foreground py-8 text-center text-sm">
-        No hay gastos registrados.
-      </p>
+      <Card>
+        <CardContent>
+          <p className="text-muted-foreground py-8 text-center text-sm">
+            No hay gastos registrados.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filtros */}
-      <div className="flex flex-col gap-3">
-        {/* Búsqueda */}
-        <div className="relative">
-          <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            placeholder="Buscar por descripción..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+    <Card>
+      <CardHeader className="gap-4">
+        <div className="flex items-center justify-between">
+          <CardTitle>Historial</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            {filtered.length === expenses.length
+              ? `${expenses.length} transacciones`
+              : `${filtered.length} de ${expenses.length} transacciones`}
+            {filtered.length > 0 && (
+              <>
+                {" · "}
+                <span className="font-figures text-foreground font-medium">
+                  {formatCurrency(filteredTotal)}
+                </span>
+              </>
+            )}
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {/* Filtro por cuenta */}
-          <Select value={accountFilter} onValueChange={setAccountFilter}>
-            <SelectTrigger className="w-auto min-w-[160px]">
-              <SelectValue placeholder="Método de pago" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los métodos</SelectItem>
-              {presentAccounts.map((a) => (
-                <SelectItem key={a.id} value={String(a.id)}>
-                  {a.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Filtro por categoría */}
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-auto min-w-[160px]">
-              <SelectValue placeholder="Categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las categorías</SelectItem>
-              <SelectItem value="none">Sin categoría</SelectItem>
-              {presentCategories.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Filtro por fecha */}
-          <div className="flex items-center gap-1">
+        {/* Filtros */}
+        <div className="flex flex-col gap-3">
+          <div className="relative">
+            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              max={dateTo || undefined}
-              className="w-auto"
-              aria-label="Desde"
-            />
-            <span className="text-muted-foreground text-xs">a</span>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              min={dateFrom || undefined}
-              className="w-auto"
-              aria-label="Hasta"
+              placeholder="Buscar por descripción..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
             />
           </div>
 
-          {/* Ordenar */}
-          <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-            <SelectTrigger className="w-auto min-w-[160px]">
-              <ArrowUpDownIcon className="mr-2 size-4" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+          <div className="flex flex-wrap gap-2">
+            {/* Filtro por cuenta */}
+            <Select value={accountFilter} onValueChange={setAccountFilter}>
+              <SelectTrigger className="w-auto min-w-[160px]">
+                <SelectValue placeholder="Método de pago" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los métodos</SelectItem>
+                {presentAccounts.map((a) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
+                    {a.name}
                   </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
 
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="text-muted-foreground hover:text-foreground gap-1"
-            >
-              <XIcon className="size-4" />
-              Limpiar filtros
-            </Button>
-          )}
+            {/* Filtro por categoría */}
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-auto min-w-[160px]">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                <SelectItem value="none">Sin categoría</SelectItem>
+                {presentCategories.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por fecha */}
+            <DateRangeFilter
+              from={dateFrom}
+              to={dateTo}
+              onChange={(from, to) => {
+                setDateFrom(from);
+                setDateTo(to);
+              }}
+            />
+
+            {/* Ordenar */}
+            <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+              <SelectTrigger className="w-auto min-w-[160px]">
+                <ArrowUpDownIcon className="mr-2 size-4" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-muted-foreground hover:text-foreground gap-1"
+              >
+                <XIcon className="size-4" />
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Resumen */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {filtered.length === expenses.length
-            ? `${expenses.length} transacciones`
-            : `${filtered.length} de ${expenses.length} transacciones`}
-        </p>
-        {filtered.length > 0 && (
-          <Badge variant="secondary" className="font-medium">
-            Total: {formatCurrency(filteredTotal)}
-          </Badge>
-        )}
-      </div>
-
-      {/* Lista */}
-      {filtered.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center text-sm">
-          No hay gastos con los filtros aplicados.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((exp) => (
-            <div key={exp.id}>
-              {dateSeparators.has(exp.id) && (
-                <p className="text-muted-foreground/70 mt-4 mb-1.5 px-1 text-[11px] font-medium tracking-wide uppercase first:mt-0">
-                  {dateSeparators.get(exp.id)}
-                </p>
-              )}
-              <div className="border-border flex min-h-[60px] items-center justify-between gap-3 rounded-lg border bg-background/50 p-4">
-                <div className="flex min-w-0 flex-1 items-center gap-4">
-                  <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg">
-                    {exp.accountImageUrl ? (
-                      <img
-                        src={exp.accountImageUrl}
-                        alt={exp.accountName}
-                        className="size-8 rounded object-cover"
-                      />
-                    ) : (
-                      <CreditCardIcon
-                        className="size-5"
-                        style={
-                          exp.accountColor
-                            ? { color: exp.accountColor }
-                            : { color: "var(--muted-foreground)" }
-                        }
-                      />
-                    )}
+      <CardContent>
+        {filtered.length === 0 ? (
+          <p className="text-muted-foreground py-8 text-center text-sm">
+            No hay gastos con los filtros aplicados.
+          </p>
+        ) : (
+          <div className="-mx-8">
+            {filtered.map((exp) => (
+              <div key={exp.id}>
+                {dateSeparators.has(exp.id) && (
+                  <p className="text-muted-foreground/70 mt-4 mb-1.5 px-8 text-[11px] font-medium tracking-wide uppercase first:mt-0">
+                    {dateSeparators.get(exp.id)}
+                  </p>
+                )}
+                <div className="hover:bg-secondary/60 flex items-center justify-between gap-3 px-8 py-3 transition-colors">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div
+                      className="ring-border bg-background flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
+                      style={
+                        exp.accountColor
+                          ? { boxShadow: `inset 0 0 0 1px ${exp.accountColor}66` }
+                          : undefined
+                      }
+                    >
+                      {exp.accountImageUrl ? (
+                        <img
+                          src={exp.accountImageUrl}
+                          alt={exp.accountName}
+                          className="size-9 rounded-full object-cover"
+                        />
+                      ) : (
+                        <CreditCardIcon
+                          className="size-4"
+                          style={
+                            exp.accountColor
+                              ? { color: exp.accountColor }
+                              : { color: "var(--muted-foreground)" }
+                          }
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">
+                        {exp.description || "Sin descripcion"}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {exp.accountName}
+                        {exp.categoryName && ` · ${exp.categoryName}`}
+                        {" · "}
+                        {formatDate(exp.date)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium">
-                      {exp.description || "Sin descripcion"}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {exp.accountName}
-                      {exp.categoryName && ` - ${exp.categoryName}`}
-                      {" - "}
-                      {formatDate(exp.date)}
-                    </p>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="font-figures font-medium">
+                      {formatCurrency(exp.amount)}
+                    </span>
+                    <EditExpenseModal
+                      expense={exp}
+                      accounts={accounts}
+                      categories={categories}
+                      onSuccess={refreshList}
+                    />
+                    <DeleteExpenseButton
+                      expenseId={exp.id}
+                      description={exp.description}
+                      onSuccess={refreshList}
+                    />
                   </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <span className="font-medium">{formatCurrency(exp.amount)}</span>
-                  <EditExpenseModal
-                    expense={exp}
-                    accounts={accounts}
-                    categories={categories}
-                    onSuccess={refreshList}
-                  />
-                  <DeleteExpenseButton
-                    expenseId={exp.id}
-                    description={exp.description}
-                    onSuccess={refreshList}
-                  />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

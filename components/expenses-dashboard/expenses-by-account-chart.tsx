@@ -81,7 +81,14 @@ export function ExpensesByAccountChart({ data }: Props) {
               formatCurrency((props?.payload as Point)?.totalPesos ?? 0),
               name,
             ]}
-            contentStyle={{ borderRadius: "8px" }}
+            contentStyle={{
+              borderRadius: "10px",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+            }}
           />
           <Bar
             dataKey="total"

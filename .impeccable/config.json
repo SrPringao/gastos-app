@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "3rem",
+        "createdAt": "2026-08-20T04:22:04.517Z",
+        "reason": "input de monto en pantalla completa del quick-add: es intencionalmente el numero mas grande de la app en esa vista, no una fuga de la escala"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "16px",
+        "createdAt": "2026-08-20T04:22:04.548Z",
+        "reason": "fix tecnico estandar: font-size < 16px en un input dispara zoom automatico en iOS Safari"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10px",
+        "createdAt": "2026-08-20T04:22:04.580Z",
+        "reason": "label bajo icono en mobile tab-bar de 56px de alto; tamano minimo deliberado tipico de barras de navegacion nativas"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "createdAt": "2026-08-20T05:39:11.513Z",
+        "reason": "tooltip de Recharts (contentStyle inline): coincide con el tamano de metadata/eyebrow ya documentado (12px), solo declarado inline porque asi lo requiere el contentStyle de la libreria"
+      }
+    ]
+  }
+}

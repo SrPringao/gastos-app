@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, CalendarIcon } from "lucide-react";
+import {
+  PlusIcon,
+  TrashIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  CalendarIcon,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency, dbDateToInputValue } from "@/lib/utils/dates";
+import { cn } from "@/lib/utils";
 import type { Account, NetWorthEntry } from "@/lib/db/schema";
 
 type NetWorthCardProps = {
@@ -46,7 +53,10 @@ function DueDateBadge({ dueDate }: { dueDate: Date | string | null }) {
         : `${days}d restantes`;
 
   return (
-    <Badge variant={days <= 3 ? "warning" : "secondary"} className="shrink-0">
+    <Badge
+      variant={days <= 3 ? "warning" : "secondary"}
+      className="font-figures shrink-0"
+    >
       {label}
     </Badge>
   );
@@ -117,7 +127,7 @@ function EntryRow({
   const account = accounts.find((a) => a.id === entry.accountId);
 
   return (
-    <div className="border-border flex flex-col gap-3 rounded-lg border bg-background/50 p-3 sm:flex-row sm:items-center">
+    <div className="border-border flex flex-col gap-3 rounded-xl border bg-background/50 p-3 sm:flex-row sm:items-center">
       <div className="flex items-start gap-2">
         <div className="flex shrink-0 flex-col">
           <Button
@@ -125,7 +135,7 @@ function EntryRow({
             size="icon"
             onClick={() => onMove("up")}
             disabled={isFirst || saving}
-            className="size-6 text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground size-6"
           >
             <ChevronUpIcon className="size-4" />
           </Button>
@@ -134,7 +144,7 @@ function EntryRow({
             size="icon"
             onClick={() => onMove("down")}
             disabled={isLast || saving}
-            className="size-6 text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground size-6"
           >
             <ChevronDownIcon className="size-4" />
           </Button>
@@ -170,7 +180,7 @@ function EntryRow({
               value={dueDate}
               onChange={(e) => handleDueDateChange(e.target.value)}
               disabled={saving}
-              className="h-9 min-w-0 flex-1 rounded-lg text-xs sm:w-[145px] sm:flex-none"
+              className="font-figures h-9 min-w-0 flex-1 text-xs sm:w-[145px] sm:flex-none"
             />
           </div>
         )}
@@ -182,7 +192,7 @@ function EntryRow({
           onChange={(e) => setAmount(e.target.value)}
           onBlur={handleAmountBlur}
           disabled={saving}
-          className="h-9 w-24 flex-1 rounded-lg text-right sm:w-32 sm:flex-none"
+          className="font-figures h-9 w-24 flex-1 text-right sm:w-32 sm:flex-none"
         />
         <Button
           variant="ghost"
@@ -248,7 +258,7 @@ function AddEntryForm({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-dashed p-3 sm:flex-row sm:flex-wrap sm:items-center">
+    <div className="flex flex-col gap-2 rounded-xl border border-dashed p-3 sm:flex-row sm:flex-wrap sm:items-center">
       <Input
         placeholder="Nombre (ej: Nu, Sueldo, iPad)"
         value={label}
@@ -256,11 +266,11 @@ function AddEntryForm({
           setLabel(e.target.value);
           setLabelEditedByUser(true);
         }}
-        className="h-9 rounded-lg sm:min-w-[140px] sm:flex-1"
+        className="h-9 sm:min-w-[140px] sm:flex-1"
       />
       <div className="flex items-center gap-2">
         <Select value={accountId} onValueChange={handleAccountChange}>
-          <SelectTrigger size="sm" className="w-full rounded-lg sm:w-40">
+          <SelectTrigger size="sm" className="w-full sm:w-40">
             <SelectValue placeholder="Sin metodo" />
           </SelectTrigger>
           <SelectContent>
@@ -277,7 +287,7 @@ function AddEntryForm({
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="h-9 min-w-0 flex-1 rounded-lg text-xs sm:w-[145px] sm:flex-none"
+            className="font-figures h-9 min-w-0 flex-1 text-xs sm:w-[145px] sm:flex-none"
           />
         )}
       </div>
@@ -288,7 +298,7 @@ function AddEntryForm({
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="h-9 flex-1 rounded-lg text-right sm:w-28 sm:flex-none"
+          className="font-figures h-9 flex-1 text-right sm:w-28 sm:flex-none"
         />
         <Button
           variant="outline"
@@ -339,7 +349,7 @@ function EntryList({
   }
 
   return (
-    <>
+    <div className="space-y-2">
       {entries.map((entry, index) => (
         <EntryRow
           key={entry.id}
@@ -353,7 +363,57 @@ function EntryList({
           }}
         />
       ))}
-    </>
+    </div>
+  );
+}
+
+/**
+ * Card colapsable: en movil arranca cerrada (solo titulo + total), un tap
+ * la despliega. En desktop (lg+) siempre se muestra completa, sin importar
+ * el estado — el boton de colapsar tambien se oculta ahi, porque en
+ * pantallas grandes no existe el problema de scroll interminable.
+ */
+function CollapsibleSection({
+  title,
+  total,
+  totalClassName,
+  children,
+}: {
+  title: string;
+  total: string;
+  totalClassName?: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Card className="lg:overflow-visible">
+      <CardHeader>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 text-left lg:pointer-events-none"
+        >
+          <CardTitle className="flex flex-1 items-center gap-2 normal-case tracking-normal">
+            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              {title}
+            </span>
+          </CardTitle>
+          <span className={cn("font-figures text-base font-semibold", totalClassName)}>
+            {total}
+          </span>
+          <ChevronDownIcon
+            className={cn(
+              "text-muted-foreground size-4 shrink-0 transition-transform lg:hidden",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+      </CardHeader>
+      <CardContent className={cn("space-y-3", !open && "hidden lg:block")}>
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -372,64 +432,53 @@ export function NetWorthCard({ accounts, entries }: NetWorthCardProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Positivos</span>
-            <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
-              {formatCurrency(totalAssets)}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <EntryList entries={assets} accounts={accounts} onSaved={refresh} />
-          <AddEntryForm kind="asset" accounts={accounts} onAdded={refresh} />
-        </CardContent>
-      </Card>
+      <CollapsibleSection
+        title="Positivos"
+        total={formatCurrency(totalAssets)}
+        totalClassName="text-emerald-600 dark:text-emerald-400"
+      >
+        <EntryList entries={assets} accounts={accounts} onSaved={refresh} />
+        <AddEntryForm kind="asset" accounts={accounts} onAdded={refresh} />
+      </CollapsibleSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Deudas</span>
-            <span className="text-base font-semibold text-red-600 dark:text-red-400">
-              {formatCurrency(totalDebts)}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <EntryList entries={debts} accounts={accounts} onSaved={refresh} />
-          <AddEntryForm kind="debt" accounts={accounts} onAdded={refresh} />
-        </CardContent>
-      </Card>
+      <CollapsibleSection
+        title="Deudas"
+        total={formatCurrency(totalDebts)}
+        totalClassName="text-destructive"
+      >
+        <EntryList entries={debts} accounts={accounts} onSaved={refresh} />
+        <AddEntryForm kind="debt" accounts={accounts} onAdded={refresh} />
+      </CollapsibleSection>
 
       <Card className="lg:col-span-2">
-        <CardContent className="space-y-5 pt-6">
+        <CardContent className="space-y-5">
           <div>
             <p className="text-muted-foreground text-sm">Neto despues de pagos</p>
             <p
-              className={
+              className={cn(
+                "font-figures text-4xl font-medium tracking-tight",
                 net >= 0
-                  ? "text-4xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400"
-                  : "text-4xl font-bold tracking-tight text-red-600 dark:text-red-400"
-              }
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-destructive"
+              )}
             >
               {formatCurrency(net)}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+              <p className="text-xs font-medium tracking-wide text-emerald-700 uppercase dark:text-emerald-400">
                 Positivos
               </p>
-              <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="font-figures mt-1 text-xl font-medium text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(totalAssets)}
               </p>
             </div>
-            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-red-700 dark:text-red-400">
+            <div className="border-destructive/20 bg-destructive/10 rounded-2xl border p-4">
+              <p className="text-destructive/90 text-xs font-medium tracking-wide uppercase">
                 Deudas
               </p>
-              <p className="mt-1 text-xl font-bold text-red-600 dark:text-red-400">
+              <p className="font-figures text-destructive mt-1 text-xl font-medium">
                 {formatCurrency(totalDebts)}
               </p>
             </div>
