@@ -4,17 +4,10 @@ import { useMemo } from "react";
 import { QuickAddExpense } from "@/components/quick-add-expense";
 import { ExpensesRangeModal } from "@/components/expenses-dashboard/day-expenses-modal";
 import type { QuickActionKind } from "@/lib/nav-config";
-
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function daysAgoStr(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+import {
+  mondayOfCurrentWeekDateString,
+  todayDateString,
+} from "@/lib/utils/dates";
 
 export function QuickActionOverlays({
   active,
@@ -25,10 +18,15 @@ export function QuickActionOverlays({
 }) {
   const rangeModalProps = useMemo(() => {
     if (active === "expenses-today") {
-      return { from: todayStr(), to: todayStr(), title: "Gastos de hoy" };
+      const today = todayDateString();
+      return { from: today, to: today, title: "Gastos de hoy" };
     }
     if (active === "expenses-week") {
-      return { from: daysAgoStr(6), to: todayStr(), title: "Gastos de la semana" };
+      return {
+        from: mondayOfCurrentWeekDateString(),
+        to: todayDateString(),
+        title: "Gastos de la semana",
+      };
     }
     return null;
   }, [active]);

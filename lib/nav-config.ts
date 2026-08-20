@@ -26,6 +26,8 @@ export type NavSubItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Label corto para la tab bar movil */
+  mobileLabel?: string;
   /** Identifica la sub-ruta activa cuando varias comparten el mismo pathname base (ej. tabs por query param) */
   tab?: string;
 };
@@ -67,7 +69,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "Gestion",
     items: [
-      { href: "/gastos-fijos", label: "Gastos Fijos", icon: ReceiptTextIcon },
+      { href: "/gastos-fijos", label: "Gastos Fijos", mobileLabel: "Fijos", icon: ReceiptTextIcon },
       { href: "/categorias", label: "Categorias", icon: PieChartIcon },
     ],
   },
@@ -84,11 +86,13 @@ export const navGroups: NavGroup[] = [
           {
             href: "/configuracion/preferencias",
             label: "Preferencias",
+            mobileLabel: "Ajustes",
             icon: SlidersHorizontalIcon,
           },
           {
             href: "/configuracion/agregar-automatizacion",
             label: "Agregar automatizacion",
+            mobileLabel: "Atajos",
             icon: LinkIcon,
           },
         ],
@@ -109,6 +113,7 @@ export const allMobileNavCandidates: NavItem[] = navGroups.flatMap((group) =>
       ? item.subItems.map((sub) => ({
           href: sub.href,
           label: sub.label,
+          mobileLabel: sub.mobileLabel,
           icon: sub.icon,
         }))
       : [item]
@@ -130,6 +135,8 @@ export type QuickAction = {
   label: string;
   icon: LucideIcon;
   kind: QuickActionKind;
+  /** Label corto para la tab bar movil, donde el espacio es limitado */
+  mobileLabel?: string;
 };
 
 /**
@@ -140,9 +147,27 @@ export type QuickAction = {
  * Con 0 items la barra no se muestra.
  */
 export const quickActions: QuickAction[] = [
-  { id: "action:add-expense", label: "Agregar gasto", icon: PlusCircleIcon, kind: "add-expense" },
-  { id: "action:expenses-today", label: "Gastos de hoy", icon: CalendarDaysIcon, kind: "expenses-today" },
-  { id: "action:expenses-week", label: "Gastos de la semana", icon: CalendarRangeIcon, kind: "expenses-week" },
+  {
+    id: "action:add-expense",
+    label: "Agregar gasto",
+    mobileLabel: "Agregar",
+    icon: PlusCircleIcon,
+    kind: "add-expense",
+  },
+  {
+    id: "action:expenses-today",
+    label: "Gastos de hoy",
+    mobileLabel: "Hoy",
+    icon: CalendarDaysIcon,
+    kind: "expenses-today",
+  },
+  {
+    id: "action:expenses-week",
+    label: "Gastos de la semana",
+    mobileLabel: "Gast. sem",
+    icon: CalendarRangeIcon,
+    kind: "expenses-week",
+  },
 ];
 
 export function isQuickActionId(id: string): boolean {

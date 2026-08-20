@@ -56,7 +56,7 @@ export default async function DashboardPage({
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-heading-sm tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm">
@@ -75,8 +75,8 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <div className="stagger-in grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12">
-        <div className="xl:col-span-5">
+      <div className="stagger-in grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-5">
           <MetricsCard
             title="Gastado este mes"
             value={totalSpent}
@@ -86,14 +86,14 @@ export default async function DashboardPage({
             featured
           />
         </div>
-        <div className="xl:col-span-4">
+        <div className="min-w-0 xl:col-span-4">
           <MonthlyBudgetCard
             totalSpentCents={totalSpent}
             monthKey={monthKey}
             monthLabel={capitalizedMonth}
           />
         </div>
-        <div className="sm:col-span-2 xl:col-span-3">
+        <div className="min-w-0 sm:col-span-2 xl:col-span-3">
           <MetricsCard
             title="Ultimos gastos"
             value={recentExpenses.length > 0 ? recentExpenses.length : 0}
@@ -102,10 +102,10 @@ export default async function DashboardPage({
           />
         </div>
 
-        <div className="xl:col-span-7">
+        <div className="min-w-0 xl:col-span-7">
           <SpentByAccountCard data={spentByAccount} monthKey={monthKey} />
         </div>
-        <div className="xl:col-span-5">
+        <div className="min-w-0 xl:col-span-5">
           <RecentExpensesCard
             expenses={recentExpenses}
             accounts={accounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
@@ -113,7 +113,7 @@ export default async function DashboardPage({
           />
         </div>
 
-        <div className="xl:col-span-12">
+        <div className="min-w-0 sm:col-span-2 xl:col-span-12">
           <AccountsCard accounts={accounts} categories={categories} />
         </div>
       </div>

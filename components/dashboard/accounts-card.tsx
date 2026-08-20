@@ -69,7 +69,7 @@ export function AccountsCard({ accounts, categories }: AccountsCardProps) {
   }
 
   return (
-    <Card className="col-span-1 md:col-span-2">
+    <Card>
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>Metodos de pago</CardTitle>
         <div className="flex flex-wrap gap-2">

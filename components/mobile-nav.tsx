@@ -16,7 +16,7 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
     <main
       data-scrollable
       className={cn(
-        "flex-1 overflow-y-auto overflow-x-hidden w-full overscroll-contain md:pb-0",
+        "w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain md:pb-0",
         hasNav && "pb-20"
       )}
       style={{
@@ -41,8 +41,15 @@ export function MobileNav() {
 
   return (
     <>
-      <nav className="glass-surface fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:hidden">
+      <nav className="glass-surface fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around gap-0 border-t px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:hidden">
         {entries.map((entry) => {
+          const itemClass = cn(
+            "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 overflow-hidden px-0.5 py-1.5 transition-all duration-200 active:scale-95",
+            entries.length >= 5 ? "max-w-[20%]" : "max-w-none"
+          );
+          const labelClass =
+            "block w-full truncate text-center text-[10px] leading-tight font-medium";
+
           if (entry.type === "action") {
             const { action } = entry;
             return (
@@ -50,11 +57,11 @@ export function MobileNav() {
                 key={action.id}
                 type="button"
                 onClick={() => setActiveModal(action.kind)}
-                className="text-muted-foreground relative flex min-w-0 flex-1 flex-col items-center gap-1 px-3 py-1.5 transition-all duration-200 active:scale-95"
+                className={cn(itemClass, "text-muted-foreground")}
               >
                 <action.icon className="size-5 shrink-0" strokeWidth={2} />
-                <span className="truncate text-[10px] font-medium opacity-60">
-                  {action.label}
+                <span className={cn(labelClass, "opacity-60")}>
+                  {action.mobileLabel ?? action.label}
                 </span>
               </button>
             );
@@ -67,14 +74,15 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex min-w-0 flex-1 flex-col items-center gap-1 px-3 py-1.5 transition-all duration-200 active:scale-95",
+                itemClass,
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
               <item.icon className="size-5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
               <span
                 className={cn(
-                  "truncate text-[10px] font-medium transition-all duration-200",
+                  labelClass,
+                  "transition-all duration-200",
                   isActive ? "opacity-100" : "opacity-60"
                 )}
               >

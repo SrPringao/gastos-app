@@ -194,7 +194,7 @@ export function ExpensesRangeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-3xl lg:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -209,15 +209,17 @@ export function ExpensesRangeModal({
           </p>
         ) : (
           <div className="space-y-4">
-            <div className="bg-muted rounded-xl p-4">
-              <p className="text-muted-foreground text-sm">Total</p>
-              <p className="font-figures text-2xl font-medium">{formatCurrency(total)}</p>
-              <p className="text-muted-foreground mt-1 text-xs">
+            <div className="bg-muted flex items-end justify-between gap-4 rounded-xl p-4">
+              <div>
+                <p className="text-muted-foreground text-sm">Total</p>
+                <p className="font-figures text-2xl font-medium">{formatCurrency(total)}</p>
+              </div>
+              <p className="text-muted-foreground pb-0.5 text-xs">
                 {expenses.length} {expenses.length === 1 ? "gasto" : "gastos"}
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-stretch md:gap-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-8">
               <div className="min-w-0 flex-1">
                 <p className="text-muted-foreground mb-2 text-sm font-medium">
                   Detalle de gastos
@@ -249,13 +251,13 @@ export function ExpensesRangeModal({
                 )}
               </div>
 
-              <div className="hidden shrink-0 flex-col md:flex md:w-[220px] md:justify-center">
+              <div className="hidden shrink-0 flex-col gap-6 md:flex md:w-[260px] lg:w-[300px]">
                 {byAccount.length > 0 && (
                   <div className="space-y-4">
                     <p className="text-muted-foreground mb-2 text-center text-sm font-medium">
                       Por metodo de pago
                     </p>
-                    <div className="h-[180px] w-full min-w-[180px]">
+                    <div className="h-[220px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -264,8 +266,8 @@ export function ExpensesRangeModal({
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            innerRadius={45}
-                            outerRadius={65}
+                            innerRadius={52}
+                            outerRadius={78}
                             paddingAngle={2}
                           >
                             {byAccount.map((entry, i) => (

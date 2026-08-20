@@ -14,6 +14,27 @@ export function todayDateString(timeZone = APP_TIMEZONE): string {
   }).format(new Date());
 }
 
+function formatYmdUtc(ms: number): string {
+  const d = new Date(ms);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Lunes de la semana calendario actual (lun-dom) en la zona de la app.
+ * Si hoy es domingo, el lunes es el de esa misma semana, no el siguiente.
+ */
+export function mondayOfCurrentWeekDateString(timeZone = APP_TIMEZONE): string {
+  const today = todayDateString(timeZone);
+  const [year, month, day] = today.split("-").map(Number);
+  const noonUtc = Date.UTC(year, month - 1, day, 12);
+  const weekday = new Date(noonUtc).getUTCDay();
+  const daysFromMonday = weekday === 0 ? 6 : weekday - 1;
+  return formatYmdUtc(noonUtc - daysFromMonday * 24 * 60 * 60 * 1000);
+}
+
 export function getDaysUntilPayment(
   cutoffDay: number | null,
   paymentDay: number | null

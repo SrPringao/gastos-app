@@ -69,8 +69,8 @@ export function MonthlyBudgetCard({
   return (
     <Card className="h-full">
       <CardContent className="flex h-full flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground min-w-0 truncate text-xs font-medium tracking-wide uppercase">
             Presupuesto mensual
           </p>
           <div className="bg-secondary text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">

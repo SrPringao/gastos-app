@@ -11,7 +11,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div
-      className="bg-muted/30 h-screen h-[100dvh] flex overflow-hidden w-full max-w-full md:flex-row"
+      className="bg-muted/30 h-screen h-[100dvh] flex w-full max-w-full overflow-hidden md:flex-row md:pl-[17rem]"
       style={{
         touchAction: 'none',
         overscrollBehavior: 'none'
@@ -19,7 +19,7 @@ export default function DashboardLayout({
     >
       <AppSidebar />
       <div
-        className="flex flex-col h-full w-full relative md:ml-[17rem]"
+        className="relative flex h-full min-w-0 w-full flex-col"
         style={{
           touchAction: 'none',
           overscrollBehavior: 'none'
