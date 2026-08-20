@@ -108,7 +108,7 @@ function EditModal({
       </div>
 
       {/* Nombre */}
-      <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+      <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
         <p className="text-muted-foreground mb-1 text-xs">Nombre</p>
         <input
           type="text"
@@ -119,7 +119,7 @@ function EditModal({
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
           <p className="text-muted-foreground mb-1 text-xs">Día de pago</p>
           <input
             type="number"
@@ -131,7 +131,7 @@ function EditModal({
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
           <p className="text-muted-foreground mb-1 text-xs">Etiqueta</p>
           <input
             type="text"
@@ -235,7 +235,7 @@ export function FixedExpensesList({
   return (
     <div className="space-y-4">
       {/* Resumen */}
-      <div className="border-border flex flex-wrap items-center gap-3 rounded-xl border bg-muted/30 px-4 py-3">
+      <div className="border-border flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
         <div className="flex-1">
           <p className="text-sm font-medium">
             {paidCount} de {items.length} pagados
@@ -268,7 +268,7 @@ export function FixedExpensesList({
             <div
               key={item.id}
               className={cn(
-                "border-border flex min-h-[68px] items-center gap-3 rounded-xl border p-4 transition-colors",
+                "border-border flex min-h-[68px] items-center gap-3 rounded-lg border p-4 transition-colors",
                 paid ? "bg-emerald-500/5 border-emerald-500/20" : "bg-background/50"
               )}
             >

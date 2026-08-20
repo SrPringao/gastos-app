@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils/dates";
+import { cn } from "@/lib/utils";
+import { usePreferences } from "@/components/preferences-provider";
+import { MaskedAmount } from "@/components/masked-amount";
 import type { NetWorthEntry, NetWorthProjection } from "@/lib/db/schema";
 
 type NetWorthSimulatorProps = {
@@ -21,6 +24,7 @@ function ProjectionRow({
   projection: NetWorthProjection;
   onSaved: () => void;
 }) {
+  const { hideNetWorthAmounts } = usePreferences();
   const [amount, setAmount] = useState(String(projection.amount / 100));
   const [saving, setSaving] = useState(false);
 
@@ -55,15 +59,21 @@ function ProjectionRow({
   return (
     <div className="border-border flex flex-wrap items-center gap-3 rounded-lg border bg-background/50 p-3">
       <p className="min-w-0 flex-1 truncate text-sm font-medium">{projection.label}</p>
-      <Input
-        type="number"
-        step="0.01"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        onBlur={handleAmountBlur}
-        disabled={saving}
-        className="h-9 w-24 flex-1 rounded-lg text-right sm:w-32 sm:flex-none"
-      />
+      {hideNetWorthAmounts ? (
+        <div className="font-figures bg-muted flex h-9 w-24 flex-1 items-center justify-end rounded-md px-3 text-sm select-none sm:w-32 sm:flex-none">
+          ••••••
+        </div>
+      ) : (
+        <Input
+          type="number"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          onBlur={handleAmountBlur}
+          disabled={saving}
+          className="font-figures h-9 w-24 flex-1 text-right sm:w-32 sm:flex-none"
+        />
+      )}
       <Button
         variant="ghost"
         size="icon"
@@ -132,7 +142,7 @@ export function NetWorthSimulator({ entries, projections }: NetWorthSimulatorPro
               placeholder="Concepto (ej: Renta, Super)"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="h-9 rounded-lg sm:min-w-[140px] sm:flex-1"
+              className="h-9 sm:min-w-[140px] sm:flex-1"
             />
             <div className="flex items-center gap-2">
               <Input
@@ -141,7 +151,7 @@ export function NetWorthSimulator({ entries, projections }: NetWorthSimulatorPro
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-9 flex-1 rounded-lg text-right sm:w-28 sm:flex-none"
+                className="font-figures h-9 flex-1 text-right sm:w-28 sm:flex-none"
               />
               <Button
                 variant="outline"
@@ -160,32 +170,33 @@ export function NetWorthSimulator({ entries, projections }: NetWorthSimulatorPro
         <div className="space-y-5 border-t pt-4">
           <div>
             <p className="text-muted-foreground text-sm">Neto − previsto</p>
-            <p
-              className={
+            <MaskedAmount
+              className={cn(
+                "font-figures block text-4xl font-medium tracking-tight",
                 netAfterPrevisto >= 0
-                  ? "text-4xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400"
-                  : "text-4xl font-bold tracking-tight text-red-600 dark:text-red-400"
-              }
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-destructive"
+              )}
             >
               {formatCurrency(netAfterPrevisto)}
-            </p>
+            </MaskedAmount>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+              <p className="text-xs font-medium tracking-wide text-emerald-700 uppercase dark:text-emerald-400">
                 Neto
               </p>
-              <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
+              <MaskedAmount className="font-figures mt-1 block text-xl font-medium text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(net)}
-              </p>
+              </MaskedAmount>
             </div>
-            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-red-700 dark:text-red-400">
+            <div className="border-destructive/20 bg-destructive/10 rounded-xl border p-4">
+              <p className="text-destructive/90 text-xs font-medium tracking-wide uppercase">
                 Previsto
               </p>
-              <p className="mt-1 text-xl font-bold text-red-600 dark:text-red-400">
+              <MaskedAmount className="font-figures text-destructive mt-1 block text-xl font-medium">
                 {formatCurrency(totalPrevisto)}
-              </p>
+              </MaskedAmount>
             </div>
           </div>
         </div>

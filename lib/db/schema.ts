@@ -193,6 +193,29 @@ export const pushSubscriptions = pgTable(
   })
 );
 
+// Preferencias del usuario: persistentes en servidor (no localStorage), un
+// registro por usuario. Extensible: cada preferencia nueva es una columna
+// mas, no una tabla nueva.
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  theme: text("theme", { enum: ["dark", "light"] })
+    .default("dark")
+    .notNull(),
+  hideNetWorthAmounts: boolean("hide_net_worth_amounts")
+    .default(false)
+    .notNull(),
+  // Hrefs (en orden) de las secciones elegidas para la tab bar movil.
+  // Null = usar el default (Inicio, Gastos, Cuentas, Configuracion).
+  mobileNavItems: text("mobile_nav_items").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdUnique: uniqueIndex("user_preferences_user_id_unique").on(table.userId),
+}));
+
 // Registro de pagos mensuales de gastos fijos
 export const fixedExpensePayments = pgTable(
   "fixed_expense_payments",
@@ -227,6 +250,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   netWorthProjections: many(netWorthProjections),
   cardNameMappings: many(cardNameMappings),
   pushSubscriptions: many(pushSubscriptions),
+  preferences: many(userPreferences),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
 }));
 
 export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
@@ -340,3 +371,5 @@ export type CardNameMapping = InferSelectModel<typeof cardNameMappings>;
 export type NewCardNameMapping = InferInsertModel<typeof cardNameMappings>;
 export type PushSubscriptionRow = InferSelectModel<typeof pushSubscriptions>;
 export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+export type UserPreferences = InferSelectModel<typeof userPreferences>;
+export type NewUserPreferences = InferInsertModel<typeof userPreferences>;

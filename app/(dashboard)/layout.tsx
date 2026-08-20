@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
-import { MobileNav } from "@/components/mobile-nav";
+import { MobileNav, DashboardMain } from "@/components/mobile-nav";
+import { DesktopQuickMenu } from "@/components/desktop-quick-menu";
 import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 
 export default function DashboardLayout({
@@ -32,20 +33,10 @@ export default function DashboardLayout({
         >
           <AppHeader />
         </div>
-        <main
-          data-scrollable
-          className="flex-1 overflow-y-auto overflow-x-hidden w-full overscroll-contain pb-20 md:pb-0"
-          style={{ 
-            WebkitOverflowScrolling: 'touch',
-            touchAction: 'pan-y',
-            overscrollBehavior: 'contain',
-            overscrollBehaviorY: 'contain'
-          }}
-        >
-          {children}
-        </main>
+        <DashboardMain>{children}</DashboardMain>
       </div>
       <MobileNav />
+      <DesktopQuickMenu />
       <PushNotificationPrompt />
     </div>
   );

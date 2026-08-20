@@ -1,19 +1,19 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/components/preferences-provider";
 
 type ThemeToggleProps = {
   className?: string;
 };
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = usePreferences();
 
   function toggle() {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    setTheme(theme === "dark" ? "light" : "dark");
   }
 
   return (
@@ -26,11 +26,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       title="Cambiar tema"
     >
       {/* Ambos iconos se renderizan siempre; el tema decide cual se ve via
-          CSS puro (dark:). Un unico icono elegido por resolvedTheme rompia
-          la hidratacion de verdad (SSR sin tema conocido pinta MoonIcon,
-          cliente con defaultTheme="dark" pinta SunIcon: dos <svg> con
-          distintos <path>/<circle>, no solo un mismatch cosmetico que
-          suppressHydrationWarning pudiera tapar). */}
+          CSS puro (dark:), coherente con como el html ya trae la clase
+          correcta desde el servidor (sin flash, sin mismatch). */}
       <SunIcon className="hidden size-5 opacity-70 dark:block" />
       <MoonIcon className="size-5 opacity-70 dark:hidden" />
       <span className="sr-only">Cambiar tema</span>

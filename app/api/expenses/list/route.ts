@@ -24,7 +24,21 @@ export async function GET(request: NextRequest) {
     const dateStr =
       date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined;
 
-    const expenses = await getExpensesWithDetails(userId, limit, monthKey, accountId, dateStr);
+    const from = searchParams.get("from") || undefined;
+    const to = searchParams.get("to") || undefined;
+    const dateRange =
+      from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to)
+        ? { from, to }
+        : undefined;
+
+    const expenses = await getExpensesWithDetails(
+      userId,
+      limit,
+      monthKey,
+      accountId,
+      dateStr,
+      dateRange
+    );
     return NextResponse.json(expenses);
   } catch (error) {
     console.error("[API] GET /api/expenses/list:", error);

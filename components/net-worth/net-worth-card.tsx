@@ -1,18 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusIcon,
   TrashIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  CalendarIcon,
+  PencilIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -20,8 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/date-picker";
 import { formatCurrency, dbDateToInputValue } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
+import { MaskedAmount } from "@/components/masked-amount";
 import type { Account, NetWorthEntry } from "@/lib/db/schema";
 
 type NetWorthCardProps = {
@@ -62,253 +73,283 @@ function DueDateBadge({ dueDate }: { dueDate: Date | string | null }) {
   );
 }
 
+type EntryFormValues = {
+  label: string;
+  accountId: string;
+  amount: string;
+  dueDate: string;
+};
+
+const EMPTY_FORM: EntryFormValues = {
+  label: "",
+  accountId: NO_ACCOUNT,
+  amount: "",
+  dueDate: "",
+};
+
+/**
+ * Modal unico para agregar o editar una entrada de patrimonio. En desktop
+ * el formulario inline (siempre visible, apretujado en 3 columnas) se
+ * volvia inconsistente con el resto del sistema; aqui vive en su propio
+ * dialogo, con el mismo lenguaje de EditAccountModal.
+ */
+function EntryFormDialog({
+  kind,
+  accounts,
+  entry,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  kind: "asset" | "debt";
+  accounts: Account[];
+  entry?: NetWorthEntry;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const isEditing = !!entry;
+  const [values, setValues] = useState<EntryFormValues>(EMPTY_FORM);
+  const [labelEditedByUser, setLabelEditedByUser] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    if (entry) {
+      setValues({
+        label: entry.label,
+        accountId: entry.accountId ? String(entry.accountId) : NO_ACCOUNT,
+        amount: String(entry.amount / 100),
+        dueDate: entry.dueDate ? dbDateToInputValue(entry.dueDate) : "",
+      });
+    } else {
+      setValues(EMPTY_FORM);
+    }
+    setLabelEditedByUser(false);
+    setError(null);
+  }, [open, entry]);
+
+  function handleAccountChange(accountId: string) {
+    setValues((v) => ({ ...v, accountId }));
+    if (labelEditedByUser || isEditing) return;
+    const account = accounts.find((acc) => acc.id === Number(accountId));
+    if (account) setValues((v) => ({ ...v, accountId, label: account.name }));
+  }
+
+  async function handleSubmit() {
+    if (!values.label.trim() || !values.amount) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const payload = {
+        label: values.label.trim(),
+        kind,
+        accountId: values.accountId === NO_ACCOUNT ? null : Number(values.accountId),
+        amount: Math.round(parseFloat(values.amount || "0") * 100),
+        dueDate: kind === "debt" && values.dueDate ? values.dueDate : null,
+      };
+
+      const res = await fetch(
+        isEditing ? `/api/net-worth/entries/${entry.id}` : "/api/net-worth/entries",
+        {
+          method: isEditing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error || "Error al guardar");
+        return;
+      }
+      onOpenChange(false);
+      onSaved();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const title = isEditing
+    ? "Editar entrada"
+    : kind === "asset"
+      ? "Nuevo positivo"
+      : "Nueva deuda";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="text-left">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {kind === "asset"
+              ? "Un saldo o cuenta que suma a tu patrimonio."
+              : "Una deuda que resta a tu patrimonio."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="entry-label">Nombre</Label>
+            <Input
+              id="entry-label"
+              placeholder="Ej: Nu, Sueldo, iPad"
+              value={values.label}
+              onChange={(e) => {
+                setLabelEditedByUser(true);
+                setValues((v) => ({ ...v, label: e.target.value }));
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Metodo de pago (opcional)</Label>
+            <Select value={values.accountId} onValueChange={handleAccountChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sin metodo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_ACCOUNT}>Sin metodo</SelectItem>
+                {accounts.map((acc) => (
+                  <SelectItem key={acc.id} value={String(acc.id)}>
+                    {acc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {kind === "debt" && (
+            <div className="space-y-2">
+              <Label>Fecha limite (opcional)</Label>
+              <DatePicker
+                value={values.dueDate}
+                onChange={(dueDate) => setValues((v) => ({ ...v, dueDate }))}
+                placeholder="Sin fecha limite"
+                className="w-full"
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="entry-amount">Monto</Label>
+            <Input
+              id="entry-amount"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={values.amount}
+              onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))}
+              className="font-figures"
+            />
+          </div>
+
+          {error && <p className="text-destructive text-sm">{error}</p>}
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving || !values.label.trim() || !values.amount}
+          >
+            {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Agregar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Fila de solo lectura: nombre + badge a la izquierda, monto + reordenar +
+ * editar + eliminar a la derecha. El mismo layout sirve para movil y desktop,
+ * ya sin el formulario inline que se apretujaba en pantallas grandes.
+ */
 function EntryRow({
   entry,
   accounts,
   isFirst,
   isLast,
-  onSaved,
   onMove,
+  onEdit,
+  onDeleted,
 }: {
   entry: NetWorthEntry;
   accounts: Account[];
   isFirst: boolean;
   isLast: boolean;
-  onSaved: () => void;
   onMove: (direction: "up" | "down") => void;
+  onEdit: () => void;
+  onDeleted: () => void;
 }) {
-  const [amount, setAmount] = useState(String(entry.amount / 100));
-  const [dueDate, setDueDate] = useState(
-    entry.dueDate ? dbDateToInputValue(entry.dueDate) : ""
-  );
-  const [saving, setSaving] = useState(false);
-
-  async function handleAmountBlur() {
-    const cents = Math.round(parseFloat(amount || "0") * 100);
-    if (cents === entry.amount) return;
-    setSaving(true);
-    try {
-      await fetch(`/api/net-worth/entries/${entry.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: cents }),
-      });
-      onSaved();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDueDateChange(value: string) {
-    setDueDate(value);
-    setSaving(true);
-    try {
-      await fetch(`/api/net-worth/entries/${entry.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dueDate: value || null }),
-      });
-      onSaved();
-    } finally {
-      setSaving(false);
-    }
-  }
+  const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    setSaving(true);
+    setDeleting(true);
     try {
       await fetch(`/api/net-worth/entries/${entry.id}`, { method: "DELETE" });
-      onSaved();
+      onDeleted();
     } finally {
-      setSaving(false);
+      setDeleting(false);
     }
   }
 
   const account = accounts.find((a) => a.id === entry.accountId);
 
   return (
-    <div className="border-border flex flex-col gap-3 rounded-xl border bg-background/50 p-3 sm:flex-row sm:items-center">
-      <div className="flex items-start gap-2">
-        <div className="flex shrink-0 flex-col">
+    <div className="border-border bg-background/50 flex items-center gap-3 rounded-lg border p-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-sm font-medium">{entry.label}</p>
+          {entry.kind === "debt" && <DueDateBadge dueDate={entry.dueDate} />}
+        </div>
+        {account && (
+          <p className="text-muted-foreground truncate text-xs">{account.name}</p>
+        )}
+      </div>
+
+      <MaskedAmount className="font-figures shrink-0 font-medium">
+        {formatCurrency(entry.amount)}
+      </MaskedAmount>
+
+      <div className="flex shrink-0 items-center gap-0.5">
+        <div className="hidden flex-col sm:flex">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onMove("up")}
-            disabled={isFirst || saving}
+            disabled={isFirst}
             className="text-muted-foreground hover:text-foreground size-6"
           >
-            <ChevronUpIcon className="size-4" />
+            <ChevronUpIcon className="size-3.5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onMove("down")}
-            disabled={isLast || saving}
+            disabled={isLast}
             className="text-muted-foreground hover:text-foreground size-6"
           >
-            <ChevronDownIcon className="size-4" />
+            <ChevronDownIcon className="size-3.5" />
           </Button>
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-medium">{entry.label}</p>
-            {entry.kind === "debt" && <DueDateBadge dueDate={entry.dueDate} />}
-          </div>
-          {account && (
-            <p className="text-muted-foreground truncate text-xs">{account.name}</p>
-          )}
-        </div>
-
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onEdit}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <PencilIcon className="size-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={handleDelete}
-          disabled={saving}
-          className="text-muted-foreground hover:text-destructive shrink-0 sm:hidden"
+          disabled={deleting}
+          className="text-muted-foreground hover:text-destructive"
         >
           <TrashIcon className="size-4" />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2 sm:shrink-0">
-        {entry.kind === "debt" && (
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none">
-            <CalendarIcon className="text-muted-foreground size-4 shrink-0" />
-            <Input
-              type="date"
-              value={dueDate}
-              onChange={(e) => handleDueDateChange(e.target.value)}
-              disabled={saving}
-              className="font-figures h-9 min-w-0 flex-1 text-xs sm:w-[145px] sm:flex-none"
-            />
-          </div>
-        )}
-
-        <Input
-          type="number"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          onBlur={handleAmountBlur}
-          disabled={saving}
-          className="font-figures h-9 w-24 flex-1 text-right sm:w-32 sm:flex-none"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDelete}
-          disabled={saving}
-          className="text-muted-foreground hover:text-destructive hidden shrink-0 sm:inline-flex"
-        >
-          <TrashIcon className="size-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function AddEntryForm({
-  kind,
-  accounts,
-  onAdded,
-}: {
-  kind: "asset" | "debt";
-  accounts: Account[];
-  onAdded: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [accountId, setAccountId] = useState<string>(NO_ACCOUNT);
-  const [amount, setAmount] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [labelEditedByUser, setLabelEditedByUser] = useState(false);
-
-  function handleAccountChange(value: string) {
-    setAccountId(value);
-    if (labelEditedByUser) return;
-    const account = accounts.find((acc) => acc.id === Number(value));
-    setLabel(account?.name ?? "");
-  }
-
-  async function handleAdd() {
-    if (!label.trim() || !amount) return;
-    setSaving(true);
-    try {
-      await fetch("/api/net-worth/entries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: label.trim(),
-          kind,
-          accountId: accountId === NO_ACCOUNT ? null : Number(accountId),
-          amount: Math.round(parseFloat(amount || "0") * 100),
-          dueDate: kind === "debt" && dueDate ? dueDate : null,
-        }),
-      });
-      setLabel("");
-      setAccountId(NO_ACCOUNT);
-      setAmount("");
-      setDueDate("");
-      setLabelEditedByUser(false);
-      onAdded();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2 rounded-xl border border-dashed p-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <Input
-        placeholder="Nombre (ej: Nu, Sueldo, iPad)"
-        value={label}
-        onChange={(e) => {
-          setLabel(e.target.value);
-          setLabelEditedByUser(true);
-        }}
-        className="h-9 sm:min-w-[140px] sm:flex-1"
-      />
-      <div className="flex items-center gap-2">
-        <Select value={accountId} onValueChange={handleAccountChange}>
-          <SelectTrigger size="sm" className="w-full sm:w-40">
-            <SelectValue placeholder="Sin metodo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_ACCOUNT}>Sin metodo</SelectItem>
-            {accounts.map((acc) => (
-              <SelectItem key={acc.id} value={String(acc.id)}>
-                {acc.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {kind === "debt" && (
-          <Input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="font-figures h-9 min-w-0 flex-1 text-xs sm:w-[145px] sm:flex-none"
-          />
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <Input
-          type="number"
-          step="0.01"
-          placeholder="0.00"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="font-figures h-9 flex-1 text-right sm:w-28 sm:flex-none"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAdd}
-          disabled={saving || !label.trim() || !amount}
-          className="shrink-0 gap-1.5"
-        >
-          <PlusIcon className="size-4" />
-          Agregar
         </Button>
       </div>
     </div>
@@ -319,10 +360,12 @@ function EntryList({
   entries,
   accounts,
   onSaved,
+  onEdit,
 }: {
   entries: NetWorthEntry[];
   accounts: Account[];
   onSaved: () => void;
+  onEdit: (entry: NetWorthEntry) => void;
 }) {
   const router = useRouter();
   const [reordering, setReordering] = useState(false);
@@ -348,6 +391,14 @@ function EntryList({
     }
   }
 
+  if (entries.length === 0) {
+    return (
+      <p className="text-muted-foreground py-4 text-center text-sm">
+        Nada registrado todavia.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {entries.map((entry, index) => (
@@ -357,10 +408,11 @@ function EntryList({
           accounts={accounts}
           isFirst={index === 0}
           isLast={index === entries.length - 1}
-          onSaved={onSaved}
           onMove={(direction) => {
             if (!reordering) handleMove(index, direction);
           }}
+          onEdit={() => onEdit(entry)}
+          onDeleted={onSaved}
         />
       ))}
     </div>
@@ -377,11 +429,13 @@ function CollapsibleSection({
   title,
   total,
   totalClassName,
+  onAdd,
   children,
 }: {
   title: string;
   total: string;
   totalClassName?: string;
+  onAdd: () => void;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -389,28 +443,40 @@ function CollapsibleSection({
   return (
     <Card className="lg:overflow-visible">
       <CardHeader>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center justify-between gap-3 text-left lg:pointer-events-none"
-        >
-          <CardTitle className="flex flex-1 items-center gap-2 normal-case tracking-normal">
-            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              {title}
-            </span>
-          </CardTitle>
-          <span className={cn("font-figures text-base font-semibold", totalClassName)}>
-            {total}
-          </span>
-          <ChevronDownIcon
-            className={cn(
-              "text-muted-foreground size-4 shrink-0 transition-transform lg:hidden",
-              open && "rotate-180"
-            )}
-          />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex flex-1 items-center gap-3 text-left lg:pointer-events-none"
+          >
+            <CardTitle className="flex flex-1 items-center gap-2 normal-case tracking-normal">
+              <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                {title}
+              </span>
+            </CardTitle>
+            <MaskedAmount className={cn("font-figures text-base font-semibold", totalClassName)}>
+              {total}
+            </MaskedAmount>
+            <ChevronDownIcon
+              className={cn(
+                "text-muted-foreground size-4 shrink-0 transition-transform lg:hidden",
+                open && "rotate-180"
+              )}
+            />
+          </button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAdd}
+            className="shrink-0 gap-1.5"
+          >
+            <PlusIcon className="size-4" />
+            <span className="hidden sm:inline">Agregar</span>
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent className={cn("space-y-3", !open && "hidden lg:block")}>
+      <CardContent className={cn(!open && "hidden lg:block")}>
         {children}
       </CardContent>
     </Card>
@@ -419,6 +485,10 @@ function CollapsibleSection({
 
 export function NetWorthCard({ accounts, entries }: NetWorthCardProps) {
   const router = useRouter();
+  const [dialog, setDialog] = useState<{
+    kind: "asset" | "debt";
+    entry?: NetWorthEntry;
+  } | null>(null);
 
   function refresh() {
     router.refresh();
@@ -436,55 +506,76 @@ export function NetWorthCard({ accounts, entries }: NetWorthCardProps) {
         title="Positivos"
         total={formatCurrency(totalAssets)}
         totalClassName="text-emerald-600 dark:text-emerald-400"
+        onAdd={() => setDialog({ kind: "asset" })}
       >
-        <EntryList entries={assets} accounts={accounts} onSaved={refresh} />
-        <AddEntryForm kind="asset" accounts={accounts} onAdded={refresh} />
+        <EntryList
+          entries={assets}
+          accounts={accounts}
+          onSaved={refresh}
+          onEdit={(entry) => setDialog({ kind: "asset", entry })}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection
         title="Deudas"
         total={formatCurrency(totalDebts)}
         totalClassName="text-destructive"
+        onAdd={() => setDialog({ kind: "debt" })}
       >
-        <EntryList entries={debts} accounts={accounts} onSaved={refresh} />
-        <AddEntryForm kind="debt" accounts={accounts} onAdded={refresh} />
+        <EntryList
+          entries={debts}
+          accounts={accounts}
+          onSaved={refresh}
+          onEdit={(entry) => setDialog({ kind: "debt", entry })}
+        />
       </CollapsibleSection>
 
       <Card className="lg:col-span-2">
         <CardContent className="space-y-5">
           <div>
             <p className="text-muted-foreground text-sm">Neto despues de pagos</p>
-            <p
+            <MaskedAmount
               className={cn(
-                "font-figures text-4xl font-medium tracking-tight",
+                "font-figures block text-4xl font-medium tracking-tight",
                 net >= 0
                   ? "text-emerald-600 dark:text-emerald-400"
                   : "text-destructive"
               )}
             >
               {formatCurrency(net)}
-            </p>
+            </MaskedAmount>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
               <p className="text-xs font-medium tracking-wide text-emerald-700 uppercase dark:text-emerald-400">
                 Positivos
               </p>
-              <p className="font-figures mt-1 text-xl font-medium text-emerald-600 dark:text-emerald-400">
+              <MaskedAmount className="font-figures mt-1 block text-xl font-medium text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(totalAssets)}
-              </p>
+              </MaskedAmount>
             </div>
-            <div className="border-destructive/20 bg-destructive/10 rounded-2xl border p-4">
+            <div className="border-destructive/20 bg-destructive/10 rounded-xl border p-4">
               <p className="text-destructive/90 text-xs font-medium tracking-wide uppercase">
                 Deudas
               </p>
-              <p className="font-figures text-destructive mt-1 text-xl font-medium">
+              <MaskedAmount className="font-figures text-destructive mt-1 block text-xl font-medium">
                 {formatCurrency(totalDebts)}
-              </p>
+              </MaskedAmount>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {dialog && (
+        <EntryFormDialog
+          kind={dialog.kind}
+          accounts={accounts}
+          entry={dialog.entry}
+          open={!!dialog}
+          onOpenChange={(open) => !open && setDialog(null)}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }

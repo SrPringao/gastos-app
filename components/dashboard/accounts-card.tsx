@@ -115,7 +115,7 @@ export function AccountsCard({ accounts, categories }: AccountsCardProps) {
               return (
                 <div
                   key={acc.id}
-                  className="border-border bg-secondary/30 flex items-center justify-between rounded-xl border p-4"
+                  className="border-border bg-secondary/30 flex items-center justify-between rounded-lg border p-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     {acc.imageUrl ? (

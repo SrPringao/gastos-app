@@ -8,6 +8,7 @@ import { MenuIcon, LogOut, RefreshCw, ChevronRightIcon, ChevronDownIcon } from "
 import { navGroups, isNavItemActive } from "@/lib/nav-config";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
 import {
   Sheet,
   SheetContent,
@@ -48,10 +49,15 @@ export function AppHeader() {
         </SheetTrigger>
         <SheetContent side="left" className="w-80 p-0">
           <div className="flex h-full flex-col">
-            <SheetHeader className="border-b p-6">
-              <SheetTitle className="text-left">
-                <Link href="/" className="text-xl font-bold" onClick={() => setOpen(false)}>
-                  ExpenseBro
+            <SheetHeader className="border-b px-5 py-8">
+              <SheetTitle className="flex items-center justify-center">
+                <Link
+                  href="/"
+                  className="flex items-center justify-center"
+                  onClick={() => setOpen(false)}
+                >
+                  <Logo className="h-16" />
+                  <span className="sr-only">ExpenseBro</span>
                 </Link>
               </SheetTitle>
             </SheetHeader>

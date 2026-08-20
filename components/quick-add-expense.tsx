@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusIcon,
@@ -47,15 +47,51 @@ const typeLabels = {
 };
 
 type QuickAddExpenseProps = {
-  accounts: Account[];
-  categories: Category[];
+  accounts?: Account[];
+  categories?: Category[];
+  /** Controlado externamente (ej. desde MobileNav): si se pasa, oculta el trigger interno */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 type Step = "amount" | "account" | "details";
 
-export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) {
+export function QuickAddExpense({
+  accounts: accountsProp,
+  categories: categoriesProp,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
+}: QuickAddExpenseProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(false);
+  const open = isControlled ? openProp : openState;
+  const setOpen = isControlled ? (onOpenChangeProp ?? (() => {})) : setOpenState;
+
+  // Sin accounts/categories pasadas por prop (ej. uso desde MobileNav sin
+  // Server Component padre a la mano), se cargan solas al abrirse.
+  const [fetchedAccounts, setFetchedAccounts] = useState<Account[]>([]);
+  const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
+  const shouldFetch = accountsProp === undefined || categoriesProp === undefined;
+
+  useEffect(() => {
+    if (!open || !shouldFetch) return;
+    Promise.all([
+      accountsProp === undefined
+        ? fetch("/api/accounts").then((r) => (r.ok ? r.json() : []))
+        : Promise.resolve(accountsProp),
+      categoriesProp === undefined
+        ? fetch("/api/categories").then((r) => (r.ok ? r.json() : []))
+        : Promise.resolve(categoriesProp),
+    ]).then(([accs, cats]) => {
+      setFetchedAccounts(accs);
+      setFetchedCategories(cats);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, shouldFetch]);
+
+  const accounts = accountsProp ?? fetchedAccounts;
+  const categories = categoriesProp ?? fetchedCategories;
   const [step, setStep] = useState<Step>("amount");
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
@@ -283,7 +319,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                   </button>
                 ))}
               </div>
-              <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+              <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
                 <label htmlFor="description-input" className="sr-only">
                   Descripcion (opcional)
                 </label>
@@ -334,7 +370,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                     type="button"
                     onClick={() => handleSelectAccount(acc.id)}
                     className={cn(
-                      "border-border flex min-h-[52px] items-center gap-3 rounded-xl border p-3 text-left transition-colors active:bg-accent sm:min-h-[64px] sm:gap-4 sm:p-4",
+                      "border-border flex min-h-[52px] items-center gap-3 rounded-lg border p-3 text-left transition-colors active:bg-accent sm:min-h-[64px] sm:gap-4 sm:p-4",
                       "hover:bg-accent hover:border-accent-foreground/20"
                     )}
                   >
@@ -389,7 +425,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="flex flex-col gap-8 pb-4">
-              <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-muted-foreground text-xs">Monto</p>
                   <p className="text-2xl font-semibold tracking-tight tabular-nums">
@@ -479,7 +515,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {!isControlled && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-6">
         {content}
       </DialogContent>

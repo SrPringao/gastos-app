@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 import { PwaViewport } from "@/components/pwa-viewport";
 import { PwaServiceWorker } from "@/components/pwa-service-worker";
-import { ThemeProvider } from "@/components/theme-provider";
+import { PreferencesProvider } from "@/components/preferences-provider";
+import { getCurrentUserId } from "@/lib/auth";
+import { getUserPreferences } from "@/lib/services/preferences";
+import type { UserPreferencesData } from "@/lib/services/preferences";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,26 +66,33 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Preferencias leidas en el servidor antes del primer render: el tema ya
+  // llega correcto en el HTML servido (sin localStorage, sin flash, sin
+  // next-themes). Sin sesion (login/registro) se usan los defaults.
+  const userId = await getCurrentUserId();
+  const preferences: UserPreferencesData = userId
+    ? await getUserPreferences(userId)
+    : { theme: "dark", hideNetWorthAmounts: false, mobileNavHrefs: null };
+
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html
+      lang="es"
+      className={preferences.theme === "dark" ? "dark" : undefined}
+      suppressHydrationWarning
+    >
       <body
         className={`${geistSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <PreferencesProvider initial={preferences}>
           <PwaViewport />
           <PwaServiceWorker />
           {children}
-        </ThemeProvider>
+        </PreferencesProvider>
       </body>
     </html>
   );
