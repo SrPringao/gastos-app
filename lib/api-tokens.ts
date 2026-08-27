@@ -1,0 +1,140 @@
+import { createHash, randomBytes } from "crypto";
+import { and, desc, eq, gt, isNotNull, isNull } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { apiTokens } from "@/lib/db/schema";
+
+const PREFIX = "gastos_";
+const TOKEN_BYTES = 32;
+
+export type ExpiresIn = "7d" | "30d" | "90d" | "365d";
+
+const DAYS: Record<ExpiresIn, number> = {
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+  "365d": 365,
+};
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function generateToken(): string {
+  const random = randomBytes(TOKEN_BYTES).toString("hex");
+  return PREFIX + random;
+}
+
+async function resolveUniqueTokenName(
+  userId: string,
+  baseName: string
+): Promise<string> {
+  const existing = await db
+    .select({ name: apiTokens.name })
+    .from(apiTokens)
+    .where(eq(apiTokens.userId, userId));
+
+  const existingNames = new Set(existing.map((t) => t.name));
+
+  if (!existingNames.has(baseName)) return baseName;
+
+  let n = 2;
+  while (existingNames.has(`${baseName} (${n})`)) {
+    n++;
+  }
+  return `${baseName} (${n})`;
+}
+
+export async function createApiToken(
+  userId: string,
+  expiresIn: ExpiresIn = "30d",
+  name?: string,
+  options?: { autoNameBase?: string }
+): Promise<{ token: string; expiresAt: Date }> {
+  const token = generateToken();
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + DAYS[expiresIn]);
+
+  const trimmedName = name?.trim();
+  const finalName = trimmedName
+    ? trimmedName
+    : options?.autoNameBase
+      ? await resolveUniqueTokenName(userId, options.autoNameBase)
+      : null;
+
+  await db.insert(apiTokens).values({
+    userId,
+    tokenHash,
+    expiresAt,
+    name: finalName,
+  });
+
+  return { token, expiresAt };
+}
+
+export async function listApiTokens(userId: string) {
+  return db
+    .select({
+      id: apiTokens.id,
+      name: apiTokens.name,
+      createdAt: apiTokens.createdAt,
+      expiresAt: apiTokens.expiresAt,
+      revokedAt: apiTokens.revokedAt,
+    })
+    .from(apiTokens)
+    .where(eq(apiTokens.userId, userId))
+    .orderBy(desc(apiTokens.createdAt));
+}
+
+export async function revokeApiToken(
+  userId: string,
+  tokenId: number
+): Promise<boolean> {
+  const rows = await db
+    .update(apiTokens)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(apiTokens.id, tokenId),
+        eq(apiTokens.userId, userId),
+        isNull(apiTokens.revokedAt)
+      )
+    )
+    .returning({ id: apiTokens.id });
+
+  return rows.length > 0;
+}
+
+export async function deleteRevokedApiTokens(userId: string): Promise<number> {
+  const rows = await db
+    .delete(apiTokens)
+    .where(and(eq(apiTokens.userId, userId), isNotNull(apiTokens.revokedAt)))
+    .returning({ id: apiTokens.id });
+
+  return rows.length;
+}
+
+export async function validateApiToken(
+  token: string
+): Promise<{ userId: string } | null> {
+  if (!token.startsWith(PREFIX) || token.length !== PREFIX.length + TOKEN_BYTES * 2) {
+    return null;
+  }
+
+  const tokenHash = hashToken(token);
+  const now = new Date();
+
+  const rows = await db
+    .select({ userId: apiTokens.userId })
+    .from(apiTokens)
+    .where(
+      and(
+        eq(apiTokens.tokenHash, tokenHash),
+        gt(apiTokens.expiresAt, now),
+        isNull(apiTokens.revokedAt)
+      )
+    )
+    .limit(1);
+
+  return rows[0] ? { userId: rows[0].userId } : null;
+}

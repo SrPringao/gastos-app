@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { hash } from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 
@@ -24,46 +25,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const existing = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
 
-    const { data: authData, error: authError } =
-      await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: displayName ? { display_name: displayName } : undefined,
-        },
-      });
-
-    if (authError) {
-      const msg =
-        authError.message?.includes("already registered") ||
-        authError.code === "user_already_exists"
-          ? "Ese correo ya esta registrado"
-          : authError.message ?? "Error al registrar";
-      return NextResponse.json({ error: msg }, { status: 400 });
-    }
-
-    if (!authData.user) {
+    if (existing[0]) {
       return NextResponse.json(
-        { error: "No se pudo crear el usuario" },
-        { status: 500 }
+        { error: "Ese correo ya esta registrado" },
+        { status: 400 }
       );
     }
 
-    await db.insert(users).values({
-      id: authData.user.id,
-      email: authData.user.email ?? email,
-      displayName: displayName ?? null,
-      updatedAt: new Date(),
-    });
+    const passwordHash = await hash(password, 10);
+
+    const inserted = await db
+      .insert(users)
+      .values({
+        email,
+        displayName: displayName ?? null,
+        passwordHash,
+        updatedAt: new Date(),
+      })
+      .returning({ id: users.id, email: users.email });
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: authData.user.id,
-        email: authData.user.email,
-      },
+      user: inserted[0],
     });
   } catch (err) {
     console.error("[API] POST /api/auth/signup:", err);

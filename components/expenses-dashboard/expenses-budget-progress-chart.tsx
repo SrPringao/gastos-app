@@ -86,7 +86,14 @@ export function ExpensesBudgetProgressChart({
                 | undefined;
               return p?.date ? `${p.date} · ${monthLabel}` : "";
             }}
-            contentStyle={{ borderRadius: "8px" }}
+            contentStyle={{
+              borderRadius: "10px",
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+            }}
           />
           <Line
             type="monotone"

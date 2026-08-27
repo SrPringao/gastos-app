@@ -1,7 +1,10 @@
 import { relations } from "drizzle-orm";
 import {
+  bigint,
+  boolean,
   decimal,
   integer,
+  index,
   pgTable,
   serial,
   text,
@@ -16,6 +19,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email"),
   displayName: text("display_name"),
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -31,6 +35,7 @@ export const accounts = pgTable("accounts", {
   cutoffDay: integer("cutoff_day"),
   paymentDay: integer("payment_day"),
   creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
+  isPlaceholder: boolean("is_placeholder").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -57,6 +62,7 @@ export const expenses = pgTable("expenses", {
   }),
   date: timestamp("date").notNull(),
   description: text("description"),
+  rawCardName: text("raw_card_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -94,6 +100,122 @@ export const fixedExpenses = pgTable("fixed_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Patrimonio: saldos positivos y deudas manuales, independientes de expenses/fixedExpenses
+export const netWorthEntries = pgTable("net_worth_entries", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").references(() => accounts.id, {
+    onDelete: "set null",
+  }),
+  label: text("label").notNull(),
+  kind: text("kind", { enum: ["asset", "debt"] }).notNull(),
+  amount: integer("amount").notNull(), // en centavos
+  dueDate: timestamp("due_date"), // fecha maxima de pago, solo aplica a deudas
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Patrimonio: líneas del simulador de gastos previstos
+export const netWorthProjections = pgTable("net_worth_projections", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  amount: integer("amount").notNull(), // en centavos
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tokens de API para acceso externo (Atajos, automatizaciones)
+export const apiTokens = pgTable("api_tokens", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  name: text("name"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
+});
+
+// Mapeo de nombres de tarjeta detectados por el Shortcut de iOS -> cuenta real
+export const cardNameMappings = pgTable(
+  "card_name_mappings",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rawName: text("raw_name").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    accountId: integer("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userNormalizedNameUnique: uniqueIndex(
+      "card_name_mappings_user_normalized_unique"
+    ).on(table.userId, table.normalizedName),
+  })
+);
+
+// Dispositivos suscritos a Web Push (un registro por endpoint)
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    endpointHash: text("endpoint_hash").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    deviceType: text("device_type"),
+    expirationTime: bigint("expiration_time", { mode: "number" }),
+    lastSeenAt: timestamp("last_seen_at"),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    endpointHashUnique: uniqueIndex("push_subscriptions_endpoint_hash_unique").on(
+      table.endpointHash
+    ),
+    userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+  })
+);
+
+// Preferencias del usuario: persistentes en servidor (no localStorage), un
+// registro por usuario. Extensible: cada preferencia nueva es una columna
+// mas, no una tabla nueva.
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  theme: text("theme", { enum: ["dark", "light"] })
+    .default("dark")
+    .notNull(),
+  hideNetWorthAmounts: boolean("hide_net_worth_amounts")
+    .default(false)
+    .notNull(),
+  // Hrefs (en orden) de las secciones elegidas para la tab bar movil.
+  // Null = usar el default (Inicio, Gastos, Cuentas, Configuracion).
+  mobileNavItems: text("mobile_nav_items").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdUnique: uniqueIndex("user_preferences_user_id_unique").on(table.userId),
+}));
+
 // Registro de pagos mensuales de gastos fijos
 export const fixedExpensePayments = pgTable(
   "fixed_expense_payments",
@@ -123,6 +245,23 @@ export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
   monthlyBudgets: many(monthlyBudgets),
   fixedExpenses: many(fixedExpenses),
+  apiTokens: many(apiTokens),
+  netWorthEntries: many(netWorthEntries),
+  netWorthProjections: many(netWorthProjections),
+  cardNameMappings: many(cardNameMappings),
+  pushSubscriptions: many(pushSubscriptions),
+  preferences: many(userPreferences),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
+  user: one(users, { fields: [apiTokens.userId], references: [users.id] }),
 }));
 
 export const accountsRelations = relations(accounts, ({ many, one }) => ({
@@ -131,6 +270,18 @@ export const accountsRelations = relations(accounts, ({ many, one }) => ({
     references: [users.id],
   }),
   expenses: many(expenses),
+  cardNameMappings: many(cardNameMappings),
+}));
+
+export const cardNameMappingsRelations = relations(cardNameMappings, ({ one }) => ({
+  user: one(users, {
+    fields: [cardNameMappings.userId],
+    references: [users.id],
+  }),
+  account: one(accounts, {
+    fields: [cardNameMappings.accountId],
+    references: [accounts.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categories, ({ many, one }) => ({
@@ -170,6 +321,31 @@ export const fixedExpensePaymentsRelations = relations(fixedExpensePayments, ({ 
   user: one(users, { fields: [fixedExpensePayments.userId], references: [users.id] }),
 }));
 
+export const netWorthEntriesRelations = relations(netWorthEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [netWorthEntries.userId],
+    references: [users.id],
+  }),
+  account: one(accounts, {
+    fields: [netWorthEntries.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const netWorthProjectionsRelations = relations(netWorthProjections, ({ one }) => ({
+  user: one(users, {
+    fields: [netWorthProjections.userId],
+    references: [users.id],
+  }),
+}));
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Tipos para insert/select
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
@@ -185,3 +361,15 @@ export type FixedExpense = InferSelectModel<typeof fixedExpenses>;
 export type NewFixedExpense = InferInsertModel<typeof fixedExpenses>;
 export type FixedExpensePayment = InferSelectModel<typeof fixedExpensePayments>;
 export type NewFixedExpensePayment = InferInsertModel<typeof fixedExpensePayments>;
+export type ApiToken = InferSelectModel<typeof apiTokens>;
+export type NewApiToken = InferInsertModel<typeof apiTokens>;
+export type NetWorthEntry = InferSelectModel<typeof netWorthEntries>;
+export type NewNetWorthEntry = InferInsertModel<typeof netWorthEntries>;
+export type NetWorthProjection = InferSelectModel<typeof netWorthProjections>;
+export type NewNetWorthProjection = InferInsertModel<typeof netWorthProjections>;
+export type CardNameMapping = InferSelectModel<typeof cardNameMappings>;
+export type NewCardNameMapping = InferInsertModel<typeof cardNameMappings>;
+export type PushSubscriptionRow = InferSelectModel<typeof pushSubscriptions>;
+export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+export type UserPreferences = InferSelectModel<typeof userPreferences>;
+export type NewUserPreferences = InferInsertModel<typeof userPreferences>;

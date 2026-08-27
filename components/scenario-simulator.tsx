@@ -187,7 +187,7 @@ export function ScenarioSimulator({
             <Card>
               <CardContent className="pt-6 flex flex-col gap-6">
                 {/* Toggle gasto / ingreso */}
-                <div className="flex rounded-xl border border-border/60 overflow-hidden">
+                <div className="flex rounded-lg border border-border/60 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setItemType("gasto")}
@@ -257,7 +257,7 @@ export function ScenarioSimulator({
                 </div>
 
                 {/* Nota */}
-                <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+                <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
                   <input
                     type="text"
                     value={description}
@@ -308,7 +308,7 @@ export function ScenarioSimulator({
                         type="button"
                         onClick={() => handleSelectAccount(acc.id)}
                         className={cn(
-                          "border-border flex min-h-[64px] items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                          "border-border flex min-h-[64px] items-center gap-4 rounded-lg border p-4 text-left transition-colors",
                           "hover:bg-accent hover:border-accent-foreground/20 active:bg-accent"
                         )}
                       >
@@ -359,7 +359,7 @@ export function ScenarioSimulator({
             <Card>
               <CardContent className="pt-6 flex flex-col gap-6">
                 {/* Resumen monto + cuenta */}
-                <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
+                <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
                   <div>
                     <p className="text-muted-foreground text-xs">Monto</p>
                     <p className="text-2xl font-semibold tracking-tight tabular-nums">
@@ -447,7 +447,7 @@ export function ScenarioSimulator({
                 {sortedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="border-border flex items-center justify-between gap-3 rounded-xl border border-dashed bg-background/50 p-3"
+                    className="border-border flex items-center justify-between gap-3 rounded-lg border border-dashed bg-background/50 p-3"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={cn(
@@ -602,7 +602,7 @@ export function ScenarioSimulator({
                 {remaining !== null && (
                   <div
                     className={cn(
-                      "flex items-center justify-between rounded-xl p-3",
+                      "flex items-center justify-between rounded-lg p-3",
                       remaining < 0
                         ? "bg-destructive/10 text-destructive"
                         : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"

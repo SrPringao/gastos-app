@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -45,14 +44,21 @@ export default function RegistroPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Crear cuenta</CardTitle>
-        <p className="text-muted-foreground text-sm font-normal">
-          Registrate para usar la app
-        </p>
-      </CardHeader>
-      <CardContent>
+    <div className="overflow-hidden rounded-[30px] shadow-[var(--glow-card)]">
+      {/* Header solido de marca: el unico lugar del sistema donde el
+          gradiente violeta-azul se usa como fill, no como halo difuminado. */}
+      <div
+        className="flex flex-col items-center gap-3 px-8 pt-12 pb-16 text-white"
+        style={{ background: "var(--gradient-signal)" }}
+      >
+        <img src="/logo-dark.svg" alt="" className="h-16 w-auto" aria-hidden />
+        <p className="text-lg font-semibold">ExpenseBro</p>
+        <p className="text-sm text-white/80">Empieza gratis</p>
+      </div>
+
+      {/* Panel de vidrio montado sobre el bloque de color, jalado hacia
+          arriba para que se lea como una sola pieza flotando sobre el header. */}
+      <div className="glass-surface -mt-8 rounded-t-[30px] border-t p-8">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">Correo</Label>
@@ -106,7 +112,7 @@ export default function RegistroPage() {
             </Link>
           </p>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

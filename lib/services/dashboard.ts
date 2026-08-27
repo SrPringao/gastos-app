@@ -57,6 +57,30 @@ export async function getTotalSpentThisMonth(
   return result[0]?.total ?? 0;
 }
 
+export async function getSpentOnDate(userId: string, dateStr: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return { total: 0, count: 0 };
+  }
+
+  const result = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)::int`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.userId, userId),
+        sql`DATE(${expenses.date}) = ${dateStr}::date`
+      )
+    );
+
+  return {
+    total: result[0]?.total ?? 0,
+    count: result[0]?.count ?? 0,
+  };
+}
+
 export async function getSpentByAccountThisMonth(
   userId: string,
   monthKey?: string
@@ -76,6 +100,7 @@ export async function getSpentByAccountThisMonth(
     .where(
       and(
         eq(expenses.userId, userId),
+        eq(accounts.isPlaceholder, false),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )
@@ -238,6 +263,7 @@ export async function getDailySpentByAccountThisMonth(
     .where(
       and(
         eq(expenses.userId, userId),
+        eq(accounts.isPlaceholder, false),
         sql`DATE(${expenses.date}) >= ${start}::date`,
         sql`DATE(${expenses.date}) <= ${end}::date`
       )

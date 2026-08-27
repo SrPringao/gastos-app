@@ -1,10 +1,46 @@
 import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
+import { getAccountByName } from "@/lib/services/accounts";
+import { getTotalSpentThisMonth } from "@/lib/services/dashboard";
+import { notifyBudgetMilestone } from "@/lib/services/push-notifications";
+
+function monthKeyFromExpenseDate(date: string | Date): string | null {
+  if (typeof date === "string") {
+    const key = date.slice(0, 7);
+    return /^\d{4}-\d{2}$/.test(key) ? key : null;
+  }
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+async function maybeNotifyBudget(
+  userId: string,
+  monthKey: string | null,
+  previousSpentCents: number,
+  newSpentCents: number
+) {
+  if (!monthKey) return;
+  try {
+    await notifyBudgetMilestone(
+      userId,
+      monthKey,
+      previousSpentCents,
+      newSpentCents
+    );
+  } catch (error) {
+    console.error("[push] notifyBudgetMilestone:", error);
+  }
+}
 
 export type CreateExpenseInput = {
   amount: number;
-  accountId: number;
+  accountId?: number;
+  cardName?: string;
+  accountName?: string;
   categoryId?: number | null;
   date: string;
   description?: string | null;
@@ -19,24 +55,47 @@ export type UpdateExpenseInput = {
 };
 
 export async function createExpense(userId: string, input: CreateExpenseInput) {
-  const { amount, accountId, categoryId, date, description } = input;
+  const { amount, accountId, cardName, accountName, categoryId, date, description } = input;
 
   const amountCents = Math.round(amount * 100);
   if (isNaN(amountCents) || amountCents <= 0) {
     return { error: "Monto invalido" };
   }
-  if (!accountId) {
-    return { error: "Selecciona un metodo de pago" };
+
+  let resolvedAccountId: number;
+  let rawCardName: string | null = null;
+
+  if (cardName && cardName.trim()) {
+    rawCardName = cardName.trim();
+    resolvedAccountId = await resolveAccountIdFromCardName(userId, rawCardName);
+  } else if (accountName && accountName.trim()) {
+    const account = await getAccountByName(userId, accountName.trim());
+    if (!account) {
+      return { error: `No se encontro la cuenta "${accountName.trim()}"` };
+    }
+    resolvedAccountId = account.id;
+  } else {
+    if (!accountId) {
+      return { error: "Selecciona un metodo de pago" };
+    }
+    resolvedAccountId = accountId;
   }
 
   await db.insert(expenses).values({
     userId,
     amount: amountCents,
-    accountId,
+    accountId: resolvedAccountId,
+    rawCardName,
     categoryId: categoryId ?? null,
     date: new Date(date),
     description: description || null,
   });
+
+  const monthKey = monthKeyFromExpenseDate(date);
+  if (monthKey) {
+    const newSpent = await getTotalSpentThisMonth(userId, monthKey);
+    await maybeNotifyBudget(userId, monthKey, newSpent - amountCents, newSpent);
+  }
 
   return { success: true };
 }
@@ -70,20 +129,36 @@ export async function getExpensesWithDetails(
   userId: string | null,
   limit = 100,
   monthKey?: string,
-  accountId?: number
+  accountId?: number,
+  dateStr?: string,
+  dateRange?: { from: string; to: string }
 ) {
   if (!userId) return [];
   const baseWhere = eq(expenses.userId, userId);
-  
+
   const conditionsList = [baseWhere];
-  
-  if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
+
+  const validDateRange =
+    dateRange &&
+    /^\d{4}-\d{2}-\d{2}$/.test(dateRange.from) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(dateRange.to)
+      ? dateRange
+      : undefined;
+
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    conditionsList.push(sql`DATE(${expenses.date}) = ${dateStr}::date`);
+  } else if (validDateRange) {
+    conditionsList.push(
+      sql`DATE(${expenses.date}) >= ${validDateRange.from}::date`,
+      sql`DATE(${expenses.date}) <= ${validDateRange.to}::date`
+    );
+  } else if (monthKey && /^\d{4}-\d{2}$/.test(monthKey)) {
     conditionsList.push(
       sql`DATE(${expenses.date}) >= ${`${monthKey}-01`}::date`,
       sql`DATE(${expenses.date}) <= ${getMonthEnd(monthKey)}::date`
     );
   }
-  
+
   if (accountId !== undefined) {
     conditionsList.push(eq(expenses.accountId, accountId));
   }
@@ -146,6 +221,21 @@ export async function updateExpense(
       ...(description !== undefined && { description: description || null }),
     })
     .where(eq(expenses.id, id));
+
+  const newAmountCents =
+    amount !== undefined ? Math.round(amount * 100) : existing.amount;
+  const monthKey = monthKeyFromExpenseDate(
+    date !== undefined ? date : existing.date
+  );
+  const oldMonthKey = monthKeyFromExpenseDate(existing.date);
+  if (monthKey) {
+    const newSpent = await getTotalSpentThisMonth(userId, monthKey);
+    const previousSpent =
+      monthKey === oldMonthKey
+        ? newSpent - (newAmountCents - existing.amount)
+        : newSpent - newAmountCents;
+    await maybeNotifyBudget(userId, monthKey, previousSpent, newSpent);
+  }
 
   return { success: true };
 }

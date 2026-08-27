@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-20T04:20:09Z",
+  "title": "Design System: ExpenseBro",
+  "extensions": {
+    "colorMeta": {
+      "voltage-blue": {
+        "role": "primary",
+        "displayName": "Voltage Blue",
+        "canonical": "#405bff",
+        "tonalRamp": ["#0a1240", "#132368", "#1d3590", "#2947b8", "#405bff", "#6478ff", "#93a2ff", "#c7cfff"]
+      },
+      "signal-violet": {
+        "role": "primary",
+        "displayName": "Signal Violet",
+        "canonical": "#7084ff",
+        "tonalRamp": ["#141a40", "#232d68", "#354390", "#4d5cb8", "#7084ff", "#94a2ff", "#bac4ff", "#e2e6ff"]
+      },
+      "plasma-cyan": {
+        "role": "secondary",
+        "displayName": "Plasma Cyan",
+        "canonical": "#3dd6f5",
+        "tonalRamp": ["#062a30", "#0c4650", "#146070", "#1f8698", "#3dd6f5", "#72e3f8", "#a6effa", "#d6f8fd"]
+      },
+      "midnight-ink": {
+        "role": "neutral",
+        "displayName": "Midnight Ink",
+        "canonical": "#0e0e0e",
+        "tonalRamp": ["#000000", "#0e0e0e", "#191919", "#2c2c2c", "#414042", "#58595b", "#6d6e71", "#a7a9ac"]
+      },
+      "carbon": {
+        "role": "neutral",
+        "displayName": "Carbon",
+        "canonical": "#191919"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#191919", "#414042", "#6d6e71", "#a7a9ac", "#d1d3d4", "#e4e4e7", "#f2f2f4", "#ffffff"]
+      }
+    },
+    "typographyMeta": {
+      "body": { "displayName": "Body", "purpose": "Nombres, descripciones, texto de navegacion — toda la conversacion." },
+      "eyebrow": { "displayName": "Eyebrow", "purpose": "Titulo de card y label de grupo de nav: 11-12px uppercase, siempre en --muted-foreground." },
+      "figures": { "displayName": "Figures", "purpose": "Cualquier cifra: monto, fecha, porcentaje, badge de dias. Mono con tabular-nums, nunca en texto libre." },
+      "heading-sm": { "displayName": "Heading SM", "purpose": "Titulo de pagina (\"Dashboard\")." }
+    },
+    "shadows": [
+      { "name": "glow-card-dark", "value": "0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.45)", "purpose": "Elevacion de reposo de Card, Select popover y mobile-nav en modo oscuro." },
+      { "name": "glow-card-light", "value": "0 1px 2px rgba(23,23,23,0.04), 0 4px 16px rgba(23,23,23,0.06)", "purpose": "Elevacion de reposo equivalente en modo claro." },
+      { "name": "glow-violet-sm-dark", "value": "0 0 24px rgba(112,132,255,0.19)", "purpose": "Indicador de nav activo y hover de card en oscuro." },
+      { "name": "glow-violet-sm-light", "value": "0 0 0 1px rgba(64,91,255,0.12)", "purpose": "Equivalente en claro: anillo solido en vez de halo, porque el glow no lee sobre fondo blanco." },
+      { "name": "glow-violet-lg-dark", "value": "0 0 40px rgba(64,91,255,0.25)", "purpose": "CTA principal y halo detras de la card de metrica destacada, en oscuro." },
+      { "name": "glow-violet-lg-light", "value": "0 8px 24px rgba(64,91,255,0.22)", "purpose": "Equivalente en claro." }
+    ],
+    "motion": [
+      { "name": "card-rise", "value": "translateY(8px)->translateY(0), opacity 0->1, 0.5s cubic-bezier(0.16,1,0.3,1)", "purpose": "Entrada unica orquestada del grid de cards del dashboard, escalonada 40ms por card. Respeta prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "CTA principal, capsula completa, unico fill correcto en Voltage Blue.",
+      "html": "<button class=\"ds-btn-primary\">Agregar gasto</button>",
+      "css": ".ds-btn-primary { background: #405bff; color: #ffffff; padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; border: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.15s ease; } .ds-btn-primary:hover { background: rgba(64,91,255,0.9); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(112,132,255,0.5); }"
+    },
+    {
+      "name": "Metric Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Card de metrica con numero hero en mono, eyebrow arriba y chip de icono circular; version destacada lleva un halo de gradiente de marca en la esquina.",
+      "html": "<div class=\"ds-card ds-card--featured\"><div class=\"ds-card-glow\"></div><div class=\"ds-card-row\"><span class=\"ds-eyebrow\">Gastado este mes</span><span class=\"ds-icon-chip\">↓</span></div><div class=\"ds-card-figure\">$1,500.00</div><p class=\"ds-card-sub\">Agosto</p></div>",
+      "css": ".ds-card { position: relative; overflow: hidden; background: #191919; color: #ffffff; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 32px; box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.45); } .ds-card-glow { position: absolute; top: -96px; right: -96px; width: 256px; height: 256px; border-radius: 9999px; opacity: 0.15; filter: blur(48px); background: linear-gradient(179deg, #405bff 1.06%, #7084ff 123.42%); pointer-events: none; } .ds-card-row { position: relative; display: flex; align-items: center; justify-content: space-between; } .ds-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; color: #a7a9ac; } .ds-icon-chip { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background: #414042; color: #a7a9ac; } .ds-card-figure { position: relative; margin-top: 16px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 32px; font-weight: 500; letter-spacing: -0.01em; } .ds-card-sub { margin-top: 6px; font-size: 14px; color: #a7a9ac; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Item de navegacion agrupado: chip de icono circular + indicador lateral solido violeta cuando esta activo.",
+      "html": "<a class=\"ds-nav-item ds-nav-item--active\" href=\"#\"><span class=\"ds-nav-indicator\"></span><span class=\"ds-nav-icon\">▦</span>Dashboard</a>",
+      "css": ".ds-nav-item { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 10px; border-radius: 16px; font-size: 14px; color: #a7a9ac; text-decoration: none; transition: background-color 0.15s ease; } .ds-nav-item:hover { background: #414042; color: #ffffff; } .ds-nav-item--active { background: rgba(64,91,255,0.1); color: #ffffff; font-weight: 500; } .ds-nav-indicator { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 16px; border-radius: 9999px; background: #405bff; box-shadow: 0 0 24px rgba(112,132,255,0.19); } .ds-nav-icon { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px; background: #405bff; color: #ffffff; font-size: 14px; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo de formulario: radio 10px (excepcion documentada a la regla de pill 30px), borde 1px, foco en Signal Violet.",
+      "html": "<input class=\"ds-input\" placeholder=\"Buscar por descripcion...\" />",
+      "css": ".ds-input { width: 100%; height: 36px; padding: 4px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #ffffff; font-size: 14px; } .ds-input::placeholder { color: #a7a9ac; } .ds-input:focus-visible { outline: none; border-color: #7084ff; box-shadow: 0 0 0 3px rgba(112,132,255,0.5); }"
+    },
+    {
+      "name": "Financial Progress Bar",
+      "kind": "custom",
+      "description": "Barra de progreso de presupuesto (fill en --primary) o de gasto por cuenta (fill en el color propio de la cuenta, con --primary como fallback). El color de cuenta es informacion funcional, no decoracion.",
+      "html": "<div class=\"ds-progress\"><div class=\"ds-progress-fill\" style=\"width: 62%\"></div></div>",
+      "css": ".ds-progress { width: 100%; height: 6px; background: #2c2c2c; border-radius: 9999px; overflow: hidden; } .ds-progress-fill { height: 100%; border-radius: 9999px; background: #405bff; transition: width 0.2s ease; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Neon Control Room",
+    "overview": "ExpenseBro es un panel de control financiero, no un feed de transacciones: la superficie por defecto es un cockpit oscuro y denso — Midnight Ink de fondo, Carbon como cada panel, hairlines blanco-alpha en vez de bordes marcados — donde el violeta (#7084ff) y su vecino Voltage Blue (#405bff) son la unica voz cromatica del sistema. La app corre igual de bien en modo claro (Product Paper): mismo acento, misma jerarquia, misma tipografia, solo el lienzo cambia de negro a blanco puro — nunca un gris intermedio.\n\nEl sistema es intencionalmente monocromatico-mas-violeta. Rojo y verde existen unicamente como senal financiera real (sobregiro de presupuesto, gasto por debajo de lo esperado) — nunca como decoracion. Los numeros llevan su propia voz: JetBrains Mono con tabular-nums para cualquier cifra o fecha, distinguiendolos visualmente del texto conversacional en Geist Sans.\n\nLa softness del sistema es pill: 30px de radio en cards y botones no es un valor de conveniencia, es la firma visual completa.",
+    "keyCharacteristics": [
+      "Un solo acento cromatico (violeta/azul), todo lo demas es escala de grises",
+      "Radio de 30px como firma no negociable en cards, botones y tags",
+      "Elevacion por glow en oscuro (nunca sombra caida), sombra suave convencional en claro",
+      "Cifras y fechas siempre en mono con tabular-nums; el resto del texto en sans",
+      "Rojo/verde reservados exclusivamente para semantica financiera real"
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Voltage Blue y Signal Violet son los unicos colores decorativos permitidos en todo el sistema. Ningun otro tono entra a la UI salvo como semantica financiera.", "section": "colors" },
+      { "name": "The Financial Color Rule", "body": "Rojo y verde solo aparecen cuando representan dinero real: sobregiro de presupuesto, gasto por debajo del esperado. Nunca decoran un chip o estado no financiero.", "section": "colors" },
+      { "name": "The Mono-For-Numbers Rule", "body": "Cualquier cifra de dinero, fecha o porcentaje se renderiza en JetBrains Mono con tabular-nums. Texto conversacional nunca usa mono.", "section": "typography" },
+      { "name": "The No-Drop-Shadow Rule", "body": "En modo oscuro, nunca se usa una sombra caida neutra como unico mecanismo de elevacion; el glow violeta o el hairline blanco comunican jerarquia.", "section": "elevation" },
+      { "name": "The Pill Rule", "body": "El radio base del sistema es 30px, aplicado literal a Card y heredado por botones vía rounded-full. Inputs y controles de Select son la unica excepcion documentada, con 10px.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do usar 30px de radio literal en cards y botones — no una aproximacion via la escala de Tailwind por defecto.",
+      "Do usar glow para elevacion en modo oscuro, nunca una sombra caida neutra sola.",
+      "Do renderizar toda cifra de dinero/fecha en JetBrains Mono con tabular-nums.",
+      "Do mantener Voltage Blue como el unico fill de CTA primario en ambos temas.",
+      "Do agrupar la navegacion del sidebar bajo eyebrow labels quietos (Principal / Cuentas / Gestion / Sistema).",
+      "Do pintar la barra de gastos por cuenta con el color propio de esa cuenta (accountColor), con --primary solo como fallback — es informacion funcional, no decoracion."
+    ],
+    "donts": [
+      "Don't introducir un segundo color de acento fuera de la semantica financiera real o del color propio de una cuenta.",
+      "Don't usar un border-left/border-right de color como decoracion en cards o list items.",
+      "Don't dejar un componente de navegacion con colores hardcodeados fuera de los tokens de tema."
+    ]
+  }
+}

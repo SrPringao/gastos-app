@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: gastosapp_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - gastos_pgdata:/var/lib/postgresql
+
+volumes:
+  gastos_pgdata:

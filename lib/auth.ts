@@ -1,7 +1,18 @@
-import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { auth } from "@/auth";
+import { validateApiToken } from "@/lib/api-tokens";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+
+async function findUserById(userId: string) {
+  const row = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row[0] ?? null;
+}
 
 export type CurrentUser = {
   id: string;
@@ -10,40 +21,55 @@ export type CurrentUser = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const headersList = await headers();
+  const authHeader = headersList.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-  if (!user) return null;
-
-  const row = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, user.id))
-    .limit(1);
-
-  if (!row[0]) {
-    await db.insert(users).values({
-      id: user.id,
-      email: user.email ?? null,
-      displayName: user.user_metadata?.display_name ?? user.user_metadata?.name ?? null,
-      updatedAt: new Date(),
-    });
+  if (token) {
+    const apiResult = await validateApiToken(token);
+    if (apiResult) {
+      const row = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, apiResult.userId))
+        .limit(1);
+      const u = row[0];
+      if (u) {
+        return {
+          id: u.id,
+          email: u.email,
+          displayName: u.displayName,
+        };
+      }
+    }
   }
 
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const u = await findUserById(session.user.id);
+  if (!u) return null;
+
   return {
-    id: user.id,
-    email: user.email ?? null,
-    displayName:
-      row[0]?.displayName ??
-      user.user_metadata?.display_name ??
-      user.user_metadata?.name ??
-      null,
+    id: u.id,
+    email: u.email,
+    displayName: u.displayName,
   };
 }
 
 export async function getCurrentUserId(): Promise<string | null> {
   const user = await getCurrentUser();
   return user?.id ?? null;
+}
+
+export async function resolveAuthRouteAccess(): Promise<
+  "guest" | "authenticated" | "stale"
+> {
+  const session = await auth();
+  if (!session?.user?.id) return "guest";
+
+  const user = await findUserById(session.user.id);
+  if (!user) return "stale";
+
+  return "authenticated";
 }

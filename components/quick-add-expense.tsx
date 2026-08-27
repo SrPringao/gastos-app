@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusIcon,
@@ -23,15 +23,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-media-query";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/dates";
+import { formatCurrency, todayDateString } from "@/lib/utils/dates";
 import type { Account } from "@/lib/db/schema";
 import type { Category } from "@/lib/db/schema";
 
@@ -56,25 +47,58 @@ const typeLabels = {
 };
 
 type QuickAddExpenseProps = {
-  accounts: Account[];
-  categories: Category[];
+  accounts?: Account[];
+  categories?: Category[];
+  /** Controlado externamente (ej. desde MobileNav): si se pasa, oculta el trigger interno */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 type Step = "amount" | "account" | "details";
 
-export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) {
+export function QuickAddExpense({
+  accounts: accountsProp,
+  categories: categoriesProp,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
+}: QuickAddExpenseProps) {
   const router = useRouter();
-  const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(false);
+  const open = isControlled ? openProp : openState;
+  const setOpen = isControlled ? (onOpenChangeProp ?? (() => {})) : setOpenState;
+
+  // Sin accounts/categories pasadas por prop (ej. uso desde MobileNav sin
+  // Server Component padre a la mano), se cargan solas al abrirse.
+  const [fetchedAccounts, setFetchedAccounts] = useState<Account[]>([]);
+  const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
+  const shouldFetch = accountsProp === undefined || categoriesProp === undefined;
+
+  useEffect(() => {
+    if (!open || !shouldFetch) return;
+    Promise.all([
+      accountsProp === undefined
+        ? fetch("/api/accounts").then((r) => (r.ok ? r.json() : []))
+        : Promise.resolve(accountsProp),
+      categoriesProp === undefined
+        ? fetch("/api/categories").then((r) => (r.ok ? r.json() : []))
+        : Promise.resolve(categoriesProp),
+    ]).then(([accs, cats]) => {
+      setFetchedAccounts(accs);
+      setFetchedCategories(cats);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, shouldFetch]);
+
+  const accounts = accountsProp ?? fetchedAccounts;
+  const categories = categoriesProp ?? fetchedCategories;
   const [step, setStep] = useState<Step>("amount");
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [accountId, setAccountId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [date, setDate] = useState(
-    () => new Date().toISOString().slice(0, 10)
-  );
+  const [date, setDate] = useState(() => todayDateString());
   const [addingAccount, setAddingAccount] = useState(false);
   const [newAccountName, setNewAccountName] = useState("");
   const [newAccountType, setNewAccountType] =
@@ -90,7 +114,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
     setDescription("");
     setAccountId(null);
     setCategoryId(null);
-    setDate(new Date().toISOString().slice(0, 10));
+    setDate(todayDateString());
     setError(null);
   }
 
@@ -190,7 +214,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
   const trigger = (
     <Button
       size="lg"
-      className="h-12 w-full gap-2 sm:h-10 sm:w-auto sm:min-w-[140px]"
+      className="h-12 w-full gap-2 shadow-[var(--glow-violet-lg)] sm:h-10 sm:w-auto sm:min-w-[140px]"
     >
       <PlusIcon className="size-5 shrink-0" />
       Agregar gasto
@@ -276,7 +300,8 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                     placeholder="0"
                     autoFocus
                     aria-label="Monto"
-                    className="border-0 bg-transparent p-0 text-5xl font-bold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/60 focus:ring-0 sm:text-6xl w-full min-w-[80px] max-w-[240px]"
+                    style={{ fontSize: "3rem" }}
+                    className="border-0 bg-transparent p-0 font-bold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/60 focus:ring-0 sm:text-6xl w-full min-w-[80px] max-w-[240px]"
                   />
                 </div>
               </div>
@@ -294,7 +319,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                   </button>
                 ))}
               </div>
-              <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+              <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
                 <label htmlFor="description-input" className="sr-only">
                   Descripcion (opcional)
                 </label>
@@ -304,7 +329,8 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Anadir una nota"
-                  className="bg-transparent w-full text-sm outline-none placeholder:text-muted-foreground"
+                  style={{ fontSize: "16px" }}
+                  className="bg-transparent w-full outline-none placeholder:text-muted-foreground"
                 />
               </div>
               {error && <p className="text-destructive text-center text-sm">{error}</p>}
@@ -334,7 +360,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 - Selecciona como pagaste
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 pb-8 sm:grid-cols-2 sm:gap-3 sm:pb-4">
               {accounts.map((acc) => {
                 const Icon = typeIcons[acc.type as keyof typeof typeIcons];
                 const accWithColor = acc as Account & { color?: string | null; imageUrl?: string | null };
@@ -344,7 +370,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                     type="button"
                     onClick={() => handleSelectAccount(acc.id)}
                     className={cn(
-                      "border-border flex min-h-[64px] items-center gap-4 rounded-xl border p-4 text-left transition-colors active:bg-accent",
+                      "border-border flex min-h-[52px] items-center gap-3 rounded-lg border p-3 text-left transition-colors active:bg-accent sm:min-h-[64px] sm:gap-4 sm:p-4",
                       "hover:bg-accent hover:border-accent-foreground/20"
                     )}
                   >
@@ -352,11 +378,11 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                       <img
                         src={accWithColor.imageUrl}
                         alt={acc.name}
-                        className="size-12 shrink-0 rounded-lg object-cover border"
+                        className="size-10 shrink-0 rounded-lg object-cover border sm:size-12"
                       />
                     ) : (
                       <div
-                        className="flex size-12 shrink-0 items-center justify-center rounded-lg"
+                        className="flex size-10 shrink-0 items-center justify-center rounded-lg sm:size-12"
                         style={{
                           backgroundColor: accWithColor.color
                             ? `${accWithColor.color}20`
@@ -367,7 +393,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                         }}
                       >
                         <Icon
-                          className="size-6"
+                          className="size-5 sm:size-6"
                           style={
                             accWithColor.color
                               ? { color: accWithColor.color }
@@ -377,12 +403,12 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium">{acc.name}</p>
+                      <p className="text-sm font-medium sm:text-base">{acc.name}</p>
                       <p className="text-muted-foreground text-xs">
                         {typeLabels[acc.type as keyof typeof typeLabels]}
                       </p>
                     </div>
-                    <ChevronRightIcon className="text-muted-foreground size-5 shrink-0" />
+                    <ChevronRightIcon className="text-muted-foreground size-4 shrink-0 sm:size-5" />
                   </button>
                 );
               })}
@@ -398,8 +424,8 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 Ajusta la categoria y la fecha. Ambos campos son opcionales.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <div className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8 pb-4">
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3.5 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-muted-foreground text-xs">Monto</p>
                   <p className="text-2xl font-semibold tracking-tight tabular-nums">
@@ -418,7 +444,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 )}
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <span className="text-muted-foreground text-xs font-medium">
                   Categoria (opcional)
                 </span>
@@ -442,7 +468,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 </Select>
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <span className="text-muted-foreground text-xs font-medium">
                   Fecha
                 </span>
@@ -457,7 +483,7 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
                 <p className="text-destructive text-center text-sm">{error}</p>
               )}
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -487,24 +513,12 @@ export function QuickAddExpense({ accounts, categories }: QuickAddExpenseProps) 
     </>
   );
 
-  return isMobile ? (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent
-        side="bottom"
-        className="max-h-[90dvh] min-h-[65vh] overflow-y-auto"
-      >
-        <SheetHeader className="sr-only">
-          <SheetTitle>Nuevo gasto</SheetTitle>
-          <SheetDescription>Agregar un nuevo gasto</SheetDescription>
-        </SheetHeader>
-        <div className="px-4 pb-6 pt-4">{content}</div>
-      </SheetContent>
-    </Sheet>
-  ) : (
+  return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">{content}</DialogContent>
+      {!isControlled && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-6">
+        {content}
+      </DialogContent>
     </Dialog>
   );
 }

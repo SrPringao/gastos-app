@@ -230,7 +230,7 @@ export default function CategoriasPage() {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="border-border flex items-center justify-between gap-3 rounded-xl border bg-background/50 p-4"
+              className="border-border flex items-center justify-between gap-3 rounded-lg border bg-background/50 p-4"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div

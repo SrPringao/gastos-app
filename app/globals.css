@@ -9,7 +9,17 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-jetbrains-mono);
+  /* Type scale — Minor Third (1.2) desde 16px, DESIGN.md */
+  --text-heading-sm: 24px;
+  --text-heading-sm--line-height: 1.3;
+  --text-heading-sm--font-weight: 500;
+  --text-heading: 36px;
+  --text-heading--line-height: 1.2;
+  --text-heading--font-weight: 500;
+  --text-heading-lg: 66px;
+  --text-heading-lg--line-height: 1.09;
+  --text-heading-lg--font-weight: 500;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,84 +58,230 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/*
+  LaunchDarkly — Neon control room (ver DESIGN.md)
+  El usuario puede alternar claro/oscuro (toggle en sidebar/mobile-nav via
+  next-themes). En ambos modos el acento de marca es el mismo: Voltage Blue
+  (#405bff) para CTA primario, Signal Violet (#7084ff) para foco/estados
+  activos. El modo claro traduce "Product Screenshot Panel" del DESIGN.md:
+  el workspace real tambien puede verse brillante/blanco, no solo el dark
+  cockpit. Rojo/verde se conservan solo como señal financiera, nunca decoracion.
+*/
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 261.692);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.21 0.034 264.665);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.21 0.034 264.665);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
+  --radius: 30px; /* pill-softness no-negociable: buttons, tags, cards */
+  --background: #ffffff; /* Paper */
+  --foreground: #191919; /* Carbon como texto sobre fondo claro */
+  --card: #ffffff;
+  --card-foreground: #191919;
+  --popover: #ffffff;
+  --popover-foreground: #191919;
+  --primary: #405bff; /* Voltage Blue — mismo CTA en ambos modos */
+  --primary-foreground: #ffffff;
+  --secondary: #f2f2f4;
+  --secondary-foreground: #191919;
+  --muted: #f2f2f4;
+  --muted-foreground: #6d6e71; /* Slate */
+  --accent: #f2f2f4;
+  --accent-foreground: #191919;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 247.839);
-  --sidebar-foreground: oklch(0.13 0.028 261.692);
-  --sidebar-primary: oklch(0.21 0.034 264.665);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.967 0.003 264.542);
-  --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: oklch(0.707 0.022 261.325);
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #405bff;
+  --chart-1: #405bff;
+  --chart-2: #7084ff;
+  --chart-3: #3dd6f5;
+  --chart-4: oklch(0.6 0.118 184.704);
+  --chart-5: oklch(0.828 0.189 84.429);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #191919;
+  --sidebar-primary: #405bff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f4;
+  --sidebar-accent-foreground: #191919;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #405bff;
+
+  /* Marca (identica en claro y oscuro) */
+  --color-signal-violet: #7084ff;
+  --color-voltage-blue: #405bff;
+  --color-plasma-cyan: #3dd6f5;
+  --gradient-signal: linear-gradient(179deg, #405bff 1.06%, #7084ff 123.42%);
+
+  /* Elevacion en claro: sombra suave convencional, sin glow (no hay negro detras) */
+  --glow-card: 0 1px 2px rgba(23, 23, 23, 0.04), 0 4px 16px rgba(23, 23, 23, 0.06);
+  --glow-violet-sm: 0 0 0 1px rgba(64, 91, 255, 0.12);
+  --glow-violet-lg: 0 8px 24px rgba(64, 91, 255, 0.22);
+
+  /* Liquid glass — reservado a superficies que flotan SOBRE otro contenido
+     (mobile-nav, sidebar, dialog/sheet, popover/select). Las Card del
+     dashboard siguen solidas: el vidrio es para overlays, no para contenido. */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-blur: blur(20px) saturate(160%);
+  --glass-shadow: 0 8px 32px rgba(23, 23, 23, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .dark {
-  --background: oklch(0.13 0.028 261.692);
-  --foreground: oklch(0.985 0.002 247.839);
-  --card: oklch(0.21 0.034 264.665);
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: oklch(0.928 0.006 264.531);
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  --secondary: oklch(0.278 0.033 256.848);
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
+  --background: #0e0e0e; /* Midnight Ink */
+  --foreground: #ffffff; /* Paper */
+  --card: #191919; /* Carbon */
+  --card-foreground: #ffffff;
+  --popover: #191919;
+  --popover-foreground: #ffffff;
+  --primary: #405bff; /* Voltage Blue — unico fill correcto de CTA primario */
+  --primary-foreground: #ffffff;
+  --secondary: #414042; /* Graphite */
+  --secondary-foreground: #ffffff;
+  --muted: #2c2c2c; /* Smoke */
+  --muted-foreground: #a7a9ac; /* Fog */
+  --accent: #414042;
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
+  --border: rgba(255, 255, 255, 0.1); /* hairline blanco-alpha */
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #7084ff; /* Signal Violet — foco */
+  --chart-1: #7084ff;
+  --chart-2: #405bff;
+  --chart-3: #3dd6f5;
+  --chart-4: oklch(0.696 0.17 162.48);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.034 264.665);
-  --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.278 0.033 256.848);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar: #191919;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #405bff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #414042;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #7084ff;
+
+  /* Elevacion en oscuro: glow, nunca sombra caida (DESIGN.md Don't) */
+  --glow-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 20px rgba(0, 0, 0, 0.45);
+  --glow-violet-sm: 0 0 24px rgba(112, 132, 255, 0.19);
+  --glow-violet-lg: 0 0 40px rgba(64, 91, 255, 0.25);
+
+  /* Liquid glass en oscuro: Carbon translucido, hairline mas brillante, blur */
+  --glass-bg: rgba(25, 25, 25, 0.66);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-blur: blur(20px) saturate(160%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Utilidad compartida por toda superficie flotante (overlay): mobile-nav,
+   sidebar, dialog/sheet content, popover/select content. Nunca en Card. */
+.glass-surface {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Recharts pone su <svg> raiz como focuseable (accesibilidad de teclado),
+   pero el navegador tambien lo enfoca al hacer click con mouse, mostrando
+   el anillo de foco por defecto alrededor de toda la grafica. Se oculta
+   solo cuando el foco vino de mouse/touch; :focus-visible (navegacion por
+   teclado real) sigue mostrando el anillo normalmente. */
+.recharts-surface:focus:not(:focus-visible) {
+  outline: none;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--foreground) 22%, transparent);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--foreground) 36%, transparent);
+  }
+  
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
   }
+  
   button, a, [role="button"] {
     touch-action: manipulation;
   }
+  
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Prevenir scroll del body en móviles iOS para evitar el bounce scroll */
+  @media (max-width: 768px) {
+    html {
+      height: 100%;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      overscroll-behavior: none;
+      touch-action: pan-x pan-y;
+    }
+    
+    body {
+      height: 100%;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      position: fixed;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+    }
+  }
+
+  /* Numeros de dinero/fecha en mono, alineados tabularmente */
+  .font-figures {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Entrada orquestada de las cards del dashboard: una sola vez, escalonada */
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-in > * {
+    animation: card-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-in > *:nth-child(2) { animation-delay: 40ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 80ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 120ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 160ms; }
+  .stagger-in > *:nth-child(6) { animation-delay: 200ms; }
 }

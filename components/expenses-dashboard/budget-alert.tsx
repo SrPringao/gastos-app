@@ -38,14 +38,20 @@ export function BudgetAlert({
       </div>
       <div className="min-w-0">
         <p className="font-semibold">
-          {exceeded
-            ? `Presupuesto superado en ${monthLabel}`
-            : `Cerca del límite de presupuesto (${Math.round(pct)}%)`}
+          {exceeded ? (
+            `Presupuesto superado en ${monthLabel}`
+          ) : (
+            <>Cerca del límite de presupuesto (<span className="font-figures">{Math.round(pct)}%</span>)</>
+          )}
         </p>
         <p className="mt-0.5 text-sm opacity-80">
-          {exceeded
-            ? `Llevas ${formatCurrency(totalSpentCents)} de ${formatCurrency(monthlyBudgetCents)} — excediste por ${formatCurrency(Math.abs(remaining))}.`
-            : `Llevas ${formatCurrency(totalSpentCents)} de ${formatCurrency(monthlyBudgetCents)} — te quedan ${formatCurrency(remaining)}.`}
+          Llevas <span className="font-figures">{formatCurrency(totalSpentCents)}</span> de{" "}
+          <span className="font-figures">{formatCurrency(monthlyBudgetCents)}</span> —{" "}
+          {exceeded ? (
+            <>excediste por <span className="font-figures">{formatCurrency(Math.abs(remaining))}</span>.</>
+          ) : (
+            <>te quedan <span className="font-figures">{formatCurrency(remaining)}</span>.</>
+          )}
         </p>
       </div>
     </div>

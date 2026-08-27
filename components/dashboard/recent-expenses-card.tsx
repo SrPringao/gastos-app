@@ -38,7 +38,7 @@ export function RecentExpensesCard({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1 px-2 text-xs sm:text-sm"
+          className="h-8 gap-1 px-3 text-xs sm:text-sm"
           onClick={() => router.push("/gastos")}
         >
           Ver historial
@@ -51,22 +51,22 @@ export function RecentExpensesCard({
             No hay gastos registrados.
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="divide-border -mx-8 divide-y">
             {expenses.map((exp) => (
               <div
                 key={exp.id}
-                className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                className="flex items-center justify-between px-8 py-3"
               >
-                <div>
-                  <p className="font-medium">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
                     {exp.description || "Sin descripcion"}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {exp.accountName} - {formatDate(exp.date)}
+                    {exp.accountName} · {formatDate(exp.date)}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="font-medium">{formatCurrency(exp.amount)}</span>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="font-figures font-medium">{formatCurrency(exp.amount)}</span>
                   <EditExpenseModal
                     expense={{
                       id: exp.id,

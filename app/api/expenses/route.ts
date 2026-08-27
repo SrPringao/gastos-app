@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createExpense, getExpenses } from "@/lib/services/expenses";
 import { getCurrentUserId } from "@/lib/auth";
+import { parseAmountInput } from "@/lib/utils/parse-amount";
+import { todayDateString } from "@/lib/utils/dates";
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
     const body = await request.json();
 
-    const amount = parseFloat(body.amount);
+    const amount = parseAmountInput(body.amount);
     if (isNaN(amount)) {
       return NextResponse.json(
         { error: "Monto invalido" },
@@ -41,11 +43,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hasCardName =
+      typeof body.cardName === "string" && body.cardName.trim().length > 0;
+    const hasAccountName =
+      typeof body.accountName === "string" && body.accountName.trim().length > 0;
+
     const result = await createExpense(userId, {
       amount,
-      accountId: Number(body.accountId),
+      accountId:
+        hasCardName || hasAccountName ? undefined : Number(body.accountId),
+      cardName: hasCardName ? body.cardName : undefined,
+      accountName: hasAccountName ? body.accountName : undefined,
       categoryId: body.categoryId ? Number(body.categoryId) : null,
-      date: body.date || new Date().toISOString().slice(0, 10),
+      date:
+        typeof body.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.date)
+          ? body.date
+          : todayDateString(),
       description: body.description ?? null,
     });
 

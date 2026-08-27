@@ -36,7 +36,7 @@ export function SpentByAccountCard({ data, monthKey }: SpentByAccountCardProps) 
     <>
       <Card className="h-full">
         <CardHeader>
-          <CardTitle>Gastos por cuenta (este mes)</CardTitle>
+          <CardTitle>Gastos por cuenta</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col">
           {data.length === 0 ? (
@@ -44,7 +44,7 @@ export function SpentByAccountCard({ data, monthKey }: SpentByAccountCardProps) 
               No hay gastos este mes.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="-mx-8 space-y-1">
               {data.map((item) => (
                 <button
                   key={item.accountId}
@@ -54,31 +54,30 @@ export function SpentByAccountCard({ data, monthKey }: SpentByAccountCardProps) 
                       name: item.accountName,
                     })
                   }
-                  className="w-full space-y-2 text-left hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
+                  className="hover:bg-secondary/60 block w-full px-8 py-3 text-left transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{item.accountName}</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{item.accountName}</p>
                       <p className="text-muted-foreground text-xs">
                         {typeLabels[item.accountType] || item.accountType}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <span className="font-medium">
+                    <div className="shrink-0 text-right">
+                      <span className="font-figures font-medium">
                         {formatCurrency(item.total)}
                       </span>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="font-figures text-muted-foreground text-xs">
                         {total > 0 ? Math.round((item.total / total) * 100) : 0}%
                       </p>
                     </div>
                   </div>
-                  <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+                  <div className="bg-muted mt-3 h-1.5 w-full overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
                         width: `${total > 0 ? Math.max(4, Math.round((item.total / total) * 100)) : 0}%`,
-                        backgroundColor:
-                          item.accountColor || "hsl(var(--primary))",
+                        backgroundColor: item.accountColor || "var(--primary)",
                       }}
                     />
                   </div>

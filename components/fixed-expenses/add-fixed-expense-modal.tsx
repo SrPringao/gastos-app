@@ -116,7 +116,7 @@ function ModalContent({
       </div>
 
       {/* Nombre */}
-      <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+      <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
         <input
           type="text"
           value={name}
@@ -129,7 +129,7 @@ function ModalContent({
 
       {/* Día y categoría en una fila */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
           <p className="text-muted-foreground mb-1 text-xs">Día de pago (opcional)</p>
           <input
             type="number"
@@ -141,7 +141,7 @@ function ModalContent({
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <div className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-3.5">
+        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
           <p className="text-muted-foreground mb-1 text-xs">Etiqueta (opcional)</p>
           <input
             type="text"

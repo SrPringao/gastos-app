@@ -22,30 +22,37 @@ function Calendar({
       classNames={{
         root: "relative",
         months: "flex flex-col sm:flex-row gap-4",
-        month: "flex flex-col gap-4",
-        month_caption: "flex justify-center pt-1 relative items-center h-9",
-        nav: "flex items-center gap-1",
-        button_previous: "absolute left-1",
-        button_next: "absolute right-1",
+        month: "relative flex flex-col gap-4",
+        month_caption: "flex justify-center pt-1 items-center h-9",
+        nav: "absolute inset-x-0 top-0 flex h-9 items-center justify-between px-1",
+        button_previous:
+          "inline-flex size-7 items-center justify-center rounded-full hover:bg-secondary transition-colors",
+        button_next:
+          "inline-flex size-7 items-center justify-center rounded-full hover:bg-secondary transition-colors",
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex",
         weekday: "text-muted-foreground w-8 font-normal text-[0.8rem]",
         week: "flex w-full mt-2",
-        day: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([data-selected])]:bg-accent [&:has([data-selected].day-outside)]:bg-accent/50 [&:has([data-selected].day-range-end)]:rounded-r-md",
+        day: "relative p-0 text-center text-sm font-figures focus-within:relative focus-within:z-20",
         day_button: cn(
-          "inline-flex items-center justify-center rounded-md h-8 w-8 p-0 font-normal",
-          "hover:bg-accent hover:text-accent-foreground",
-          "focus:bg-accent focus:text-accent-foreground",
-          "data-[selected]:bg-primary data-[selected]:text-primary-foreground",
-          "data-[today]:bg-accent data-[today]:text-accent-foreground",
+          "inline-flex items-center justify-center rounded-full h-8 w-8 p-0 font-normal transition-colors",
+          "hover:bg-secondary hover:text-foreground",
+          "focus:bg-secondary focus:text-foreground",
+          "data-[today]:text-primary data-[today]:font-semibold",
           "data-[disabled]:text-muted-foreground data-[disabled]:opacity-50",
           "data-[outside]:text-muted-foreground data-[outside]:opacity-50"
         ),
-        selected: "bg-primary text-primary-foreground",
-        today: "bg-accent text-accent-foreground",
+        // El fondo tenue del rango vive en el <td> (day), no en el boton, para
+        // que pueda extenderse sin esquinas hasta el borde de la celda.
+        range_start:
+          "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:shadow-[var(--glow-violet-sm)] bg-primary/10 rounded-l-full",
+        range_end:
+          "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:shadow-[var(--glow-violet-sm)] bg-primary/10 rounded-r-full",
+        range_middle: "bg-primary/10 [&>button]:text-foreground",
+        selected: "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:shadow-[var(--glow-violet-sm)]",
+        today: "text-primary font-semibold",
         outside: "text-muted-foreground opacity-50",
         disabled: "text-muted-foreground opacity-50",
-        range_middle: "bg-accent",
         hidden: "invisible",
         ...classNames,
       }}
