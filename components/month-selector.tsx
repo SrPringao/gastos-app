@@ -31,37 +31,44 @@ function formatMonthKey(monthKey: string): string {
   return `${monthName} ${year}`;
 }
 
+function currentMonthKey(date = new Date()): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function isMonthKey(value: string | null): value is string {
+  return !!value && /^\d{4}-\d{2}$/.test(value);
+}
+
+/** Incluye meses sin gastos (p. ej. el mes actual) para que el Select no quede en blanco. */
+function mergeMonthOptions(months: string[], ...extra: string[]): string[] {
+  const set = new Set(months.filter(isMonthKey));
+  for (const key of extra) {
+    if (isMonthKey(key)) set.add(key);
+  }
+  return Array.from(set).sort((a, b) => b.localeCompare(a));
+}
+
 export function MonthSelector() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [months, setMonths] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [months, setMonths] = useState<string[]>(() => [currentMonthKey()]);
 
   const currentMonth = searchParams.get("month");
-  const now = new Date();
-  const defaultMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const selectedMonth = currentMonth && /^\d{4}-\d{2}$/.test(currentMonth)
-    ? currentMonth
-    : defaultMonthKey;
+  const defaultMonthKey = currentMonthKey();
+  const selectedMonth = isMonthKey(currentMonth) ? currentMonth : defaultMonthKey;
+  const monthOptions = mergeMonthOptions(months, selectedMonth, defaultMonthKey);
 
   useEffect(() => {
-    const now = new Date();
-    const def = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const def = currentMonthKey();
     fetch("/api/dashboard/months")
       .then((res) => res.json())
       .then((data: string[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setMonths(data);
-        } else {
-          setMonths([def]);
-        }
+        setMonths(mergeMonthOptions(Array.isArray(data) ? data : [], def));
       })
       .catch(() => {
-        const n = new Date();
-        setMonths([`${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`]);
-      })
-      .finally(() => setLoading(false));
+        setMonths([currentMonthKey()]);
+      });
   }, []);
 
   function handleChange(value: string) {
@@ -75,8 +82,6 @@ export function MonthSelector() {
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  if (loading || months.length === 0) return null;
-
   return (
     <Select
       value={selectedMonth}
@@ -86,7 +91,7 @@ export function MonthSelector() {
         <SelectValue placeholder="Mes" />
       </SelectTrigger>
       <SelectContent>
-        {months.map((monthKey) => (
+        {monthOptions.map((monthKey) => (
           <SelectItem key={monthKey} value={monthKey}>
             {formatMonthKey(monthKey)}
           </SelectItem>
