@@ -4,6 +4,7 @@ import { getNetWorthEntries, getNetWorthProjections } from "@/lib/services/net-w
 import { NetWorthCard } from "@/components/net-worth/net-worth-card";
 import { NetWorthSimulator } from "@/components/net-worth/net-worth-simulator";
 import { NetWorthVisibilityToggle } from "@/components/net-worth/net-worth-visibility-toggle";
+import { PatrimonioReportCard } from "@/components/net-worth/patrimonio-report-card";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export default async function PatrimonioPage() {
       <div className="space-y-6">
         <NetWorthCard accounts={accounts} entries={netWorthEntries} />
         <NetWorthSimulator entries={netWorthEntries} projections={projections} />
+        <PatrimonioReportCard />
       </div>
     </div>
   );
