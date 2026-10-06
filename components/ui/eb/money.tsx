@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { formatMoney, splitMoney, type MoneySign } from "@/lib/utils/money";
+import { PrivateValue } from "@/components/privacy";
 
 type MoneySize = "hero" | "hero-mobile" | "hero-net" | "md" | "sm";
 
@@ -24,8 +25,8 @@ type MoneyProps = {
   cents?: boolean;
   /** Separa los centavos en un span mas chico (por defecto solo en hero) */
   splitCents?: boolean;
-  /** Oculta la cifra tras puntos (ojito de privacidad de Patrimonio) */
-  hidden?: boolean;
+  /** Saldo privado: con "ocultar saldos" activo se muestra "$••••" */
+  private?: boolean;
   className?: string;
 };
 
@@ -35,34 +36,18 @@ export function Money({
   sign,
   cents,
   splitCents,
-  hidden = false,
+  private: isPrivate = false,
   className,
 }: MoneyProps) {
   const isHero = size === "hero" || size === "hero-mobile" || size === "hero-net";
   const showCents = cents ?? size !== "md";
   const split = (splitCents ?? isHero) && showCents;
 
-  if (hidden) {
-    return (
-      <span
-        aria-label="Monto oculto"
-        className={cn(
-          "select-none",
-          isHero && "eb-rounded leading-none font-bold tracking-[-0.03em]",
-          size === "md" && "eb-rounded text-[22px] font-bold tracking-[-0.02em]",
-          className
-        )}
-        style={isHero ? { fontSize: HERO_SIZES[size][0] } : undefined}
-      >
-        ••••••
-      </span>
-    );
-  }
-
+  let content: React.ReactNode;
   if (split) {
     const { whole, fraction } = splitMoney(value, { sign });
     const [wholePx, centsPx] = isHero ? HERO_SIZES[size] : [undefined, undefined];
-    return (
+    content = (
       <span
         className={cn(
           "inline-flex items-baseline tabular-nums",
@@ -86,17 +71,34 @@ export function Money({
         )}
       </span>
     );
+  } else {
+    content = (
+      <span
+        className={cn(
+          "tabular-nums",
+          size === "md" && "eb-rounded text-[22px] font-bold tracking-[-0.02em]",
+          className
+        )}
+      >
+        {formatMoney(value, { cents: showCents, sign })}
+      </span>
+    );
   }
 
+  if (!isPrivate) return content;
+
+  // Con saldos ocultos, el mismo estilo de la cifra pero con 4 puntos
+  const maskStyle = isHero ? { fontSize: HERO_SIZES[size][0] } : undefined;
   return (
-    <span
-      className={cn(
-        "tabular-nums",
+    <PrivateValue
+      maskClassName={cn(
+        isHero && "eb-rounded leading-none font-bold tracking-[-0.03em]",
         size === "md" && "eb-rounded text-[22px] font-bold tracking-[-0.02em]",
         className
       )}
+      maskStyle={maskStyle}
     >
-      {formatMoney(value, { cents: showCents, sign })}
-    </span>
+      {content}
+    </PrivateValue>
   );
 }

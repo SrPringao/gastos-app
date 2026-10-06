@@ -28,13 +28,14 @@ function Dot({ tone }: { tone: SegmentTone }) {
 export function Legend({
   items,
   layout = "grid",
-  hidden = false,
+  isPrivate = false,
   onSelect,
   className,
 }: {
   items: LegendItem[];
   layout?: "grid" | "list";
-  hidden?: boolean;
+  /** Montos privados (se ocultan con "ocultar saldos") */
+  isPrivate?: boolean;
   /** Si se pasa, el nombre de cada cuenta abre su detalle */
   onSelect?: (item: LegendItem) => void;
   className?: string;
@@ -60,7 +61,7 @@ export function Legend({
           <div key={item.key} className="flex items-center gap-2 text-[15px]">
             <Dot tone={item.tone} />
             {nameButton(item, "min-w-0 flex-1")}
-            <Money value={item.total} hidden={hidden} className="font-semibold" />
+            <Money value={item.total} private={isPrivate} className="font-semibold" />
           </div>
         ))}
       </div>
@@ -79,7 +80,7 @@ export function Legend({
             {nameButton(item, "min-w-0")}
           </div>
           <div className="text-[17px] font-semibold">
-            <Money value={item.total} hidden={hidden} />{" "}
+            <Money value={item.total} private={isPrivate} />{" "}
             {item.percent !== undefined && (
               <span className="text-eb-text-tertiary text-[13px] font-normal">
                 {item.percent}%

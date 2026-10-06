@@ -8,6 +8,20 @@ const CHIPS = {
   silver: "linear-gradient(135deg, #E9EAEE, #A8ABB5)",
 } as const;
 
+export type AccountChip = keyof typeof CHIPS;
+
+/** Fondo y sombra de tarjeta fisica: degradado diagonal + reflejo */
+function cardSurface(color: string | null, shadow: "card" | "thumb") {
+  const tone = accountTone(color);
+  return {
+    background: `radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, ${tone.light} 0%, ${tone.dark} 100%)`,
+    boxShadow:
+      shadow === "card"
+        ? `inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px ${tone.shadow}`
+        : `inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 6px 12px -6px ${tone.shadow}`,
+  };
+}
+
 type AccountCardProps = {
   name: string;
   /** "Débito", "En mano"... */
@@ -16,10 +30,9 @@ type AccountCardProps = {
   balance: number;
   color: string | null;
   isCash?: boolean;
-  chip?: keyof typeof CHIPS;
+  chip?: AccountChip;
   /** grid: llena su celda (escritorio). carousel: 168x106 sin chip (movil). */
   variant?: "grid" | "carousel";
-  hidden?: boolean;
   className?: string;
 };
 
@@ -32,10 +45,8 @@ export function AccountCard({
   isCash = false,
   chip = "gold",
   variant = "grid",
-  hidden = false,
   className,
 }: AccountCardProps) {
-  const tone = accountTone(color);
   const isCarousel = variant === "carousel";
 
   return (
@@ -45,10 +56,7 @@ export function AccountCard({
         isCarousel && "h-[106px] w-[168px] flex-none",
         className
       )}
-      style={{
-        background: `radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, ${tone.light} 0%, ${tone.dark} 100%)`,
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px ${tone.shadow}`,
-      }}
+      style={cardSurface(color, "card")}
     >
       <div className="flex items-center justify-between gap-2">
         <span className={cn("truncate text-[14px]", isCarousel ? "font-semibold" : "font-bold")}>
@@ -77,13 +85,41 @@ export function AccountCard({
         <Money
           value={balance}
           cents={false}
-          hidden={hidden}
+          private
           className={cn(
             "font-bold",
             isCarousel ? "text-[18px]" : "eb-rounded text-[19px] tracking-[-0.01em]"
           )}
         />
       </div>
+    </div>
+  );
+}
+
+/** Miniatura de 46x30 de la tarjeta, para listas (seccion A.1) */
+export function AccountThumb({
+  color,
+  isCash = false,
+  chip = "gold",
+}: {
+  color: string | null;
+  isCash?: boolean;
+  chip?: AccountChip;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className="relative flex h-[30px] w-[46px] flex-none items-center justify-center rounded-[6px]"
+      style={cardSurface(color, "thumb")}
+    >
+      {isCash ? (
+        <BanknoteIcon size={16} strokeWidth={2} color="rgba(255,255,255,0.9)" />
+      ) : (
+        <span
+          className="absolute top-[9px] left-[6px] h-[7px] w-[9px] rounded-[2px]"
+          style={{ background: CHIPS[chip] }}
+        />
+      )}
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { CalendarIcon } from "lucide-react";
 import { EbCard } from "@/components/ui/eb/card";
 import { Money } from "@/components/ui/eb/money";
 import { CategoryTile } from "@/components/ui/eb/category-tile";
-import { usePreferences } from "@/components/preferences-provider";
 import type { UpcomingPayment } from "@/lib/dashboard-metrics";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +21,6 @@ export function UpcomingPaymentsCard({
   payments: UpcomingPaymentItem[];
   className?: string;
 }) {
-  const { hideNetWorthAmounts } = usePreferences();
-
   return (
     <EbCard className={cn("flex flex-col gap-1.5 px-[22px] pt-[22px] pb-[14px]", className)}>
       <div className="text-eb-text-secondary pb-1.5 text-[15px] font-medium">Próximos pagos</div>
@@ -61,7 +58,7 @@ export function UpcomingPaymentsCard({
               <Money
                 value={payment.amount}
                 cents={false}
-                hidden={hideNetWorthAmounts}
+                private
                 className={cn(
                   "text-[14px]",
                   payment.amount > 0 ? "font-semibold" : "text-eb-text-tertiary"
@@ -83,8 +80,6 @@ export function NextPaymentWidget({
   payment: UpcomingPaymentItem | null;
   className?: string;
 }) {
-  const { hideNetWorthAmounts } = usePreferences();
-
   return (
     <EbCard
       size="mobile"
@@ -97,7 +92,7 @@ export function NextPaymentWidget({
       {payment ? (
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="text-eb-text-tertiary truncate text-[12px]">{payment.name}</div>
-          <Money value={payment.amount} size="md" hidden={hideNetWorthAmounts} />
+          <Money value={payment.amount} size="md" private />
           <div
             className={cn("text-[12px]", payment.daysLeft <= 16 ? "text-eb-orange" : "text-eb-text-tertiary")}
           >

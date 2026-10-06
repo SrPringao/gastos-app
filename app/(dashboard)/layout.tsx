@@ -8,6 +8,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
 import { Grain } from "@/components/ui/eb/grain";
+import { PrivacyShortcut } from "@/components/privacy";
 
 export default async function DashboardLayout({
   children,
@@ -57,6 +58,7 @@ export default async function DashboardLayout({
         <DashboardMain>{children}</DashboardMain>
       </div>
       <MobileNav />
+      <PrivacyShortcut />
       <DesktopQuickMenu />
       <PushNotificationPrompt />
       {userId && (

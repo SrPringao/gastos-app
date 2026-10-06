@@ -438,7 +438,15 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px -4px var(--tile-shadow, transparent);
 }
 
+/* Ocultar/mostrar saldos: la cifra nueva entra con opacidad + blur */
+@keyframes eb-privacy-in {
+  from { opacity: 0; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
+}
+.eb-privacy-swap { animation: eb-privacy-in 150ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
+  .eb-privacy-swap { animation: none; }
   .eb-anim,
   .eb-row,
   .eb-row-actions,

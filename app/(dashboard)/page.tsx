@@ -104,15 +104,18 @@ export default async function DashboardPage({
   });
   const upcoming = payments.map(toItem);
   const nextPayment = nextPaymentWithBalance(payments);
-  const accountBalances = buildAccountBalances(netWorthEntries, accounts).map(
-    (b) => ({
-      entryId: b.entryId,
-      label: b.label,
-      balance: b.balance,
-      accountId: b.account.id,
-      accountType: b.account.type,
-      color: b.account.color,
-    }),
+  const toBalanceItem = (b: ReturnType<typeof buildAccountBalances>[number]) => ({
+    entryId: b.entryId,
+    label: b.label,
+    balance: b.balance,
+    accountId: b.account.id,
+    accountType: b.account.type,
+    color: b.account.color,
+  });
+  // Movil: carrusel de hasta 4 en el orden del usuario. Escritorio: todas.
+  const accountBalances = buildAccountBalances(netWorthEntries, accounts).map(toBalanceItem);
+  const allAccountBalances = buildAccountBalances(netWorthEntries, accounts, Infinity).map(
+    toBalanceItem,
   );
   const editAccounts = accounts.map((a) => ({
     id: a.id,
@@ -221,7 +224,7 @@ export default async function DashboardPage({
               className="col-span-12 min-[1000px]:col-span-7"
             />
             <AccountsOverviewCard
-              items={accountBalances}
+              items={allAccountBalances}
               creditCount={countCreditAccounts(accounts)}
               className="col-span-12 min-[1000px]:col-span-5"
             />

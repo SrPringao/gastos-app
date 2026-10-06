@@ -36,6 +36,8 @@ function luminance([r, g, b]: Rgb): number {
 export type AccountTone = {
   light: string;
   dark: string;
+  /** Un poco mas claro que `light`: final del degradado de barras */
+  bright: string;
   /** Sombra de la tarjeta: el oscuro con alpha */
   shadow: string;
 };
@@ -58,6 +60,7 @@ export function accountTone(hex: string | null | undefined): AccountTone {
   return {
     light: toHex(light),
     dark: toHex(dark),
+    bright: toHex(mix(light, WHITE, 0.12)),
     shadow: `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},0.9)`,
   };
 }

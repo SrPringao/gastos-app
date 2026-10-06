@@ -195,24 +195,57 @@ button{font-family:inherit}
 <section style="grid-column: span 5; box-sizing: border-box; border-radius: 26px; background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 30px 60px -30px rgba(0,0,0,0.9); display: flex; flex-direction: column; padding: 0 20px 14px">
 <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 4px 14px">
 <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em">Cuentas</h2>
-<a href="#" style="font-size: 14px; padding: 6px 0 6px 10px">Administrar</a>
+<div style="display: flex; align-items: center; gap: 6px">
+<button aria-label="{{eyeLabel}}" aria-pressed="{{hidden}}" title="{{eyeLabel}}" onClick="{{toggleHidden}}" style="width: 32px; height: 32px; border: 0; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; {{eyeStyle}}">
+<sc-if value="{{hidden}}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-2.6 3.4M6.6 6.6A17 17 0 0 0 2 12s4 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg></sc-if>
+<sc-if value="{{shown}}" hint-placeholder-val="{{ true }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if>
+</button>
+<a href="#" style="font-size: 14px; padding: 6px 0 6px 6px">Administrar</a>
 </div>
-<div style="flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(110px, 1fr)); gap: 12px">
-<div style="position: relative; overflow: hidden; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%), linear-gradient(145deg, #8E55F0 0%, #5B22C4 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(91,34,196,0.8); display: flex; flex-direction: column; justify-content: space-between">
-<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px; font-weight: 700; color: #fff">Nu</span><span style="width: 26px; height: 19px; border-radius: 4px; background: linear-gradient(135deg, #F3E1A6, #C9A55A); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15)"></span></div>
-<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 11px; color: rgba(255,255,255,0.78)">Débito</span><span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em">$5,700</span></div>
 </div>
-<div style="position: relative; overflow: hidden; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, #3E44C9 0%, #1E2170 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(30,33,112,0.9); display: flex; flex-direction: column; justify-content: space-between">
-<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px; font-weight: 700; color: #fff">Revolut</span><span style="width: 26px; height: 19px; border-radius: 4px; background: linear-gradient(135deg, #E9EAEE, #A8ABB5); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15)"></span></div>
-<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 11px; color: rgba(255,255,255,0.78)">Débito</span><span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em">$25,501</span></div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 4px 6px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: #8E8E93">Disponible</span>
+<span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1">{{acc.total}}</span>
 </div>
-<div style="position: relative; overflow: hidden; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, #13969C 0%, #0A5559 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(10,85,89,0.9); display: flex; flex-direction: column; justify-content: space-between">
-<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px; font-weight: 700; color: #fff">Openbank</span><span style="width: 26px; height: 19px; border-radius: 4px; background: linear-gradient(135deg, #F3E1A6, #C9A55A); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15)"></span></div>
-<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 11px; color: rgba(255,255,255,0.78)">Débito</span><span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em">$47,399</span></div>
+<span style="font-size: 13px; color: #8E8E93">4 cuentas</span>
 </div>
-<div style="position: relative; overflow: hidden; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.16), rgba(255,255,255,0) 55%), linear-gradient(145deg, #2E7A45 0%, #173F24 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), inset 0 0 0 1px rgba(255,255,255,0.08), 0 14px 28px -14px rgba(23,63,36,0.9); display: flex; flex-direction: column; justify-content: space-between">
-<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px; font-weight: 700; color: #fff">Efectivo</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div>
-<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 11px; color: rgba(255,255,255,0.78)">En mano</span><span style="font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em">$350</span></div>
+<div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; padding: 2px; box-sizing: border-box; background: rgba(0,0,0,0.45); box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05)">
+<div style="width: 60%; border-radius: 2px; background: linear-gradient(90deg, #13969C, #18A7AE)"></div>
+<div style="width: 32.3%; border-radius: 2px; background: linear-gradient(90deg, #3E44C9, #5A60E0)"></div>
+<div style="width: 7.2%; border-radius: 2px; background: linear-gradient(90deg, #7A45E0, #9A66F5)"></div>
+<div style="width: 0.5%; min-width: 2px; border-radius: 2px; background: #30D158"></div>
+</div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column">
+<div style="flex: 1; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 4px">
+<div style="width: 46px; height: 30px; flex: none; border-radius: 6px; position: relative; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%), linear-gradient(145deg, #13969C 0%, #0A5559 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 6px 12px -6px rgba(10,85,89,0.9)"><span style="position: absolute; left: 6px; top: 9px; width: 9px; height: 7px; border-radius: 2px; background: linear-gradient(135deg, #F3E1A6, #C9A55A)"></span></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.06)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">Openbank</span><span style="font-size: 13px; color: #8E8E93">Débito · 60%</span></div>
+<span style="font-size: 15px; font-weight: 600">{{acc.openbank}}</span>
+</div>
+</div>
+<div style="flex: 1; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 4px">
+<div style="width: 46px; height: 30px; flex: none; border-radius: 6px; position: relative; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, #3E44C9 0%, #1E2170 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 6px 12px -6px rgba(30,33,112,0.9)"><span style="position: absolute; left: 6px; top: 9px; width: 9px; height: 7px; border-radius: 2px; background: linear-gradient(135deg, #E9EAEE, #A8ABB5)"></span></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.06)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">Revolut</span><span style="font-size: 13px; color: #8E8E93">Débito · 32%</span></div>
+<span style="font-size: 15px; font-weight: 600">{{acc.revolut}}</span>
+</div>
+</div>
+<div style="flex: 1; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 4px">
+<div style="width: 46px; height: 30px; flex: none; border-radius: 6px; position: relative; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%), linear-gradient(145deg, #8E55F0 0%, #5B22C4 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 6px 12px -6px rgba(91,34,196,0.8)"><span style="position: absolute; left: 6px; top: 9px; width: 9px; height: 7px; border-radius: 2px; background: linear-gradient(135deg, #F3E1A6, #C9A55A)"></span></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.06)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">Nu</span><span style="font-size: 13px; color: #8E8E93">Débito · 7%</span></div>
+<span style="font-size: 15px; font-weight: 600">{{acc.nu}}</span>
+</div>
+</div>
+<div style="flex: 1; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 4px">
+<div style="width: 46px; height: 30px; flex: none; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.16), rgba(255,255,255,0) 55%), linear-gradient(145deg, #2E7A45 0%, #173F24 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), inset 0 0 0 1px rgba(255,255,255,0.08), 0 6px 12px -6px rgba(23,63,36,0.9)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">Efectivo</span><span style="font-size: 13px; color: #8E8E93">En mano · &lt;1%</span></div>
+<span style="font-size: 15px; font-weight: 600">{{acc.efectivo}}</span>
+</div>
 </div>
 </div>
 <a href="#" style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 12px 4px 4px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 14px; color: #C7C7CC">5 tarjetas de crédito<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></a>
@@ -231,10 +264,20 @@ const h = accent.replace('#', '');
 const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
 const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
 const mix = (c) => Math.round(c + (255 - c) * 0.32);
+const hidden = !!(this.state && this.state.hidden);
+const M = '••••';
 return {
 accent,
 accentLight: 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')',
-accentGlow: 'rgba(' + r + ',' + g + ',' + b + ',0.45)'
+accentGlow: 'rgba(' + r + ',' + g + ',' + b + ',0.45)',
+hidden,
+shown: !hidden,
+toggleHidden: () => this.setState({ hidden: !hidden }),
+eyeLabel: hidden ? 'Mostrar saldos' : 'Ocultar saldos',
+eyeStyle: hidden ? 'background: rgba(94,107,255,0.2); color: #B3B9FF; box-shadow: inset 0 0 0 1px rgba(94,107,255,0.35)' : 'background: rgba(255,255,255,0.08); color: #C7C7CC; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08)',
+acc: hidden
+? { total: '$' + M, openbank: '$' + M, revolut: '$' + M, nu: '$' + M, efectivo: '$' + M }
+: { total: '$78,950', openbank: '$47,399.00', revolut: '$25,501.00', nu: '$5,700.00', efectivo: '$350.00' }
 };
 }
 }
