@@ -97,7 +97,7 @@ export function AccountsCarousel({ items }: { items: AccountBalanceItem[] }) {
           Liga tus cuentas de débito y efectivo en Patrimonio para ver su saldo aquí.
         </p>
       ) : (
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-4 -mb-3 flex gap-3 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => (
             <AccountCard
               key={item.entryId}

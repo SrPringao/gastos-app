@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PencilIcon, Trash2Icon } from "lucide-react";
 import { EbCard } from "@/components/ui/eb/card";
 import { Money } from "@/components/ui/eb/money";
 import { CategoryTile } from "@/components/ui/eb/category-tile";
 import { GroupedList, ListRow } from "@/components/ui/eb/grouped-list";
+import { SwipeAction, SwipeRow } from "@/components/ui/eb/swipe-row";
 import { EditExpenseModal } from "@/components/edit-expense-modal";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { getCategoryStyle } from "@/lib/category-style";
 import { cleanMerchantName, initialOf } from "@/lib/dashboard-metrics";
-import { dbDateToInputValue, formatLongDay } from "@/lib/utils/dates";
+import { dbDateToInputValue, formatDayMonth, formatLongDay } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 
 export type RecentExpense = {
@@ -149,5 +151,87 @@ export function RecentExpensesCard({ expenses, accounts, categories, className }
         </div>
       )}
     </EbCard>
+  );
+}
+
+/** Movil: lista agrupada con swipe a la izquierda para editar/borrar */
+export function RecentExpensesMobile({ expenses, accounts, categories }: RecentExpensesProps) {
+  const router = useRouter();
+  const [openId, setOpenId] = useState<number | null>(null);
+
+  function done() {
+    setOpenId(null);
+    router.refresh();
+  }
+
+  return (
+    <section className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between px-1">
+        <h2 className="m-0 text-[20px] font-bold tracking-[-0.02em]">Recientes</h2>
+        <Link href="/gastos" className="eb-link py-2.5 pl-3 text-[15px]">
+          Ver todo
+        </Link>
+      </div>
+      <EbCard size="list" as="div" className="overflow-hidden">
+        {expenses.length === 0 ? (
+          <p className="text-eb-text-tertiary px-4 py-6 text-center text-[14px]">
+            No hay gastos registrados este mes.
+          </p>
+        ) : (
+          <GroupedList>
+            {expenses.map((expense) => {
+              const info = describeExpense(expense);
+              return (
+                <SwipeRow
+                  key={expense.id}
+                  open={openId === expense.id}
+                  onOpenChange={(open) => setOpenId(open ? expense.id : null)}
+                  actions={[
+                    <EditExpenseModal
+                      key="edit"
+                      expense={expenseForEdit(expense)}
+                      accounts={accounts}
+                      categories={categories}
+                      onSuccess={done}
+                      trigger={
+                        <SwipeAction
+                          label="Editar"
+                          tone="neutral"
+                          icon={<PencilIcon size={18} strokeWidth={2} aria-hidden="true" />}
+                        />
+                      }
+                    />,
+                    <DeleteExpenseButton
+                      key="delete"
+                      expenseId={expense.id}
+                      description={expense.description}
+                      onSuccess={done}
+                      trigger={
+                        <SwipeAction
+                          label="Borrar"
+                          tone="destructive"
+                          icon={<Trash2Icon size={18} strokeWidth={2} aria-hidden="true" />}
+                        />
+                      }
+                    />,
+                  ]}
+                >
+                  <ListRow
+                    density="mobile"
+                    static
+                    leading={info.tile}
+                    title={info.name}
+                    subtitle={`${expense.accountName} · ${formatDayMonth(info.day)}`}
+                    trailing={
+                      <Money value={expense.amount} sign="negative" className="text-[16px] font-semibold" />
+                    }
+                  />
+                </SwipeRow>
+              );
+            })}
+          </GroupedList>
+        )}
+      </EbCard>
+    </section>
   );
 }

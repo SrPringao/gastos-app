@@ -3,103 +3,139 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { resolveMobileNavEntries, isNavItemActive, type QuickActionKind } from "@/lib/nav-config";
+import {
+  isNavItemActive,
+  resolveTabBarEntries,
+  type MobileNavEntry,
+  type QuickActionKind,
+} from "@/lib/nav-config";
 import { usePreferences } from "@/components/preferences-provider";
 import { QuickActionOverlays } from "@/components/quick-action-overlays";
 
-export function DashboardMain({ children }: { children: React.ReactNode }) {
-  const { mobileNavHrefs } = usePreferences();
-  const hasNav = resolveMobileNavEntries(mobileNavHrefs).length > 0;
+/** Alto de la tab bar: 84px incluyendo el safe area inferior */
+const TAB_BAR_HEIGHT = "max(84px, calc(50px + env(safe-area-inset-bottom)))";
 
+export function DashboardMain({ children }: { children: React.ReactNode }) {
   return (
     <main
       data-scrollable
-      className={cn(
-        "w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain md:pb-0",
-        hasNav && "pb-20"
-      )}
-      style={{
-        WebkitOverflowScrolling: "touch",
-        touchAction: "pan-y",
-        overscrollBehavior: "contain",
-        overscrollBehaviorY: "contain",
-      }}
+      className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[var(--eb-tabbar-h)] md:pb-0"
+      style={
+        {
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
+          overscrollBehavior: "contain",
+          overscrollBehaviorY: "contain",
+          "--eb-tabbar-h": TAB_BAR_HEIGHT,
+        } as React.CSSProperties
+      }
     >
       {children}
     </main>
   );
 }
 
+function TabItem({
+  entry,
+  pathname,
+  onAction,
+}: {
+  entry: MobileNavEntry;
+  pathname: string;
+  onAction: (kind: QuickActionKind) => void;
+}) {
+  const itemClass =
+    "flex min-h-11 min-w-0 flex-col items-center gap-[3px] text-[10px] font-medium transition-colors";
+
+  if (entry.type === "action") {
+    const { action } = entry;
+    return (
+      <button
+        type="button"
+        onClick={() => onAction(action.kind)}
+        className={cn(itemClass, "text-[#8E8E93]")}
+      >
+        <action.icon size={24} strokeWidth={1.8} aria-hidden="true" />
+        <span className="w-full truncate text-center">{action.mobileLabel ?? action.label}</span>
+      </button>
+    );
+  }
+
+  const { item } = entry;
+  const isActive = isNavItemActive(pathname, item);
+  return (
+    <Link
+      href={item.href}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(itemClass, isActive ? "text-eb-accent" : "text-[#8E8E93]")}
+    >
+      <item.icon size={24} strokeWidth={1.8} aria-hidden="true" />
+      <span className="w-full truncate text-center">{item.mobileLabel ?? item.label}</span>
+    </Link>
+  );
+}
+
+/**
+ * Tab bar movil (seccion 3.11): 2 pestañas, boton + central, 2 pestañas.
+ * Las pestañas salen de la preferencia "Menu rapido" (o del default).
+ */
 export function MobileNav() {
   const pathname = usePathname();
   const { mobileNavHrefs } = usePreferences();
-  const entries = resolveMobileNavEntries(mobileNavHrefs);
+  const entries = resolveTabBarEntries(mobileNavHrefs);
   const [activeModal, setActiveModal] = useState<QuickActionKind | null>(null);
-
-  if (entries.length === 0) return null;
+  const half = Math.ceil(entries.length / 2);
+  const left = entries.slice(0, half);
+  const right = entries.slice(half);
 
   return (
     <>
-      <nav className="glass-surface fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around gap-0 border-t px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:hidden">
-        {entries.map((entry) => {
-          const itemClass = cn(
-            "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 overflow-hidden px-0.5 py-1.5 transition-all duration-200 active:scale-95",
-            entries.length >= 5 ? "max-w-[20%]" : "max-w-none"
-          );
-          const labelClass =
-            "block w-full truncate text-center text-[10px] leading-tight font-medium";
-
-          if (entry.type === "action") {
-            const { action } = entry;
-            return (
-              <button
-                key={action.id}
-                type="button"
-                onClick={() => setActiveModal(action.kind)}
-                className={cn(itemClass, "text-muted-foreground")}
-              >
-                <action.icon className="size-5 shrink-0" strokeWidth={2} />
-                <span className={cn(labelClass, "opacity-60")}>
-                  {action.mobileLabel ?? action.label}
-                </span>
-              </button>
-            );
-          }
-
-          const { item } = entry;
-          const isActive = isNavItemActive(pathname, item);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                itemClass,
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className="size-5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
-              <span
-                className={cn(
-                  labelClass,
-                  "transition-all duration-200",
-                  isActive ? "opacity-100" : "opacity-60"
-                )}
-              >
-                {item.mobileLabel ?? item.label}
-              </span>
-              {isActive && (
-                <div className="bg-primary shadow-[var(--glow-violet-sm)] absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full" />
-              )}
-            </Link>
-          );
-        })}
+      <nav
+        aria-label="Pestañas"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-start px-2.5 pt-2 md:hidden"
+        style={{
+          height: TAB_BAR_HEIGHT,
+          paddingBottom: "env(safe-area-inset-bottom)",
+          background: "var(--eb-tabbar-bg)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: "1px solid var(--eb-tabbar-border)",
+          fontFamily: "var(--eb-font)",
+        }}
+      >
+        {[0, 1].map((i) =>
+          left[i] ? (
+            <TabItem key={i} entry={left[i]} pathname={pathname} onAction={setActiveModal} />
+          ) : (
+            <span key={i} />
+          )
+        )}
+        <div className="flex justify-center">
+          <button
+            type="button"
+            aria-label="Nuevo gasto"
+            onClick={() => setActiveModal("add-expense")}
+            className="eb-btn-primary -mt-[14px] flex size-[52px] items-center justify-center rounded-full"
+            style={{
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,.35), 0 10px 24px -6px var(--eb-accent-glow)",
+            }}
+          >
+            <PlusIcon size={24} strokeWidth={2.4} aria-hidden="true" />
+          </button>
+        </div>
+        {[0, 1].map((i) =>
+          right[i] ? (
+            <TabItem key={i + 2} entry={right[i]} pathname={pathname} onAction={setActiveModal} />
+          ) : (
+            <span key={i + 2} />
+          )
+        )}
       </nav>
 
-      <QuickActionOverlays
-        active={activeModal}
-        onClose={() => setActiveModal(null)}
-      />
+      <QuickActionOverlays active={activeModal} onClose={() => setActiveModal(null)} />
     </>
   );
 }

@@ -342,8 +342,13 @@
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
 }
-.eb-page--home-mobile { background: var(--eb-bg-glow-home-mobile), var(--eb-bg); }
-.eb-page--net-worth { background: var(--eb-bg-glow-net-worth), var(--eb-bg); }
+/* En movil el brillo lo pone cada pantalla con <PageGlow /> (inicio
+   indigo, patrimonio verde) y se desplaza con el contenido. */
+@media (max-width: 767px) {
+  .eb-page { background: var(--eb-bg); }
+}
+.eb-glow-home-mobile { background: var(--eb-bg-glow-home-mobile); }
+.eb-glow-net-worth { background: var(--eb-bg-glow-net-worth); }
 
 .eb-card {
   background: var(--eb-surface);

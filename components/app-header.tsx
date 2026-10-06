@@ -17,6 +17,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+const REDESIGNED_ROUTES = new Set(["/", "/patrimonio"]);
+
 export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
@@ -37,6 +39,10 @@ export function AppHeader() {
     router.refresh();
     router.push("/login");
   }
+
+  // Inicio y Patrimonio ya traen su propio header movil (titulo grande +
+  // avatar/acciones); la navegacion vive en la tab bar.
+  if (REDESIGNED_ROUTES.has(pathname)) return null;
 
   return (
     <header className="border-border bg-background flex h-14 items-center justify-between border-b px-4 md:hidden">

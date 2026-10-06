@@ -15,7 +15,7 @@ import {
   type QuickAction,
 } from "@/lib/nav-config";
 
-const MAX_ITEMS = 5;
+const MAX_ITEMS = 4;
 
 type Candidate =
   | { id: string; kind: "section"; item: NavItem }
@@ -36,9 +36,9 @@ const actionCandidates: Candidate[] = quickActions.map((action) => ({
 const allCandidates: Candidate[] = [...sectionCandidates, ...actionCandidates];
 
 /**
- * Elige que aparece en la tab bar movil (0 a 5): secciones del sidebar y/o
- * funciones rapidas. El orden se edita en la lista "En la barra". Con 0
- * items la barra no se muestra. Persiste en user_preferences.
+ * Elige que aparece en la tab bar movil (0 a 4, alrededor del boton +):
+ * secciones del sidebar y/o funciones rapidas. El orden se edita en la
+ * lista "En la barra". Persiste en user_preferences.
  */
 export function MobileNavPreference() {
   const { mobileNavHrefs, setMobileNavHrefs } = usePreferences();
@@ -120,9 +120,10 @@ export function MobileNavPreference() {
       <CardHeader>
         <CardTitle>Menu rapido</CardTitle>
         <p className="text-muted-foreground text-sm font-normal">
-          Hasta {MAX_ITEMS} elementos. En el celular es la barra inferior; en
-          escritorio, un rayo abajo a la derecha. Si la dejas vacia, no aparece
-          en ninguno.
+          Hasta {MAX_ITEMS} elementos. En el celular van en la barra inferior,
+          alrededor del boton +; en escritorio, en el rayo abajo a la derecha.
+          Si la dejas vacia, el celular usa Inicio, Gastos, Cuentas y
+          Patrimonio y el rayo no aparece.
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">

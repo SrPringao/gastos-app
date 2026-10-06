@@ -121,12 +121,10 @@ export const allMobileNavCandidates: NavItem[] = navGroups.flatMap((group) =>
 );
 
 /** Default de la tab bar movil cuando el usuario no configuro nada en Preferencias */
-export const DEFAULT_MOBILE_NAV_HREFS = [
-  "/",
-  "/gastos",
-  "/cuentas",
-  "/configuracion/preferencias",
-];
+export const DEFAULT_MOBILE_NAV_HREFS = ["/", "/gastos", "/cuentas", "/patrimonio"];
+
+/** Espacios de la tab bar movil alrededor del boton + central */
+export const TAB_BAR_SLOTS = 4;
 
 export type QuickActionKind = "add-expense" | "expenses-today" | "expenses-week";
 
@@ -238,4 +236,17 @@ function matchesPath(pathname: string, href: string): boolean {
 export function isNavItemActive(pathname: string, item: NavItem): boolean {
   if (item.activePrefix) return matchesPath(pathname, item.activePrefix);
   return item.href === "/" ? pathname === "/" : matchesPath(pathname, item.href);
+}
+
+/**
+ * Entradas de la tab bar movil (2 a cada lado del boton +). "Agregar
+ * gasto" se omite porque ya es el boton central. La tab bar es la
+ * navegacion principal en movil, asi que una lista vacia usa el default.
+ */
+export function resolveTabBarEntries(ids: string[] | null | undefined): MobileNavEntry[] {
+  const withoutAdd = (list: MobileNavEntry[]) =>
+    list.filter((entry) => !(entry.type === "action" && entry.action.kind === "add-expense"));
+  const custom = ids && ids.length > 0 ? withoutAdd(resolveMobileNavEntries(ids)) : [];
+  const entries = custom.length > 0 ? custom : withoutAdd(resolveMobileNavEntries(null));
+  return entries.slice(0, TAB_BAR_SLOTS);
 }
