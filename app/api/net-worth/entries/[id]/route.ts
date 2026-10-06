@@ -27,6 +27,8 @@ export async function PATCH(
       dueDate: body.dueDate,
       sortOrder: body.sortOrder,
       syncEnabled: body.syncEnabled,
+      assetKind: body.assetKind,
+      contact: body.contact,
     });
 
     if ("error" in result) {

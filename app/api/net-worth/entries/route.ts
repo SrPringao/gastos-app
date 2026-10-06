@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
       amount: body.amount,
       dueDate: body.dueDate ?? null,
       syncEnabled: Boolean(body.syncEnabled),
+      assetKind: body.assetKind,
+      contact: body.contact,
     });
 
     if (result.error) {

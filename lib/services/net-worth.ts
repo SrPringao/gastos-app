@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { netWorthEntries, netWorthProjections } from "@/lib/db/schema";
 import { and, eq, ne } from "drizzle-orm";
+import { inferAssetKind } from "@/lib/dashboard-metrics";
 
 export async function getNetWorthEntries(userId: string | null) {
   if (!userId) return [];
@@ -27,6 +28,8 @@ export type CreateNetWorthEntryInput = {
   amount: number;
   dueDate?: string | null;
   syncEnabled?: boolean;
+  assetKind?: AssetKind | null;
+  contact?: string | null;
 };
 
 export type UpdateNetWorthEntryInput = {
@@ -37,7 +40,21 @@ export type UpdateNetWorthEntryInput = {
   dueDate?: string | null;
   sortOrder?: number;
   syncEnabled?: boolean;
+  assetKind?: AssetKind | null;
+  contact?: string | null;
 };
+
+const ASSET_KINDS = ["account", "receivable", "income"] as const;
+type AssetKind = (typeof ASSET_KINDS)[number];
+
+function isValidAssetKind(value: unknown): value is AssetKind | null {
+  return value === null || ASSET_KINDS.includes(value as AssetKind);
+}
+
+function normalizeContact(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 
 async function assertUniqueSyncedAccount(
   userId: string,
@@ -101,7 +118,8 @@ export async function createNetWorthEntry(
   userId: string,
   input: CreateNetWorthEntryInput
 ) {
-  const { accountId, label, kind, amount, dueDate, syncEnabled } = input;
+  const { accountId, label, kind, amount, dueDate, syncEnabled, assetKind, contact } =
+    input;
 
   if (!label?.trim()) {
     return { error: "El nombre es requerido" };
@@ -111,6 +129,10 @@ export async function createNetWorthEntry(
   }
   if (typeof amount !== "number" || isNaN(amount) || amount < 0) {
     return { error: "Monto invalido" };
+  }
+
+  if (assetKind !== undefined && !isValidAssetKind(assetKind)) {
+    return { error: "Tipo de positivo invalido" };
   }
 
   const wantsSync = Boolean(syncEnabled);
@@ -139,6 +161,11 @@ export async function createNetWorthEntry(
     sortOrder: maxSortOrder + 1,
     syncEnabled: wantsSync,
     syncEnabledAt: wantsSync ? new Date() : null,
+    assetKind:
+      kind === "asset"
+        ? (assetKind ?? inferAssetKind({ label: label.trim(), accountId: linkedAccountId }))
+        : null,
+    contact: kind === "asset" ? normalizeContact(contact) : null,
   });
 
   return { success: true };
@@ -157,8 +184,17 @@ export async function updateNetWorthEntry(
     return { error: "No autorizado" };
   }
 
-  const { accountId, label, kind, amount, dueDate, sortOrder, syncEnabled } =
-    input;
+  const {
+    accountId,
+    label,
+    kind,
+    amount,
+    dueDate,
+    sortOrder,
+    syncEnabled,
+    assetKind,
+    contact,
+  } = input;
 
   if (label !== undefined && !label?.trim()) {
     return { error: "El nombre es requerido" };
@@ -171,6 +207,10 @@ export async function updateNetWorthEntry(
     (typeof amount !== "number" || isNaN(amount) || amount < 0)
   ) {
     return { error: "Monto invalido" };
+  }
+
+  if (assetKind !== undefined && !isValidAssetKind(assetKind)) {
+    return { error: "Tipo de positivo invalido" };
   }
 
   const nextAccountId =
@@ -209,6 +249,8 @@ export async function updateNetWorthEntry(
         dueDate: dueDate ? new Date(dueDate) : null,
       }),
       ...(sortOrder !== undefined && { sortOrder }),
+      ...(assetKind !== undefined && { assetKind }),
+      ...(contact !== undefined && { contact: normalizeContact(contact) }),
       syncEnabled: nextSync,
       syncEnabledAt: nextSyncEnabledAt,
       updatedAt: new Date(),

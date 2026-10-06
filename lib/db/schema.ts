@@ -118,6 +118,11 @@ export const netWorthEntries = pgTable("net_worth_entries", {
   // a partir de syncEnabledAt (no retroactivo).
   syncEnabled: boolean("sync_enabled").default(false).notNull(),
   syncEnabledAt: timestamp("sync_enabled_at"),
+  // Solo positivos: en que seccion de Patrimonio aparece. null = se infiere
+  // (metodo de pago ligado -> account, "sueldo" -> income, resto -> receivable).
+  assetKind: text("asset_kind", { enum: ["account", "receivable", "income"] }),
+  // Persona que debe el positivo, para agrupar "Te deben"
+  contact: text("contact"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

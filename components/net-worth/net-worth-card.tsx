@@ -34,6 +34,11 @@ import { formatCurrency, dbDateToInputValue } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 import { MaskedAmount } from "@/components/masked-amount";
 import type { Account, NetWorthEntry } from "@/lib/db/schema";
+import {
+  inferAssetKind,
+  resolveAssetKind,
+  type AssetKind,
+} from "@/lib/dashboard-metrics";
 
 type NetWorthCardProps = {
   accounts: Account[];
@@ -79,6 +84,9 @@ type EntryFormValues = {
   amount: string;
   dueDate: string;
   syncEnabled: boolean;
+  /** Seccion del positivo en Patrimonio */
+  assetKind: AssetKind;
+  contact: string;
 };
 
 const EMPTY_FORM: EntryFormValues = {
@@ -87,6 +95,14 @@ const EMPTY_FORM: EntryFormValues = {
   amount: "",
   dueDate: "",
   syncEnabled: false,
+  assetKind: "receivable",
+  contact: "",
+};
+
+const ASSET_KIND_LABELS: Record<AssetKind, string> = {
+  account: "Cuenta",
+  receivable: "Te deben",
+  income: "Por recibir",
 };
 
 /**
@@ -95,7 +111,7 @@ const EMPTY_FORM: EntryFormValues = {
  * volvia inconsistente con el resto del sistema; aqui vive en su propio
  * dialogo, con el mismo lenguaje de EditAccountModal.
  */
-function EntryFormDialog({
+export function EntryFormDialog({
   kind,
   accounts,
   entry,
@@ -113,6 +129,8 @@ function EntryFormDialog({
   const isEditing = !!entry;
   const [values, setValues] = useState<EntryFormValues>(EMPTY_FORM);
   const [labelEditedByUser, setLabelEditedByUser] = useState(false);
+  // Mientras el usuario no elija seccion, se infiere del metodo/nombre
+  const [assetKindEditedByUser, setAssetKindEditedByUser] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,11 +143,14 @@ function EntryFormDialog({
         amount: String(entry.amount / 100),
         dueDate: entry.dueDate ? dbDateToInputValue(entry.dueDate) : "",
         syncEnabled: entry.syncEnabled,
+        assetKind: resolveAssetKind(entry),
+        contact: entry.contact ?? "",
       });
     } else {
       setValues(EMPTY_FORM);
     }
     setLabelEditedByUser(false);
+    setAssetKindEditedByUser(!!entry);
     setError(null);
   }, [open, entry]);
 
@@ -141,6 +162,12 @@ function EntryFormDialog({
       syncEnabled: accountId === NO_ACCOUNT ? false : v.syncEnabled,
       label:
         !labelEditedByUser && !isEditing && account ? account.name : v.label,
+      assetKind: assetKindEditedByUser
+        ? v.assetKind
+        : inferAssetKind({
+            label: v.label,
+            accountId: accountId === NO_ACCOUNT ? null : Number(accountId),
+          }),
     }));
   }
 
@@ -156,6 +183,10 @@ function EntryFormDialog({
         amount: Math.round(parseFloat(values.amount || "0") * 100),
         dueDate: kind === "debt" && values.dueDate ? values.dueDate : null,
         syncEnabled: values.syncEnabled,
+        ...(kind === "asset" && {
+          assetKind: values.assetKind,
+          contact: values.assetKind === "receivable" ? values.contact.trim() || null : null,
+        }),
       };
 
       const res = await fetch(
@@ -205,7 +236,17 @@ function EntryFormDialog({
               value={values.label}
               onChange={(e) => {
                 setLabelEditedByUser(true);
-                setValues((v) => ({ ...v, label: e.target.value }));
+                const label = e.target.value;
+                setValues((v) => ({
+                  ...v,
+                  label,
+                  assetKind: assetKindEditedByUser
+                    ? v.assetKind
+                    : inferAssetKind({
+                        label,
+                        accountId: v.accountId === NO_ACCOUNT ? null : Number(v.accountId),
+                      }),
+                }));
               }}
             />
           </div>
@@ -226,6 +267,45 @@ function EntryFormDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {kind === "asset" && (
+            <div className="space-y-2">
+              <Label>Seccion</Label>
+              <Select
+                value={values.assetKind}
+                onValueChange={(value) => {
+                  setAssetKindEditedByUser(true);
+                  setValues((v) => ({ ...v, assetKind: value as AssetKind }));
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(ASSET_KIND_LABELS) as AssetKind[]).map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {ASSET_KIND_LABELS[key]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {kind === "asset" && values.assetKind === "receivable" && (
+            <div className="space-y-2">
+              <Label htmlFor="entry-contact">Quien te debe (opcional)</Label>
+              <Input
+                id="entry-contact"
+                placeholder="Ej: Camila"
+                value={values.contact}
+                onChange={(e) => setValues((v) => ({ ...v, contact: e.target.value }))}
+              />
+              <p className="text-muted-foreground text-xs">
+                Los positivos con la misma persona se agrupan en una sola fila.
+              </p>
+            </div>
+          )}
 
           <div
             className={cn(
