@@ -173,10 +173,13 @@ export function AddFixedExpenseModal({ onSuccess }: AddFixedExpenseModalProps) {
   const [open, setOpen] = useState(false);
 
   const trigger = (
-    <Button size="lg" className="h-12 w-full gap-2 sm:h-10 sm:w-auto sm:min-w-[140px]">
-      <PlusIcon className="size-5 shrink-0" />
+    <button
+      type="button"
+      className="eb-btn-primary flex h-10 items-center gap-2 rounded-[20px] px-[18px] text-[14px]"
+    >
+      <PlusIcon size={16} strokeWidth={2.4} aria-hidden="true" />
       Agregar
-    </Button>
+    </button>
   );
 
   return isMobile ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckIcon, TrashIcon, CalendarIcon, TagIcon, PencilIcon, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
+import { EbCard } from "@/components/ui/eb/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -226,37 +227,45 @@ export function FixedExpensesList({
 
   if (items.length === 0) {
     return (
-      <p className="text-muted-foreground py-12 text-center text-sm">
+      <EbCard className="text-eb-text-tertiary px-6 py-12 text-center text-[14px]">
         No tienes gastos fijos registrados. Agrega uno con el botón de arriba.
-      </p>
+      </EbCard>
     );
   }
 
   return (
     <div className="space-y-4">
       {/* Resumen */}
-      <div className="border-border flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-        <div className="flex-1">
-          <p className="text-sm font-medium">
-            {paidCount} de {items.length} pagados
-          </p>
-          <p className="text-muted-foreground text-xs">
-            {formatCurrency(paidCents)} de {formatCurrency(totalCents)}
-          </p>
+      <EbCard variant="hero" className="flex flex-col gap-4 px-6 py-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-eb-text-secondary text-[15px] font-medium">Pagado este mes</span>
+            <span className="eb-rounded text-[34px] leading-none font-bold tracking-[-0.03em]">
+              {formatCurrency(paidCents)}
+            </span>
+          </div>
+          <span className="text-eb-text-tertiary text-[13px]">
+            {paidCount} de {items.length} pagados · de {formatCurrency(totalCents)}
+          </span>
         </div>
-        {/* Barra de progreso */}
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted sm:w-40">
+        <div
+          role="img"
+          aria-label={`${paidCount} de ${items.length} gastos fijos pagados`}
+          className="h-2 rounded-[4px] p-0.5"
+          style={{ background: "var(--eb-track)", boxShadow: "var(--eb-track-shadow)" }}
+        >
           <div
-            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+            className="h-full rounded-[2px] transition-all duration-300"
             style={{
               width: totalCents > 0 ? `${(paidCents / totalCents) * 100}%` : "0%",
+              background: "linear-gradient(90deg, #5FE07F, #28B44C)",
             }}
           />
         </div>
-      </div>
+      </EbCard>
 
       {/* Lista */}
-      <div className="space-y-2">
+      <EbCard className="overflow-hidden [&>div:last-child]:border-b-0">
         {items.map((item) => {
           const paid = isPaid(item.id);
           const paidAt = getPaidAt(item.id);
@@ -268,14 +277,14 @@ export function FixedExpensesList({
             <div
               key={item.id}
               className={cn(
-                "border-border flex min-h-[68px] items-center gap-3 rounded-lg border p-4 transition-colors",
-                paid ? "bg-emerald-500/5 border-emerald-500/20" : "bg-background/50"
+                "eb-row border-eb-separator flex min-h-[64px] items-center gap-3 border-b px-6 py-3",
+                paid && "bg-[rgba(48,209,88,0.05)]"
               )}
             >
               {/* Info */}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium">{item.name}</p>
+                  <p className="text-[15px] font-medium">{item.name}</p>
                   {item.category && (
                     <Badge variant="secondary" className="gap-1 text-xs font-normal">
                       <TagIcon className="size-3" />
@@ -283,8 +292,8 @@ export function FixedExpensesList({
                     </Badge>
                   )}
                 </div>
-                <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="font-medium text-foreground">
+                <div className="text-eb-text-tertiary mt-0.5 flex flex-wrap items-center gap-2 text-[13px]">
+                  <span className="text-eb-text font-semibold tabular-nums">
                     {formatCurrency(item.amount)}
                   </span>
                   {item.dayOfMonth && (
@@ -360,7 +369,7 @@ export function FixedExpensesList({
             </div>
           );
         })}
-      </div>
+      </EbCard>
 
       {/* Modal de edición */}
       <Dialog open={!!editingItem} onOpenChange={(v) => { if (!v) setEditingItem(null); }}>

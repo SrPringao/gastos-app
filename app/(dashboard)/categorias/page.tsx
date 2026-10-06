@@ -29,6 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
+import { EbCard } from "@/components/ui/eb/card";
 
 type Category = {
   id: number;
@@ -146,10 +147,13 @@ function AddCategoryModal({ onSuccess }: { onSuccess: () => void }) {
   );
 
   const trigger = (
-    <Button size="lg" className="h-12 w-full gap-2 sm:h-10 sm:w-auto sm:min-w-[140px]">
-      <PlusIcon className="size-5 shrink-0" />
+    <button
+      type="button"
+      className="eb-btn-primary flex h-10 items-center gap-2 rounded-[20px] px-[18px] text-[14px]"
+    >
+      <PlusIcon size={16} strokeWidth={2.4} aria-hidden="true" />
       Agregar
-    </Button>
+    </button>
   );
 
   return isMobile ? (
@@ -206,46 +210,44 @@ export default function CategoriasPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+    <div className="mx-auto flex max-w-[1120px] flex-col gap-7 px-4 pt-6 pb-16 md:px-6 md:pt-10 lg:px-12">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
+            Organiza tus gastos
+          </div>
           <h1 className="eb-title">Categorías</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Administra las categorías de tus gastos
-          </p>
         </div>
-        <div className="w-full sm:w-auto">
-          <AddCategoryModal onSuccess={() => { load(); router.refresh(); }} />
-        </div>
-      </div>
+        <AddCategoryModal onSuccess={() => { load(); router.refresh(); }} />
+      </header>
 
       {loading ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">Cargando categorías...</p>
+        <p className="text-eb-text-tertiary py-12 text-center text-[14px]">Cargando categorías...</p>
       ) : categories.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
+        <EbCard className="text-eb-text-tertiary px-6 py-12 text-center text-[14px]">
           No tienes categorías. Agrega una con el botón de arriba.
-        </p>
+        </EbCard>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <EbCard className="grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="border-border flex items-center justify-between gap-3 rounded-lg border bg-background/50 p-4"
+              className="eb-row border-eb-separator flex min-h-[60px] items-center justify-between gap-3 border-b px-5 py-3"
             >
               <div className="flex items-center gap-3 min-w-0">
+                {/* Tile estilo Ajustes de iOS con el color de la categoria */}
                 <div
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full"
+                  aria-hidden="true"
+                  className="eb-tile size-9 rounded-[10px]"
                   style={{
-                    backgroundColor: cat.color ? `${cat.color}20` : "var(--muted)",
-                    border: cat.color ? `2px solid ${cat.color}40` : undefined,
+                    background: cat.color
+                      ? `linear-gradient(180deg, ${cat.color}, color-mix(in srgb, ${cat.color} 70%, black))`
+                      : "linear-gradient(180deg, #6E6E75, #48484E)",
                   }}
                 >
-                  <TagIcon
-                    className="size-4"
-                    style={{ color: cat.color ?? "var(--muted-foreground)" }}
-                  />
+                  <TagIcon size={18} strokeWidth={2} />
                 </div>
-                <span className="font-medium truncate">{cat.name}</span>
+                <span className="truncate text-[15px] font-medium">{cat.name}</span>
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
@@ -276,7 +278,7 @@ export default function CategoriasPage() {
               </div>
             </div>
           ))}
-        </div>
+        </EbCard>
       )}
     </div>
   );

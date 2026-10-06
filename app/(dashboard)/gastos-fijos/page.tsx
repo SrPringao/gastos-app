@@ -36,23 +36,21 @@ export default async function GastosFijosPage({
   ]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="eb-title">Gastos Fijos</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Seguimiento de pagos recurrentes — {monthLabel}
-          </p>
-        </div>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <div className="w-full sm:w-auto">
-            <AddFixedExpenseTrigger />
+    <div className="mx-auto flex max-w-[1120px] flex-col gap-7 px-4 pt-6 pb-16 md:px-6 md:pt-10 lg:px-12">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
+            Pagos recurrentes · {monthLabel}
           </div>
+          <h1 className="eb-title">Gastos fijos</h1>
+        </div>
+        <div className="flex items-center gap-2.5">
           <Suspense fallback={null}>
             <MonthSwitcher />
           </Suspense>
+          <AddFixedExpenseTrigger />
         </div>
-      </div>
+      </header>
 
       <FixedExpensesList
         initialItems={items.map((i) => ({
