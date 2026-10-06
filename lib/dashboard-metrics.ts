@@ -4,7 +4,7 @@
  * (YYYY-MM-DD en la zona de la app) para poder probarlas sin servidor.
  */
 
-import { APP_TIMEZONE } from "@/lib/utils/dates";
+import { dbDateToInputValue } from "@/lib/utils/dates";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -12,15 +12,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Fechas
 // ---------------------------------------------------------------------------
 
-/** YYYY-MM-DD de un Date/string de la DB, en la zona de la app */
-export function toAppDateString(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: APP_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+/**
+ * YYYY-MM-DD de una fecha de calendario guardada en la DB. Las fechas
+ * limite llegan como medianoche UTC; convertirlas a la zona de Mexico las
+ * correria al dia anterior, asi que se toman sus partes UTC.
+ */
+export function toCalendarDate(value: Date | string): string {
+  return dbDateToInputValue(value);
 }
 
 function ymdToUtcMs(ymd: string): number {
@@ -200,7 +198,7 @@ export function buildUpcomingPayments<T extends DebtLike>(
   return debts
     .filter((d): d is T & { dueDate: Date | string } => d.dueDate != null)
     .map((entry) => {
-      const dueDate = toAppDateString(entry.dueDate);
+      const dueDate = toCalendarDate(entry.dueDate);
       const daysLeft = daysBetween(today, dueDate);
       return {
         entry,
