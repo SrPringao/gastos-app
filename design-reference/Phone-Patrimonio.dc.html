@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>ExpenseBro · Patrimonio iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#F5F5F7}
+a{color:#8C95FF;text-decoration:none}a:hover{color:#B3B9FF}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 2080px; position: relative; overflow: hidden; background: radial-gradient(90% 30% at 30% -4%, rgba(48,209,88,0.14), rgba(48,209,88,0) 70%), #050506; font-variant-numeric: tabular-nums">
+<svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.07; mix-blend-mode: overlay; pointer-events: none"><filter id="grainPP"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grainPP)"/></svg>
+<div style="position: relative; box-sizing: border-box; padding: 64px 16px 140px; display: flex; flex-direction: column; gap: 26px">
+
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px">
+<h1 style="margin: 0; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.025em">Patrimonio</h1>
+<button aria-label="Agregar" style="width: 36px; height: 36px; border-radius: 18px; border: 0; background: rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); color: #8C95FF; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 4px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 15px; color: #98989F">Neto después de pagos</div>
+<div style="display: flex; align-items: baseline; gap: 1px; letter-spacing: -0.03em; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif"><span style="font-size: 48px; font-weight: 700; line-height: 1">$113,262</span><span style="font-size: 24px; font-weight: 600; color: #8E8E93">.00</span></div>
+</div>
+<div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 3px; padding: 2px; box-sizing: border-box; background: rgba(0,0,0,0.45); box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05)">
+<div style="width: 92.3%; border-radius: 5px; background: linear-gradient(180deg, #6BE58A, #24A846); box-shadow: 0 0 12px rgba(48,209,88,0.45)"></div>
+<div style="width: 7.7%; border-radius: 5px; background: linear-gradient(180deg, #FF8E88, #E5484D)"></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #98989F"><span style="width: 8px; height: 8px; border-radius: 4px; background: #30D158"></span>Tienes</div><div style="font-size: 17px; font-weight: 600">$123,515.00</div></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #98989F"><span style="width: 8px; height: 8px; border-radius: 4px; background: #FF6961"></span>Debes</div><div style="font-size: 17px; font-weight: 600">$10,253.00</div></div>
+</div>
+</section>
+
+<div role="tablist" aria-label="Vista" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: rgba(255,255,255,0.06); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); border-radius: 11px; padding: 2px">
+<button role="tab" aria-selected="true" style="height: 32px; border: 0; border-radius: 9px; background: linear-gradient(180deg, #48484C, #36363A); box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 3px 8px rgba(0,0,0,0.4); color: #F5F5F7; font-size: 13px; font-weight: 600">Hoy</button>
+<button role="tab" aria-selected="false" style="height: 32px; border: 0; border-radius: 8px; background: transparent; color: #C7C7CC; font-size: 13px; font-weight: 500">Con previstos · $103,262</button>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; padding: 0 16px; font-size: 13px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.02em"><span>Cuentas</span><span>$78,950</span></div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 18px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(145deg, #9A66F5, #5B22C4); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">Nu</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><span style="font-size: 16px">Nu Débito</span><span style="font-size: 16px; font-weight: 500">$5,700.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(145deg, #4C52D6, #1E2170); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">R</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><span style="font-size: 16px">Revolut Débito</span><span style="font-size: 16px; font-weight: 500">$25,501.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(145deg, #18A7AE, #0A5559); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">O</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><span style="font-size: 16px">Openbank Débito</span><span style="font-size: 16px; font-weight: 500">$47,399.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(180deg, #5FE07F, #24A846); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between"><span style="font-size: 16px">Efectivo</span><span style="font-size: 16px; font-weight: 500">$350.00</span></div></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; padding: 0 16px; font-size: 13px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.02em"><span>Te deben</span></div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 18px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: linear-gradient(180deg, #6E6E75, #48484E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">A</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><div style="display: flex; flex-direction: column"><span style="font-size: 16px">Alejandro</span><span style="font-size: 13px; color: #8E8E93">Palenque · mamá</span></div><span style="font-size: 16px; font-weight: 500">$3,200.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: linear-gradient(180deg, #6E6E75, #48484E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">C</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><div style="display: flex; flex-direction: column"><span style="font-size: 16px">Camila</span><span style="font-size: 13px; color: #8E8E93">Figs · Tarjeta</span></div><span style="font-size: 16px; font-weight: 500">$3,329.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: linear-gradient(180deg, #6E6E75, #48484E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">B</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><div style="display: flex; flex-direction: column"><span style="font-size: 16px">Braulio</span><span style="font-size: 13px; color: #8E8E93">Perfume</span></div><span style="font-size: 16px; font-weight: 500">$600.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: linear-gradient(180deg, #6E6E75, #48484E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">M</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between"><div style="display: flex; flex-direction: column"><span style="font-size: 16px">Mamá</span><span style="font-size: 13px; color: #8E8E93">Figs · en efectivo</span></div><span style="font-size: 16px; font-weight: 500">$300.00</span></div></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="padding: 0 16px; font-size: 13px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.02em">Por recibir</div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 18px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(180deg, #5FE07F, #24A846); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div><div style="flex: 1; display: flex; align-items: center; justify-content: space-between"><span style="font-size: 16px">Sueldo</span><span style="font-size: 16px; font-weight: 500; color: #30D158">+$36,500.00</span></div></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; padding: 0 16px; font-size: 13px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.02em"><span>Deudas</span><span>$10,253</span></div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 18px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(145deg, #D9662E, #8A3B12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">P</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)"><div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 0"><span style="font-size: 16px">Plata Crédito</span><div style="height: 4px; width: 120px; border-radius: 2px; background: #2C2C2E; overflow: hidden"><div style="width: 48%; height: 100%; background: #FF9F0A"></div></div><span style="font-size: 13px; color: #FF9F0A">Vence en 16 días</span></div><span style="font-size: 16px; font-weight: 500">$6,103.00</span></div></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(145deg, #9A66F5, #5B22C4); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">Nu</div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)"><div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 0"><span style="font-size: 16px">Nu Crédito</span><div style="height: 4px; width: 120px; border-radius: 2px; background: #2C2C2E; overflow: hidden"><div style="width: 3%; height: 100%; background: #8E8E93"></div></div><span style="font-size: 13px; color: #8E8E93">Vence en 30 días</span></div><span style="font-size: 16px; font-weight: 500">$4,150.00</span></div></div>
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px; color: #F5F5F7"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: #2C2C2E; color: #8E8E93; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div><div style="flex: 1; display: flex; align-items: center; justify-content: space-between"><div style="display: flex; flex-direction: column"><span style="font-size: 16px; color: #C7C7CC">3 tarjetas en $0</span><span style="font-size: 13px; color: #8E8E93">Banregio vence mañana</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></a>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="padding: 0 16px; font-size: 13px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.02em">Gastos previstos</div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 18px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px"><div style="width: 30px; height: 30px; flex: none; border-radius: 8px; background: linear-gradient(180deg, #FFB340, #FF8A00); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><div style="flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07)"><span style="font-size: 16px">Celular Pily</span><span style="font-size: 16px; font-weight: 500">−$10,000.00</span></div></div>
+<button style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 52px; border: 0; background: transparent; color: #8C95FF; font-size: 16px; text-align: left"><div style="width: 30px; height: 30px; flex: none; border-radius: 15px; background: rgba(94,107,255,0.18); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>Agregar previsto</button>
+</div>
+<div style="padding: 4px 16px 0; font-size: 13px; color: #8E8E93">Con previstos tu neto queda en $103,262.00</div>
+</section>
+</div>
+
+<nav aria-label="Pestañas" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 8px 10px 0; background: rgba(22,22,24,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start">
+<a href="Phone-Inicio.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Inicio</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Gastos</a>
+<div style="display: flex; justify-content: center"><button aria-label="Nuevo gasto" style="width: 52px; height: 52px; margin-top: -14px; border-radius: 26px; border: 0; background: linear-gradient(180deg, {{accentLight}}, {{accent}}); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 24px -6px {{accentGlow}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M16 15h2"/></svg>Cuentas</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: {{accent}}; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Patrimonio</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5E6BFF","options":["#5E6BFF","#0A84FF","#30D158","#FF9F0A"]},"$preview":{"width":390,"height":2080}}'>
+class Component extends DCLogic {
+renderVals() {
+const accent = this.props.accent ?? '#5E6BFF';
+const h = accent.replace('#', '');
+const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+const mix = (c) => Math.round(c + (255 - c) * 0.32);
+return { accent, accentLight: 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')', accentGlow: 'rgba(' + r + ',' + g + ',' + b + ',0.45)' };
+}
+}
+</script>
+</body>
+</html>

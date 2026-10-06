@@ -16,12 +16,15 @@ type DeleteExpenseButtonProps = {
   expenseId: number;
   description?: string | null;
   onSuccess?: () => void;
+  /** Boton propio que abre la confirmacion (por defecto, el bote de basura) */
+  trigger?: React.ReactNode;
 };
 
 export function DeleteExpenseButton({
   expenseId,
   description,
   onSuccess,
+  trigger,
 }: DeleteExpenseButtonProps) {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -52,6 +55,7 @@ export function DeleteExpenseButton({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !deleting && setOpen(isOpen)}>
       <DialogTrigger asChild>
+        {trigger ?? (
         <Button
           type="button"
           variant="ghost"
@@ -61,6 +65,7 @@ export function DeleteExpenseButton({
         >
           <Trash2 className="size-4" />
         </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader className="text-left">

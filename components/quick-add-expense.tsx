@@ -52,6 +52,8 @@ type QuickAddExpenseProps = {
   /** Controlado externamente (ej. desde MobileNav): si se pasa, oculta el trigger interno */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Boton propio que abre el modal (por defecto, "Agregar gasto") */
+  trigger?: React.ReactNode;
 };
 
 type Step = "amount" | "account" | "details";
@@ -61,6 +63,7 @@ export function QuickAddExpense({
   categories: categoriesProp,
   open: openProp,
   onOpenChange: onOpenChangeProp,
+  trigger: triggerProp,
 }: QuickAddExpenseProps) {
   const router = useRouter();
   const isControlled = openProp !== undefined;
@@ -211,7 +214,7 @@ export function QuickAddExpense({
     router.refresh();
   }
 
-  const trigger = (
+  const trigger = triggerProp ?? (
     <Button
       size="lg"
       className="h-12 w-full gap-2 shadow-[var(--glow-violet-lg)] sm:h-10 sm:w-auto sm:min-w-[140px]"

@@ -253,6 +253,7 @@ export type AssetLike = {
   accountId: number | null;
   kind: "asset" | "debt";
   sortOrder: number;
+  assetKind?: string | null;
 };
 
 export type AccountBalance<A extends AccountLike = AccountLike> = {
@@ -263,8 +264,9 @@ export type AccountBalance<A extends AccountLike = AccountLike> = {
 };
 
 /**
- * Saldos reales de debito/efectivo: los positivos de Patrimonio ligados a
- * un metodo de pago de esos tipos, en el orden del usuario. Con mas de
+ * Saldos reales de debito/efectivo: los positivos de la seccion Cuentas
+ * de Patrimonio ligados a un metodo de pago de esos tipos, en el orden
+ * del usuario. Con mas de
  * `limit`, se quedan los de mayor saldo (conservando el orden).
  */
 export function buildAccountBalances<A extends AccountLike>(
@@ -274,7 +276,9 @@ export function buildAccountBalances<A extends AccountLike>(
 ): AccountBalance<A>[] {
   const byId = new Map(accounts.map((a) => [a.id, a]));
   const balances = entries
-    .filter((e) => e.kind === "asset" && e.accountId != null)
+    .filter(
+      (e) => e.kind === "asset" && e.accountId != null && resolveAssetKind(e) === "account"
+    )
     .map((e) => ({ entry: e, account: byId.get(e.accountId!) }))
     .filter(
       (x): x is { entry: AssetLike; account: A } =>

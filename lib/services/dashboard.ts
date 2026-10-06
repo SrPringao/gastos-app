@@ -184,10 +184,13 @@ export async function getRecentExpenses(
       description: expenses.description,
       accountId: expenses.accountId,
       categoryId: expenses.categoryId,
+      categoryName: categories.name,
       accountName: accounts.name,
+      accountType: accounts.type,
     })
     .from(expenses)
     .innerJoin(accounts, eq(expenses.accountId, accounts.id))
+    .leftJoin(categories, eq(expenses.categoryId, categories.id))
     .where(conditions)
     .orderBy(
       desc(expenses.date),

@@ -104,3 +104,48 @@ export function formatCurrency(cents: number): string {
     minimumFractionDigits: 2,
   }).format(cents / 100);
 }
+
+function ymdAtNoonUtc(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12));
+}
+
+/** "viernes 2 de octubre" (sin coma), para encabezados en mayusculas por CSS */
+export function formatLongDay(ymd: string): string {
+  return ymdAtNoonUtc(ymd)
+    .toLocaleDateString("es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    })
+    .replace(",", "");
+}
+
+/** "viernes 2 oct" (fecha corta del header movil) */
+export function formatShortWeekday(ymd: string): string {
+  const weekday = ymdAtNoonUtc(ymd).toLocaleDateString("es-MX", {
+    weekday: "long",
+    timeZone: "UTC",
+  });
+  return `${weekday} ${formatDayMonth(ymd)}`;
+}
+
+/** "1 oct" */
+export function formatDayMonth(ymd: string): string {
+  return ymdAtNoonUtc(ymd)
+    .toLocaleDateString("es-MX", { day: "numeric", month: "short", timeZone: "UTC" })
+    .replace(".", "");
+}
+
+/** "Octubre" */
+export function monthName(monthKey: string): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  return capitalizeEs(
+    new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString("es-MX", { month: "long", timeZone: "UTC" })
+  );
+}
+
+function capitalizeEs(value: string): string {
+  return value.charAt(0).toLocaleUpperCase("es-MX") + value.slice(1);
+}

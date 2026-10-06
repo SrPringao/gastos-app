@@ -30,6 +30,8 @@ type EditExpenseModalProps = {
   accounts: { id: number; name: string; type: string }[];
   categories: { id: number; name: string }[];
   onSuccess?: () => void;
+  /** Boton propio que abre el modal (por defecto, el lapiz) */
+  trigger?: React.ReactNode;
 };
 
 export function EditExpenseModal({
@@ -37,6 +39,7 @@ export function EditExpenseModal({
   accounts,
   categories,
   onSuccess,
+  trigger,
 }: EditExpenseModalProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,9 +103,11 @@ export function EditExpenseModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="shrink-0">
-          <PencilIcon className="size-4" />
-        </Button>
+        {trigger ?? (
+          <Button variant="ghost" size="icon-sm" className="shrink-0" aria-label="Editar gasto">
+            <PencilIcon className="size-4" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

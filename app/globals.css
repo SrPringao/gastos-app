@@ -397,6 +397,7 @@
 /* Fila de lista: hover suave; las acciones solo aparecen con hover/foco */
 .eb-row { transition: background-color 150ms ease; }
 .eb-row:hover, .eb-row:focus-within { background: var(--eb-fill-subtle); }
+.eb-row--static:hover, .eb-row--static:focus-within { background: transparent; }
 .eb-row-actions { opacity: 0; pointer-events: none; transition: opacity 150ms ease; }
 .eb-row:hover .eb-row-actions,
 .eb-row:focus-within .eb-row-actions { opacity: 1; pointer-events: auto; }
