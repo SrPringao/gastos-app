@@ -14,6 +14,7 @@ import {
   CalendarRangeIcon,
   type LucideIcon,
 } from "lucide-react";
+import { FEATURES, type FeatureKey } from "@/lib/features";
 
 /**
  * Fuente unica de verdad para la navegacion de la app: sidebar (desktop),
@@ -48,9 +49,11 @@ export type NavItem = {
   subItems?: NavSubItem[];
   /** Prefijo de ruta usado para marcar el item activo cuando tiene subrutas (ej. "/cuentas") */
   activePrefix?: string;
+  /** Si la funcion esta apagada en lib/features.ts, el item no aparece en ningun lado */
+  feature?: FeatureKey;
 };
 
-export const navGroups: NavGroup[] = [
+const allNavGroups: NavGroup[] = [
   {
     label: "Principal",
     items: [
@@ -63,7 +66,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/cuentas", label: "Cuentas", icon: WalletIcon },
       { href: "/patrimonio", label: "Patrimonio", icon: TrendingUpIcon },
-      { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon },
+      { href: "/simulador", label: "Simulador", icon: FlaskConicalIcon, feature: "simulator" },
     ],
   },
   {
@@ -100,6 +103,14 @@ export const navGroups: NavGroup[] = [
     ],
   },
 ];
+
+/** Navegacion visible: sin los items de funciones apagadas */
+export const navGroups: NavGroup[] = allNavGroups
+  .map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !item.feature || FEATURES[item.feature]),
+  }))
+  .filter((group) => group.items.length > 0);
 
 /**
  * Todas las secciones/paginas navegables del sidebar, aplanadas: cada item

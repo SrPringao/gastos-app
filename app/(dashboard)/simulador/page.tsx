@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { ScenarioSimulator } from "@/components/scenario-simulator";
 import { MonthSwitcher } from "@/components/ui/eb/month-switcher";
 import { Suspense } from "react";
+import { FEATURES } from "@/lib/features";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,9 @@ export default async function SimuladorPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
+  // Fuera temporalmente para todos (lib/features.ts)
+  if (!FEATURES.simulator) redirect("/");
+
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
 
