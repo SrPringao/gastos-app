@@ -214,7 +214,7 @@ export function MobileNavPreference() {
         {isDefault && (
           <p className="text-muted-foreground flex items-center gap-1.5 px-1 text-xs">
             <CheckIcon className="size-3.5" />
-            Usando el orden por defecto: Inicio, Gastos, Cuentas, Configuracion.
+            Usando el orden por defecto: Inicio, Gastos, Cuentas, Patrimonio.
           </p>
         )}
       </CardContent>

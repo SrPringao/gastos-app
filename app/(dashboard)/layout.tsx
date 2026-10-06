@@ -37,10 +37,7 @@ export default async function DashboardLayout({
       }}
     >
       <Grain />
-      {/* El sidebar conserva su look original, incluida su tipografia */}
-      <div className="eb-legacy-font contents">
-        <AppSidebar />
-      </div>
+      <AppSidebar />
       <div
         className="relative z-[1] flex h-full min-w-0 w-full flex-col"
         style={{

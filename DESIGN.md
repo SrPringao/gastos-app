@@ -266,6 +266,6 @@ Todos los tokens son variables CSS `--eb-*` definidas en `app/globals.css` (`:ro
 - **Movimiento:** anillos y barras se llenan al montar (0.6s, cubic-bezier(.2,.8,.2,1)), hover de 150ms, todo respeta `prefers-reduced-motion`.
 - **Accesibilidad:** botones reales, `aria-label` en botones de solo icono, `role="img"` con `aria-label` en barras y anillos, areas tactiles de 44px minimo.
 
-## Sidebar de escritorio (sin cambios)
+## Sidebar de escritorio
 
-El sidebar conserva el sistema anterior a proposito: panel `.glass-surface` con radio 30px, grupos Principal / Cuentas / Gestion / Sistema con eyebrow, item activo con pill `bg-primary/10`, chip circular Voltage Blue (#405bff) y rayita lateral con glow, tipografia Geist. No se migra a los tokens `--eb-*`.
+Mismo lenguaje que el resto: superficie `.eb-card` (radio 26), tipografia del sistema, grupos Principal / Cuentas / Gestion / Sistema con etiqueta 11px/600 uppercase tertiary. Cada item lleva un tile de icono de 28px (radio 8): neutro (`--eb-neutral-tile`) en reposo y con el degradado del acento cuando esta activo. La fila activa usa una pill con tinte indigo (`rgba(94,107,255,0.12)`) e indicador lateral de 3px con el degradado del acento. Tema y sincronizar son botones circulares de vidrio de 32px.

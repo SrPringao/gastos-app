@@ -553,10 +553,6 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* El sidebar de escritorio conserva su tipografia original (Geist) */
-  .eb-legacy-font {
-    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  }
   
   button, a, [role="button"] {
     touch-action: manipulation;
