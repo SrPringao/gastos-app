@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import type { PrivacyScope } from "@/components/privacy";
 import { Money } from "./money";
 import { SEGMENT_DOT_COLORS, type SegmentTone } from "./tones";
 
@@ -28,14 +29,14 @@ function Dot({ tone }: { tone: SegmentTone }) {
 export function Legend({
   items,
   layout = "grid",
-  isPrivate = false,
+  privacyScope,
   onSelect,
   className,
 }: {
   items: LegendItem[];
   layout?: "grid" | "list";
-  /** Montos privados (se ocultan con "ocultar saldos") */
-  isPrivate?: boolean;
+  /** Ambito de privacidad de los montos, si son saldos privados */
+  privacyScope?: PrivacyScope;
   /** Si se pasa, el nombre de cada cuenta abre su detalle */
   onSelect?: (item: LegendItem) => void;
   className?: string;
@@ -61,7 +62,7 @@ export function Legend({
           <div key={item.key} className="flex items-center gap-2 text-[15px]">
             <Dot tone={item.tone} />
             {nameButton(item, "min-w-0 flex-1")}
-            <Money value={item.total} private={isPrivate} className="font-semibold" />
+            <Money value={item.total} private={privacyScope} className="font-semibold" />
           </div>
         ))}
       </div>
@@ -80,7 +81,7 @@ export function Legend({
             {nameButton(item, "min-w-0")}
           </div>
           <div className="text-[17px] font-semibold">
-            <Money value={item.total} private={isPrivate} />{" "}
+            <Money value={item.total} private={privacyScope} />{" "}
             {item.percent !== undefined && (
               <span className="text-eb-text-tertiary text-[13px] font-normal">
                 {item.percent}%

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { formatMoney, splitMoney, type MoneySign } from "@/lib/utils/money";
-import { PrivateValue } from "@/components/privacy";
+import { PrivateValue, type PrivacyScope } from "@/components/privacy";
 
 type MoneySize = "hero" | "hero-mobile" | "hero-net" | "md" | "sm";
 
@@ -25,8 +25,8 @@ type MoneyProps = {
   cents?: boolean;
   /** Separa los centavos en un span mas chico (por defecto solo en hero) */
   splitCents?: boolean;
-  /** Saldo privado: con "ocultar saldos" activo se muestra "$••••" */
-  private?: boolean;
+  /** Saldo privado: con el ojo de ese ambito activo se muestra "$••••" */
+  private?: PrivacyScope;
   className?: string;
 };
 
@@ -36,7 +36,7 @@ export function Money({
   sign,
   cents,
   splitCents,
-  private: isPrivate = false,
+  private: privacyScope,
   className,
 }: MoneyProps) {
   const isHero = size === "hero" || size === "hero-mobile" || size === "hero-net";
@@ -85,12 +85,13 @@ export function Money({
     );
   }
 
-  if (!isPrivate) return content;
+  if (!privacyScope) return content;
 
   // Con saldos ocultos, el mismo estilo de la cifra pero con 4 puntos
   const maskStyle = isHero ? { fontSize: HERO_SIZES[size][0] } : undefined;
   return (
     <PrivateValue
+      scope={privacyScope}
       maskClassName={cn(
         isHero && "eb-rounded leading-none font-bold tracking-[-0.03em]",
         size === "md" && "eb-rounded text-[22px] font-bold tracking-[-0.02em]",

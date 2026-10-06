@@ -69,7 +69,7 @@ export function AccountsOverviewCard({
       <div className="flex items-center justify-between px-1 pt-[22px] pb-[14px]">
         <h2 className="eb-card-title m-0">Cuentas</h2>
         <div className="flex items-center gap-1.5">
-          <PrivacyToggle />
+          <PrivacyToggle scope="accounts" />
           <Link href="/cuentas" className="eb-link py-1.5 pl-1.5 text-[14px]">
             Administrar
           </Link>
@@ -89,7 +89,7 @@ export function AccountsOverviewCard({
                 <Money
                   value={total}
                   cents={false}
-                  private
+                  private="accounts"
                   className="eb-rounded text-[28px] leading-[1.1] font-bold tracking-[-0.02em]"
                 />
               </div>
@@ -145,7 +145,7 @@ export function AccountsOverviewCard({
                         {TYPE_LABELS[item.accountType]} · {sharePercent(item.balance, total)}
                       </span>
                     </div>
-                    <Money value={item.balance} private className="text-[15px] font-semibold" />
+                    <Money value={item.balance} private="accounts" className="text-[15px] font-semibold" />
                   </div>
                 </div>
               );
@@ -182,7 +182,7 @@ export function AccountsCarousel({ items }: { items: AccountBalanceItem[] }) {
       <div className="flex items-center justify-between px-1">
         <h2 className="eb-card-title m-0">Cuentas</h2>
         <div className="flex items-center gap-1.5">
-          <PrivacyToggle />
+          <PrivacyToggle scope="accounts" />
           <Link href="/cuentas" className="eb-link py-2.5 pl-1.5 text-[15px]">
             Todas
           </Link>

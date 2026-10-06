@@ -267,7 +267,7 @@ export function NetWorthView({
   projections: NetWorthProjection[];
 }) {
   const router = useRouter();
-  const { hidden, toggle: toggleHidden } = usePrivacy();
+  const { hidden, toggle: toggleHidden } = usePrivacy("netWorth");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [view, setView] = useState<"today" | "projected">("today");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -382,7 +382,7 @@ export function NetWorthView({
             </>
           ) : undefined
         }
-        trailing={<Money value={entry.amount} private className="text-[16px] font-medium" />}
+        trailing={<Money value={entry.amount} private="netWorth" className="text-[16px] font-medium" />}
         onActivate={edit(entry)}
         actions={rowActions(section, index)}
       />
@@ -400,8 +400,8 @@ export function NetWorthView({
         <div className="text-eb-text-secondary text-[15px]">
           {view === "today" ? "Neto después de pagos" : "Neto con previstos"}
         </div>
-        <Money value={heroValue} size="hero-net" private className="md:hidden" />
-        <Money value={heroValue} size="hero" private className="hidden md:inline-flex" />
+        <Money value={heroValue} size="hero-net" private="netWorth" className="md:hidden" />
+        <Money value={heroValue} size="hero" private="netWorth" className="hidden md:inline-flex" />
       </div>
       <SegmentedBar
         height={14}
@@ -423,7 +423,7 @@ export function NetWorthView({
               <span aria-hidden="true" className="size-2 rounded-full" style={{ background: item.dot }} />
               {item.label}
             </div>
-            <Money value={item.value} private className="text-[17px] font-semibold" />
+            <Money value={item.value} private="netWorth" className="text-[17px] font-semibold" />
           </div>
         ))}
       </div>
@@ -487,7 +487,7 @@ export function NetWorthView({
               key={entry.id}
               leading={<AccountTile label={entry.label} account={entry.accountId ? accountById.get(entry.accountId) : undefined} />}
               title={entry.label}
-              trailing={<Money value={entry.amount} private className="text-[16px] font-medium" />}
+              trailing={<Money value={entry.amount} private="netWorth" className="text-[16px] font-medium" />}
               onActivate={edit(entry)}
               actions={rowActions(accountEntries, index)}
             />
@@ -507,7 +507,7 @@ export function NetWorthView({
                   leading={<PersonAvatar name={group.name} />}
                   title={group.name}
                   subtitle={group.concepts.length > 0 ? group.concepts.join(" · ") : undefined}
-                  trailing={<Money value={group.total} private className="text-[16px] font-medium" />}
+                  trailing={<Money value={group.total} private="netWorth" className="text-[16px] font-medium" />}
                   onActivate={edit(entry)}
                   actions={rowActions(sectionEntries, sectionEntries.indexOf(entry))}
                 />
@@ -523,7 +523,7 @@ export function NetWorthView({
                   ariaExpanded={isOpen}
                   trailing={
                     <span className="flex items-center gap-2">
-                      <Money value={group.total} private className="text-[16px] font-medium" />
+                      <Money value={group.total} private="netWorth" className="text-[16px] font-medium" />
                       <ChevronDownIcon
                         size={14}
                         strokeWidth={2.4}
@@ -542,7 +542,7 @@ export function NetWorthView({
                       leading={null}
                       title={entry.label}
                       titleClassName="text-[15px] text-eb-text-muted"
-                      trailing={<Money value={entry.amount} private className="text-[15px]" />}
+                      trailing={<Money value={entry.amount} private="netWorth" className="text-[15px]" />}
                       onActivate={edit(entry)}
                       actions={rowActions(group.entries, index)}
                     />
@@ -561,7 +561,7 @@ export function NetWorthView({
               leading={<CategoryTile color="green" icon={ArrowDownIcon} size={30} />}
               title={entry.label}
               trailing={
-                <Money value={entry.amount} sign="positive" private className="text-eb-green text-[16px] font-medium" />
+                <Money value={entry.amount} sign="positive" private="netWorth" className="text-eb-green text-[16px] font-medium" />
               }
               onActivate={edit(entry)}
               actions={rowActions(incomes, index)}
@@ -629,7 +629,7 @@ export function NetWorthView({
             key={projection.id}
             leading={<CategoryTile color="orange" icon={ClockIcon} size={30} />}
             title={projection.label}
-            trailing={<Money value={projection.amount} sign="negative" private className="text-[16px] font-medium" />}
+            trailing={<Money value={projection.amount} sign="negative" private="netWorth" className="text-[16px] font-medium" />}
             onActivate={() => setDialog({ type: "projection", projection })}
           />
         ))}

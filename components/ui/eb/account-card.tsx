@@ -85,7 +85,7 @@ export function AccountCard({
         <Money
           value={balance}
           cents={false}
-          private
+          private="accounts"
           className={cn(
             "font-bold",
             isCarousel ? "text-[18px]" : "eb-rounded text-[19px] tracking-[-0.01em]"

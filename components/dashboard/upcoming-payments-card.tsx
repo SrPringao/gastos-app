@@ -58,7 +58,6 @@ export function UpcomingPaymentsCard({
               <Money
                 value={payment.amount}
                 cents={false}
-                private
                 className={cn(
                   "text-[14px]",
                   payment.amount > 0 ? "font-semibold" : "text-eb-text-tertiary"
@@ -87,12 +86,12 @@ export function NextPaymentWidget({
     >
       <div className="flex items-start justify-between">
         <div className="text-eb-text-secondary text-[13px] font-semibold">Próximo pago</div>
-        <CategoryTile color="orange" icon={CalendarIcon} size={30} className="rounded-[9px]" />
+        <CategoryTile color="orange" icon={CalendarIcon} size={30} />
       </div>
       {payment ? (
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="text-eb-text-tertiary truncate text-[12px]">{payment.name}</div>
-          <Money value={payment.amount} size="md" private />
+          <Money value={payment.amount} size="md" />
           <div
             className={cn("text-[12px]", payment.daysLeft <= 16 ? "text-eb-orange" : "text-eb-text-tertiary")}
           >
