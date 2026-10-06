@@ -65,7 +65,7 @@ export default async function DashboardPage({
       : today.slice(0, 7);
 
   const [
-    accounts,
+    allAccounts,
     categories,
     totalSpent,
     spentByAccount,
@@ -73,7 +73,7 @@ export default async function DashboardPage({
     budget,
     netWorthEntries,
   ] = await Promise.all([
-    getAccounts(userId),
+    getAccounts(userId, { includeArchived: true }),
     getCategories(userId),
     getTotalSpentThisMonth(userId, monthKey),
     getSpentByAccountThisMonth(userId, monthKey),
@@ -81,6 +81,9 @@ export default async function DashboardPage({
     getMonthlyBudget(userId, monthKey),
     getNetWorthEntries(userId),
   ]);
+  // Archivados: fuera de "Agregar gasto" y de los resumenes, pero sus
+  // gastos se pueden seguir editando.
+  const accounts = allAccounts.filter((a) => !a.archivedAt);
 
   const month = monthName(monthKey);
   const { segments } = buildSpendSegments(spentByAccount);
@@ -93,6 +96,7 @@ export default async function DashboardPage({
   const payments = buildUpcomingPayments(
     netWorthEntries.filter((e) => e.kind === "debt"),
     today,
+    new Map(allAccounts.map((a) => [a.id, a.paymentDay])),
   );
   const toItem = (p: (typeof payments)[number]) => ({
     id: p.entry.id,
@@ -117,10 +121,11 @@ export default async function DashboardPage({
   const allAccountBalances = buildAccountBalances(netWorthEntries, accounts, Infinity).map(
     toBalanceItem,
   );
-  const editAccounts = accounts.map((a) => ({
+  const editAccounts = allAccounts.map((a) => ({
     id: a.id,
     name: a.name,
     type: a.type,
+    archived: !!a.archivedAt,
   }));
   const editCategories = categories.map((c) => ({ id: c.id, name: c.name }));
 

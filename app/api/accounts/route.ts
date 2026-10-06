@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccounts, createAccount } from "@/lib/services/accounts";
 import { getCurrentUserId } from "@/lib/auth";
+import { createLinkedBalance } from "@/lib/services/net-worth";
 
 export async function GET() {
   try {
@@ -36,11 +37,22 @@ export async function POST(request: NextRequest) {
       creditLimit: body.creditLimit ?? null,
     });
 
-    if (result.error) {
+    if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true });
+    // Opcional: crear en la misma accion su saldo ligado en Patrimonio
+    // (deuda si es credito, cuenta si es debito/efectivo).
+    let netWorthEntryId: number | null = null;
+    if (typeof body.patrimonioAmount === "number") {
+      const entry = await createLinkedBalance(userId, result.account, body.patrimonioAmount);
+      if ("error" in entry) {
+        return NextResponse.json({ error: entry.error, account: result.account }, { status: 400 });
+      }
+      netWorthEntryId = entry.id;
+    }
+
+    return NextResponse.json({ success: true, account: result.account, netWorthEntryId });
   } catch (error) {
     console.error("[API] POST /api/accounts:", error);
     return NextResponse.json(

@@ -49,17 +49,20 @@ export async function PATCH(
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
     const body = await request.json();
+    // Solo se actualizan los campos presentes en el body: el panel de
+    // Cuentas guarda campo por campo y no debe borrar los demas.
     const result = await updateAccount(userId, id, {
       name: body.name,
       type: body.type,
-      color: body.color ?? null,
-      imageUrl: body.imageUrl ?? null,
-      cutoffDay: body.cutoffDay ?? null,
-      paymentDay: body.paymentDay ?? null,
-      creditLimit: body.creditLimit ?? null,
+      color: body.color,
+      imageUrl: body.imageUrl,
+      cutoffDay: body.cutoffDay,
+      paymentDay: body.paymentDay,
+      creditLimit: body.creditLimit,
+      archived: typeof body.archived === "boolean" ? body.archived : undefined,
     });
 
-    if (result.error) {
+    if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 

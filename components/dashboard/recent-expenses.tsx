@@ -19,7 +19,7 @@ export type RecentExpense = ExpenseItem;
 
 type RecentExpensesProps = {
   expenses: RecentExpense[];
-  accounts: { id: number; name: string; type: string }[];
+  accounts: { id: number; name: string; type: string; archived?: boolean }[];
   categories: { id: number; name: string }[];
   className?: string;
 };

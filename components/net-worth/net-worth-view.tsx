@@ -33,7 +33,7 @@ import {
   groupReceivables,
   initialOf,
   resolveAssetKind,
-  toCalendarDate,
+  effectiveDueDate,
 } from "@/lib/dashboard-metrics";
 import { formatMoney } from "@/lib/utils/money";
 import { todayDateString } from "@/lib/utils/dates";
@@ -276,6 +276,11 @@ export function NetWorthView({
   const today = todayDateString();
 
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
+  // Los dias restantes de una deuda salen del dia de pago de su tarjeta
+  const paymentDayByAccount = useMemo(
+    () => new Map(accounts.map((a) => [a.id, a.paymentDay])),
+    [accounts]
+  );
   const assets = entries.filter((e) => e.kind === "asset");
   const debts = entries.filter((e) => e.kind === "debt");
   const accountEntries = assets.filter((e) => resolveAssetKind(e) === "account");
@@ -349,7 +354,7 @@ export function NetWorthView({
   const edit = (entry: NetWorthEntry) => () => setDialog({ type: "entry", kind: entry.kind, entry });
 
   function debtRow(entry: NetWorthEntry, section: NetWorthEntry[], index: number, indent = false) {
-    const due = entry.dueDate ? toCalendarDate(entry.dueDate) : null;
+    const due = effectiveDueDate(entry, paymentDayByAccount, today);
     const days = due ? daysBetween(today, due) : null;
     const soon = days !== null && days <= 16;
     return (
@@ -390,8 +395,9 @@ export function NetWorthView({
   }
 
   const nearestZero = zeroDebts
-    .filter((e) => e.dueDate)
-    .map((e) => ({ entry: e, days: daysBetween(today, toCalendarDate(e.dueDate!)) }))
+    .map((e) => ({ entry: e, due: effectiveDueDate(e, paymentDayByAccount, today) }))
+    .filter((x): x is { entry: NetWorthEntry; due: string } => x.due !== null)
+    .map(({ entry, due }) => ({ entry, days: daysBetween(today, due) }))
     .sort((a, b) => a.days - b.days)[0];
 
   const hero = (

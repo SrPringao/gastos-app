@@ -15,7 +15,8 @@ const MONTH_LIMIT = 5000;
 export default async function GastosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  /** `method`: abre el Historial filtrado por ese metodo ("Ver sus gastos") */
+  searchParams: Promise<{ month?: string; method?: string }>;
 }) {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
@@ -26,7 +27,7 @@ export default async function GastosPage({
     params.month && /^\d{4}-\d{2}$/.test(params.month) ? params.month : today.slice(0, 7);
 
   const [accounts, categories, budget, expenses] = await Promise.all([
-    getAccounts(userId),
+    getAccounts(userId, { includeArchived: true }),
     getCategories(userId),
     getMonthlyBudget(userId, monthKey),
     getExpensesWithDetails(userId, MONTH_LIMIT, monthKey),
@@ -34,11 +35,14 @@ export default async function GastosPage({
 
   return (
     <ExpensesView
-      key={monthKey}
+      key={`${monthKey}-${params.method ?? ""}`}
       expenses={expenses}
       accounts={accounts}
       categories={categories}
       budget={budget}
+      initialAccountId={
+        params.method && /^\d+$/.test(params.method) ? params.method : undefined
+      }
       monthKey={monthKey}
       today={today}
     />

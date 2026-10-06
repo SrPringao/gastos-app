@@ -32,10 +32,13 @@ export const accounts = pgTable("accounts", {
   type: text("type", { enum: ["credit", "debit", "cash"] }).notNull(),
   color: text("color"),
   imageUrl: text("image_url"),
+  // Obsoleto: ya no se usa el dia de corte (solo paymentDay). Se conserva la columna.
   cutoffDay: integer("cutoff_day"),
   paymentDay: integer("payment_day"),
   creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
   isPlaceholder: boolean("is_placeholder").default(false).notNull(),
+  // Archivado: se oculta del catalogo y de "Agregar gasto"; sus gastos se conservan
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

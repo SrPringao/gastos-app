@@ -1,15 +1,25 @@
 import { db } from "@/lib/db";
 import { accounts } from "@/lib/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 const UNASSIGNED_ACCOUNT_NAME = "Sin asignar";
 
-export async function getAccounts(userId: string | null) {
+/**
+ * Metodos de pago del usuario. Por defecto sin los archivados (asi no
+ * aparecen en "Agregar gasto"); el catalogo y la edicion de gastos piden
+ * `includeArchived` para poder mostrarlos.
+ */
+export async function getAccounts(
+  userId: string | null,
+  options: { includeArchived?: boolean } = {}
+) {
   if (!userId) return [];
+  const filters = [eq(accounts.userId, userId), eq(accounts.isPlaceholder, false)];
+  if (!options.includeArchived) filters.push(isNull(accounts.archivedAt));
   return db
     .select()
     .from(accounts)
-    .where(and(eq(accounts.userId, userId), eq(accounts.isPlaceholder, false)))
+    .where(and(...filters))
     .orderBy(accounts.name);
 }
 
@@ -68,6 +78,8 @@ export type CreateAccountInput = {
 };
 
 export type UpdateAccountInput = {
+  /** true archiva (oculta sin borrar gastos), false lo restaura */
+  archived?: boolean;
   name?: string;
   type?: "credit" | "debit" | "cash";
   color?: string | null;
@@ -76,6 +88,10 @@ export type UpdateAccountInput = {
   paymentDay?: number | null;
   creditLimit?: string | null;
 };
+
+function isValidDay(day: number) {
+  return Number.isInteger(day) && day >= 1 && day <= 31;
+}
 
 export async function createAccount(
   userId: string,
@@ -91,18 +107,25 @@ export async function createAccount(
     return { error: "Tipo invalido" };
   }
 
-  await db.insert(accounts).values({
-    userId,
-    name: name.trim(),
-    type,
-    color: color ?? null,
-    imageUrl: imageUrl ?? null,
-    cutoffDay: type === "credit" ? cutoffDay ?? null : null,
-    paymentDay: type === "credit" ? paymentDay ?? null : null,
-    creditLimit: type === "credit" && creditLimit ? creditLimit : null,
-  });
+  if (paymentDay != null && !isValidDay(paymentDay)) {
+    return { error: "Dia de pago invalido" };
+  }
 
-  return { success: true };
+  const [created] = await db
+    .insert(accounts)
+    .values({
+      userId,
+      name: name.trim(),
+      type,
+      color: color ?? null,
+      imageUrl: imageUrl ?? null,
+      cutoffDay: type === "credit" ? cutoffDay ?? null : null,
+      paymentDay: type === "credit" ? paymentDay ?? null : null,
+      creditLimit: type === "credit" && creditLimit ? creditLimit : null,
+    })
+    .returning();
+
+  return { success: true as const, account: created };
 }
 
 export async function updateAccount(
@@ -118,8 +141,12 @@ export async function updateAccount(
     return { error: "No autorizado" };
   }
 
-  const { name, type, color, imageUrl, cutoffDay, paymentDay, creditLimit } =
+  const { name, type, color, imageUrl, cutoffDay, paymentDay, creditLimit, archived } =
     input;
+
+  if (paymentDay != null && !isValidDay(paymentDay)) {
+    return { error: "Dia de pago invalido" };
+  }
 
   if (name !== undefined && !name?.trim()) {
     return { error: "El nombre es requerido" };
@@ -139,8 +166,11 @@ export async function updateAccount(
         cutoffDay: type === "credit" || existing.type === "credit" ? cutoffDay : null,
       }),
       ...(paymentDay !== undefined && {
-        paymentDay: type === "credit" || existing.type === "credit" ? paymentDay : null,
+        paymentDay: (type ?? existing.type) === "credit" ? paymentDay : null,
       }),
+      // Al dejar de ser credito, el dia de pago ya no aplica
+      ...(type !== undefined && type !== "credit" && { paymentDay: null }),
+      ...(archived !== undefined && { archivedAt: archived ? new Date() : null }),
       ...(creditLimit !== undefined && {
         creditLimit:
           (type === "credit" || existing.type === "credit") && creditLimit

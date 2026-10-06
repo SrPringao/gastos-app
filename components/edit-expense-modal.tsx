@@ -27,7 +27,8 @@ type ExpenseForEdit = {
 
 type EditExpenseModalProps = {
   expense: ExpenseForEdit;
-  accounts: { id: number; name: string; type: string }[];
+  /** `archived`: solo se lista si es el metodo actual del gasto */
+  accounts: { id: number; name: string; type: string; archived?: boolean }[];
   categories: { id: number; name: string }[];
   onSuccess?: () => void;
   /** Boton propio que abre el modal (por defecto, el lapiz) */
@@ -148,7 +149,9 @@ export function EditExpenseModal({
                 "border-input mt-1 h-9 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               )}
             >
-              {accounts.map((acc) => (
+              {accounts
+                .filter((acc) => !acc.archived || acc.id === expense.accountId)
+                .map((acc) => (
                 <option key={acc.id} value={acc.id}>
                   {acc.name}
                 </option>

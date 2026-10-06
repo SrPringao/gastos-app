@@ -46,7 +46,54 @@ const FALLBACK: Rgb = [110, 110, 117];
 const BLACK: Rgb = [0, 0, 0];
 const WHITE: Rgb = [255, 255, 255];
 
+/**
+ * Paleta de 7 swatches del catalogo de Cuentas (base -> oscuro). El color
+ * guardado en la cuenta es la base; su par oscuro sale de aqui.
+ */
+export const PAYMENT_METHOD_PALETTE: { from: string; to: string }[] = [
+  { from: "#13969C", to: "#0A5559" },
+  { from: "#3E44C9", to: "#1E2170" },
+  { from: "#6B3FC4", to: "#3A1C7A" },
+  { from: "#E0573A", to: "#7A1F12" },
+  { from: "#F08A24", to: "#9A4A0C" },
+  { from: "#2E7A45", to: "#173F24" },
+  { from: "#5A5A63", to: "#26262B" },
+];
+
+export function paletteEntry(hex: string | null | undefined) {
+  if (!hex) return null;
+  return PAYMENT_METHOD_PALETTE.find((p) => p.from.toLowerCase() === hex.toLowerCase()) ?? null;
+}
+
+/** Chip plateado para colores frios (azules, morados, verdes azulados) o grises */
+export function chipForColor(hex: string | null | undefined): "gold" | "silver" {
+  const rgb = parseHex(hex);
+  if (!rgb) return "silver";
+  const [r, g, b] = rgb.map((c) => c / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+  if (saturation < 0.25) return "silver";
+  let hue = 0;
+  if (max === r) hue = ((g - b) / (max - min)) % 6;
+  else if (max === g) hue = (b - r) / (max - min) + 2;
+  else hue = (r - g) / (max - min) + 4;
+  hue = (hue * 60 + 360) % 360;
+  return hue >= 170 && hue <= 300 ? "silver" : "gold";
+}
+
 export function accountTone(hex: string | null | undefined): AccountTone {
+  const fromPalette = paletteEntry(hex);
+  if (fromPalette) {
+    const light = parseHex(fromPalette.from)!;
+    const dark = parseHex(fromPalette.to)!;
+    return {
+      light: fromPalette.from,
+      dark: fromPalette.to,
+      bright: toHex(mix(light, WHITE, 0.12)),
+      shadow: `rgba(${dark[0]},${dark[1]},${dark[2]},0.9)`,
+    };
+  }
   let base = parseHex(hex) ?? FALLBACK;
   // Colores muy claros (lima, blanco) o casi negros no aguantan texto
   // blanco encima ni dejan ver el degradado: se llevan a un rango medio.

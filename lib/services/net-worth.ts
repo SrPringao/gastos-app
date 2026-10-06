@@ -137,6 +137,10 @@ export async function createNetWorthEntry(
 
   const wantsSync = Boolean(syncEnabled);
   const linkedAccountId = accountId ?? null;
+  if (linkedAccountId) {
+    const taken = await assertAccountNotLinked(userId, linkedAccountId);
+    if (taken) return taken;
+  }
   if (wantsSync && !linkedAccountId) {
     return { error: "Elige un metodo de pago para sincronizar" };
   }
@@ -151,7 +155,7 @@ export async function createNetWorthEntry(
     .where(eq(netWorthEntries.userId, userId));
   const maxSortOrder = siblings.reduce((max, s) => Math.max(max, s.sortOrder), -1);
 
-  await db.insert(netWorthEntries).values({
+  const [created] = await db.insert(netWorthEntries).values({
     userId,
     accountId: linkedAccountId,
     label: label.trim(),
@@ -166,9 +170,57 @@ export async function createNetWorthEntry(
         ? (assetKind ?? inferAssetKind({ label: label.trim(), accountId: linkedAccountId }))
         : null,
     contact: kind === "asset" ? normalizeContact(contact) : null,
-  });
+  }).returning({ id: netWorthEntries.id });
 
-  return { success: true };
+  return { success: true as const, id: created.id };
+}
+
+/**
+ * Cada metodo de pago tiene a lo mas un item en Patrimonio: es la
+ * relacion que usa Cuentas para saber si ya tiene saldo.
+ */
+async function assertAccountNotLinked(userId: string, accountId: number, exceptId?: number) {
+  const filters = [eq(netWorthEntries.userId, userId), eq(netWorthEntries.accountId, accountId)];
+  if (exceptId != null) filters.push(ne(netWorthEntries.id, exceptId));
+  const rows = await db
+    .select({ label: netWorthEntries.label })
+    .from(netWorthEntries)
+    .where(and(...filters))
+    .limit(1);
+  return rows[0]
+    ? { error: `Ese metodo de pago ya tiene un saldo en Patrimonio (${rows[0].label}).` }
+    : null;
+}
+
+export async function getNetWorthEntryByAccount(userId: string, accountId: number) {
+  const rows = await db
+    .select()
+    .from(netWorthEntries)
+    .where(and(eq(netWorthEntries.userId, userId), eq(netWorthEntries.accountId, accountId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * Saldo inicial creado desde Cuentas: deuda si es credito, positivo en la
+ * seccion Cuentas si es debito/efectivo. Monto 0 = "no debo nada / no
+ * tengo saldo por ahora".
+ */
+export async function createLinkedBalance(
+  userId: string,
+  account: { id: number; name: string; type: "credit" | "debit" | "cash" },
+  amountCents: number
+) {
+  if (!Number.isFinite(amountCents) || amountCents < 0) {
+    return { error: "Monto invalido" };
+  }
+  return createNetWorthEntry(userId, {
+    accountId: account.id,
+    label: account.name,
+    kind: account.type === "credit" ? "debt" : "asset",
+    amount: Math.round(amountCents),
+    assetKind: account.type === "credit" ? undefined : "account",
+  });
 }
 
 export async function updateNetWorthEntry(
@@ -215,6 +267,10 @@ export async function updateNetWorthEntry(
 
   const nextAccountId =
     accountId !== undefined ? accountId : existing.accountId;
+  if (accountId !== undefined && accountId !== null && accountId !== existing.accountId) {
+    const taken = await assertAccountNotLinked(userId, accountId, id);
+    if (taken) return taken;
+  }
   let nextSync =
     syncEnabled !== undefined ? Boolean(syncEnabled) : existing.syncEnabled;
   if (!nextAccountId) nextSync = false;

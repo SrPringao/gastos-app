@@ -17,9 +17,12 @@ export const SORT_LABELS: Record<SortOption, string> = {
  * Filtros del Historial (misma logica que tenia ExpensesList): busqueda,
  * cuenta, categoria, fecha (un dia o rango) y orden.
  */
-export function useExpenseFilters(expenses: MonthExpense[]) {
+export function useExpenseFilters(
+  expenses: MonthExpense[],
+  initial: { accountId?: string } = {}
+) {
   const [search, setSearch] = useState("");
-  const [accountFilter, setAccountFilter] = useState<string>("all");
+  const [accountFilter, setAccountFilter] = useState<string>(initial.accountId ?? "all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");

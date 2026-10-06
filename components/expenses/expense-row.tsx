@@ -23,7 +23,7 @@ export type ExpenseItem = {
 };
 
 export type EditOptions = {
-  accounts: { id: number; name: string; type: string }[];
+  accounts: { id: number; name: string; type: string; archived?: boolean }[];
   categories: { id: number; name: string }[];
   onChanged: () => void;
 };

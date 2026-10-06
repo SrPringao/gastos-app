@@ -191,14 +191,46 @@ export type UpcomingPayment<T extends DebtLike = DebtLike> = {
   isSoon: boolean;
 };
 
+/**
+ * Proximo dia de pago a partir de hoy (incluido). Si el mes no tiene ese
+ * dia (31 en noviembre) se usa su ultimo dia.
+ */
+export function nextPaymentDate(paymentDay: number, today: string): string {
+  const [y, m, d] = today.split("-").map(Number);
+  const build = (year: number, month: number) => {
+    const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const day = Math.min(paymentDay, last);
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  };
+  const thisMonth = build(y, m);
+  if (Number(thisMonth.slice(8, 10)) >= d) return thisMonth;
+  return m === 12 ? build(y + 1, 1) : build(y, m + 1);
+}
+
+/**
+ * Fecha de pago efectiva de una deuda: el dia de pago del metodo ligado
+ * si lo tiene; si no, la fecha limite guardada en Patrimonio.
+ */
+export function effectiveDueDate(
+  entry: { dueDate: Date | string | null; accountId: number | null },
+  paymentDayByAccount: Map<number, number | null>,
+  today: string
+): string | null {
+  const paymentDay = entry.accountId != null ? paymentDayByAccount.get(entry.accountId) : null;
+  if (paymentDay) return nextPaymentDate(paymentDay, today);
+  return entry.dueDate ? toCalendarDate(entry.dueDate) : null;
+}
+
 export function buildUpcomingPayments<T extends DebtLike>(
   debts: T[],
-  today: string
+  today: string,
+  paymentDayByAccount: Map<number, number | null> = new Map()
 ): UpcomingPayment<T>[] {
   return debts
-    .filter((d): d is T & { dueDate: Date | string } => d.dueDate != null)
-    .map((entry) => {
-      const dueDate = toCalendarDate(entry.dueDate);
+    .map((entry) => ({ entry, due: effectiveDueDate(entry, paymentDayByAccount, today) }))
+    .filter((x): x is { entry: T; due: string } => x.due !== null)
+    .map(({ entry, due }) => {
+      const dueDate = due;
       const daysLeft = daysBetween(today, dueDate);
       return {
         entry,

@@ -34,6 +34,7 @@ export function ExpensesView({
   budget,
   monthKey,
   today,
+  initialAccountId,
 }: {
   expenses: MonthExpense[];
   accounts: Account[];
@@ -41,9 +42,12 @@ export function ExpensesView({
   budget: number | null;
   monthKey: string;
   today: string;
+  /** Filtro inicial por metodo (?method=<id>) */
+  initialAccountId?: string;
 }) {
   const router = useRouter();
-  const filters = useExpenseFilters(expenses);
+  const filters = useExpenseFilters(expenses, { accountId: initialAccountId });
+  const activeAccounts = accounts.filter((a) => !a.archivedAt);
   const month = monthName(monthKey);
   const accountTotals = buildAccountTotals(expenses);
   const stats = buildMonthStats(expenses, monthKey, today);
@@ -55,7 +59,7 @@ export function ExpensesView({
     pickedDay && pickedDay.startsWith(monthKey) ? pickedDay : (filters.dateFrom && !filters.dateTo ? filters.dateFrom : series.peakDate);
 
   const edit = {
-    accounts: accounts.map((a) => ({ id: a.id, name: a.name, type: a.type })),
+    accounts: accounts.map((a) => ({ id: a.id, name: a.name, type: a.type, archived: !!a.archivedAt })),
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     onChanged: () => router.refresh(),
   };
@@ -73,7 +77,7 @@ export function ExpensesView({
     monthLabel: month,
     categories: edit.categories,
     edit,
-    newExpense: <NewExpenseButton accounts={accounts} categories={categories} />,
+    newExpense: <NewExpenseButton accounts={activeAccounts} categories={categories} />,
   };
 
   return (
@@ -143,7 +147,7 @@ export function ExpensesView({
               <Suspense fallback={null}>
                 <MonthSwitcher />
               </Suspense>
-              <NewExpenseButton accounts={accounts} categories={categories} />
+              <NewExpenseButton accounts={activeAccounts} categories={categories} />
             </div>
           </header>
 
