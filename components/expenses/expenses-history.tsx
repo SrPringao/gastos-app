@@ -382,7 +382,7 @@ export function HistoryMobile({
       ) : (
         <div className="flex flex-col gap-[14px]">
           {groups.map((group, index) => (
-            <div key={`${group.date}-${index}`} className="mt-2 flex flex-col gap-1.5 first:mt-0">
+            <div key={`${group.date}-${index}`} className="flex flex-col gap-1.5">
               <div className="text-eb-text-tertiary flex justify-between px-4 text-[13px]">
                 <span className="tracking-[0.02em] uppercase">{formatShortWeekday(group.date)}</span>
                 <span className="tabular-nums">{formatMoney(group.total)}</span>

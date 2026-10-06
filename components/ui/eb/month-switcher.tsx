@@ -128,7 +128,10 @@ export function MonthTitleSelect({ title, className }: { title?: string; classNa
           className="text-eb-text h-auto gap-1.5 rounded-none border-0 bg-transparent p-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em] shadow-none dark:bg-transparent dark:hover:bg-transparent [&>svg]:hidden"
         >
           {title ?? monthName(selected)}
-          <ChevronDownIcon size={18} strokeWidth={2.4} className="text-eb-text-tertiary" aria-hidden="true" />
+          {/* En un span: el trigger oculta sus svg directos (el icono de Radix) */}
+          <span className="flex" aria-hidden="true">
+            <ChevronDownIcon size={18} strokeWidth={2.4} className="text-eb-text-tertiary" />
+          </span>
         </SelectTrigger>
         <MonthOptions options={options} />
       </Select>
