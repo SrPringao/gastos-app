@@ -31,6 +31,8 @@ function surface(color: string | null, reflection = 0.2) {
   return {
     tone,
     background: `radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,${reflection}), rgba(255,255,255,0) 55%), linear-gradient(145deg, ${tone.light} 0%, ${tone.dark} 100%)`,
+    /** Variables de texto legible para el contenido de la tarjeta */
+    inkVars: { "--ink": tone.ink, "--ink-muted": tone.inkMuted } as React.CSSProperties,
   };
 }
 
@@ -50,7 +52,7 @@ export function CardChip({
         aria-hidden="true"
         size={size === "sm" ? 24 : 30}
         strokeWidth={1.6}
-        color="rgba(255,255,255,0.85)"
+        color="var(--ink-muted, rgba(255,255,255,0.85))"
       />
     );
   }
@@ -76,7 +78,7 @@ export function ShortcutBadge({ size = 22 }: { size?: number }) {
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3)",
       }}
     >
-      <ZapIcon size={Math.round(size * 0.55)} fill="#fff" stroke="none" aria-hidden="true" />
+      <ZapIcon size={Math.round(size * 0.55)} fill="var(--ink, #fff)" stroke="none" aria-hidden="true" />
       <span className="sr-only">Vinculada al atajo</span>
     </span>
   );
@@ -99,7 +101,7 @@ export const CatalogCard = forwardRef<
   { name, type, color, meta, uses, linked, selected, archived, onSelect, onKeyDown, tabIndex },
   ref
 ) {
-  const { tone, background } = surface(color);
+  const { tone, background, inkVars } = surface(color);
   return (
     <button
       ref={ref}
@@ -110,10 +112,11 @@ export const CatalogCard = forwardRef<
       onClick={onSelect}
       onKeyDown={onKeyDown}
       className={cn(
-        "relative flex aspect-[1.586] flex-col justify-between overflow-hidden rounded-[16px] px-[14px] py-3 text-left text-white outline-none transition-[box-shadow,transform] focus-visible:ring-2 focus-visible:ring-[var(--eb-accent)] active:scale-[0.98]",
+        "relative flex aspect-[1.586] flex-col justify-between overflow-hidden rounded-[16px] px-[14px] py-3 text-left text-[var(--ink)] outline-none transition-[box-shadow,transform] focus-visible:ring-2 focus-visible:ring-[var(--eb-accent)] active:scale-[0.98]",
         archived && "opacity-55"
       )}
       style={{
+        ...inkVars,
         background,
         boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 16px 28px -16px ${tone.dark}${
           selected ? ", 0 0 0 2px var(--eb-bg), 0 0 0 4px var(--eb-accent)" : ""
@@ -126,8 +129,8 @@ export const CatalogCard = forwardRef<
       </div>
       <CardChip type={type} color={color} size="sm" />
       <div className="flex items-end justify-between gap-2 text-[11px]">
-        <span className="truncate text-white/80">{archived ? "Archivado" : meta}</span>
-        <span className="shrink-0 text-white/70">{uses}</span>
+        <span className="truncate text-[var(--ink-muted)]">{archived ? "Archivado" : meta}</span>
+        <span className="shrink-0 text-[var(--ink-muted)]">{uses}</span>
       </div>
     </button>
   );
@@ -150,15 +153,16 @@ export function PreviewCard({
   noBalance: boolean;
   variant?: "desktop" | "mobile";
 }) {
-  const { background } = surface(color, 0.22);
+  const { background, inkVars } = surface(color, 0.22);
   const mobile = variant === "mobile";
   return (
     <div
       className={cn(
-        "relative flex flex-col justify-between overflow-hidden text-white",
+        "relative flex flex-col justify-between overflow-hidden text-[var(--ink)]",
         mobile ? "h-[222px] rounded-[18px] p-[18px]" : "aspect-[1.586] rounded-[20px] p-5"
       )}
       style={{
+        ...inkVars,
         background,
         boxShadow:
           "inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 24px 40px -20px rgba(0,0,0,0.95)",
@@ -180,13 +184,13 @@ export function PreviewCard({
             className="flex h-[26px] shrink-0 items-center gap-1 rounded-[13px] px-2.5 text-[12px] font-semibold"
             style={{ background: "rgba(255,255,255,0.2)" }}
           >
-            <ZapIcon size={12} fill="#fff" stroke="none" aria-hidden="true" />
+            <ZapIcon size={12} fill="var(--ink)" stroke="none" aria-hidden="true" />
             Atajo
           </span>
         ) : null}
       </div>
       <CardChip type={type} color={color} size="lg" />
-      <div className="flex items-end justify-between gap-3 text-[13px] text-white/80">
+      <div className="flex items-end justify-between gap-3 text-[13px] text-[var(--ink-muted)]">
         <span className="truncate">{meta}</span>
         <span className="shrink-0">{uses}</span>
       </div>

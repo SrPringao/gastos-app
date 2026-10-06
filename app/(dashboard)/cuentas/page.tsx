@@ -18,9 +18,9 @@ export default async function CuentasPage() {
   ]);
 
   const [y, m] = monthKey.split("-").map(Number);
-  const monthShort = new Date(Date.UTC(y, m - 1, 15))
-    .toLocaleDateString("es-MX", { month: "short", timeZone: "UTC" })
-    .replace(".", "");
+  const mid = new Date(Date.UTC(y, m - 1, 15));
+  const monthShort = mid.toLocaleDateString("es-MX", { month: "short", timeZone: "UTC" }).replace(".", "");
+  const monthLong = mid.toLocaleDateString("es-MX", { month: "long", timeZone: "UTC" });
 
   return (
     <AccountsPage
@@ -28,6 +28,7 @@ export default async function CuentasPage() {
       // Nombres que llegaron del atajo sin metodo: se sugieren al agregar un nombre de Wallet
       suggestions={unassigned.map((u) => u.rawCardName)}
       monthShort={monthShort}
+      monthLong={monthLong}
     />
   );
 }

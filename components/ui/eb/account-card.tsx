@@ -14,12 +14,14 @@ export type AccountChip = keyof typeof CHIPS;
 function cardSurface(color: string | null, shadow: "card" | "thumb") {
   const tone = accountTone(color);
   return {
+    "--ink": tone.ink,
+    "--ink-muted": tone.inkMuted,
     background: `radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, ${tone.light} 0%, ${tone.dark} 100%)`,
     boxShadow:
       shadow === "card"
         ? `inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px ${tone.shadow}`
         : `inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 6px 12px -6px ${tone.shadow}`,
-  };
+  } as React.CSSProperties;
 }
 
 type AccountCardProps = {
@@ -52,7 +54,7 @@ export function AccountCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col justify-between overflow-hidden rounded-[16px] p-[14px] text-white",
+        "relative flex flex-col justify-between overflow-hidden rounded-[16px] p-[14px] text-[var(--ink)]",
         isCarousel && "h-[106px] w-[168px] flex-none",
         className
       )}
@@ -68,7 +70,7 @@ export function AccountCard({
               aria-hidden="true"
               className="size-5 shrink-0"
               strokeWidth={1.8}
-              color="rgba(255,255,255,0.85)"
+              color="var(--ink-muted)"
             />
           ) : (
             <span
@@ -79,7 +81,7 @@ export function AccountCard({
           ))}
       </div>
       <div className="flex flex-col gap-px">
-        <span className={cn(isCarousel ? "text-[12px] text-white/80" : "text-[11px] text-white/[0.78]")}>
+        <span className={cn("text-[var(--ink-muted)]", isCarousel ? "text-[12px]" : "text-[11px]")}>
           {typeLabel}
         </span>
         <Money
@@ -113,7 +115,7 @@ export function AccountThumb({
       style={cardSurface(color, "thumb")}
     >
       {isCash ? (
-        <BanknoteIcon size={16} strokeWidth={2} color="rgba(255,255,255,0.9)" />
+        <BanknoteIcon size={16} strokeWidth={2} color="var(--ink)" />
       ) : (
         <span
           className="absolute top-[9px] left-[6px] h-[7px] w-[9px] rounded-[2px]"

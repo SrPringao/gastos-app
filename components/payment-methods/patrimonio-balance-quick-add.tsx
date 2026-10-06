@@ -183,10 +183,13 @@ export function PatrimonioBalanceQuickAdd({
           boxShadow: mobile ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "var(--eb-group-ring)",
         }}
       >
-        <span className={mobile ? "text-[16px]" : "text-[15px]"}>{copy.label}</span>
-        <span className="flex items-center gap-3">
+        <span className={cn("whitespace-nowrap", mobile ? "text-[16px]" : "text-[15px]")}>{copy.label}</span>
+        <span className="flex items-center gap-2.5 whitespace-nowrap">
           <Money value={item.amount} private="netWorth" className="text-[15px] font-semibold" />
-          <Link href={`/patrimonio?entry=${item.id}`} className="eb-link flex items-center gap-0.5 text-[14px]">
+          <Link
+            href={`/patrimonio?entry=${item.id}`}
+            className="eb-link flex items-center gap-0.5 text-[14px] whitespace-nowrap"
+          >
             Ver en Patrimonio
             <ArrowUpRightIcon size={14} strokeWidth={2.2} aria-hidden="true" />
           </Link>

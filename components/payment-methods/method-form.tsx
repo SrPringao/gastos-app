@@ -193,6 +193,25 @@ function ColorSwatches({
           />
         );
       })}
+      {/* Cualquier color: abre el selector nativo del sistema */}
+      <label
+        className="relative cursor-pointer rounded-full focus-within:ring-2 focus-within:ring-[var(--eb-accent)]"
+        title="Elegir cualquier color"
+        style={{
+          width: size,
+          height: size,
+          background: "conic-gradient(from 90deg, #FF453A, #FF9F0A, #FFD60A, #30D158, #5AC8FA, #5E6BFF, #BF5AF2, #FF453A)",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.25)",
+        }}
+      >
+        <input
+          type="color"
+          aria-label="Elegir cualquier color"
+          value={value && /^#[0-9a-f]{6}$/i.test(value) ? value : "#5e6bff"}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        />
+      </label>
     </div>
   );
 }

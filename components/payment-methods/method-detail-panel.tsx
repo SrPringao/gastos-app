@@ -120,6 +120,60 @@ export function useWalletActions(item: PaymentMethodCatalogItem, onChanged: () =
   return { busy, add, remove };
 }
 
+/** Borrador de los campos generales de un metodo y su guardado explicito */
+export function useMethodDraft(item: PaymentMethodCatalogItem) {
+  const router = useRouter();
+  const [draft, setDraft] = useState<MethodDraft>(() => draftFrom(item));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const dirty = isDirty(draft, item);
+
+  async function save(): Promise<boolean> {
+    if (!dirty) return true;
+    if (!draft.name.trim()) {
+      setError("El nombre es requerido");
+      return false;
+    }
+    setSaving(true);
+    setError(null);
+    const res = await updateMethod(item.id, {
+      name: draft.name.trim(),
+      type: draft.type,
+      color: draft.color,
+      paymentDay: draft.type === "credit" ? draft.paymentDay : null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      return false;
+    }
+    showToast({ message: "Cambios guardados" });
+    router.refresh();
+    return true;
+  }
+
+  function reset() {
+    setDraft(draftFrom(item));
+    setError(null);
+  }
+
+  return {
+    draft,
+    update: (next: Partial<MethodDraft>) => setDraft((d) => ({ ...d, ...next })),
+    dirty,
+    saving,
+    error,
+    save,
+    reset,
+  };
+}
+
+/** Restaurar un metodo archivado */
+export async function restoreMethod(id: number, refresh: () => void) {
+  const res = await updateMethod(id, { archived: false });
+  if (res.ok) refresh();
+}
+
 /**
  * Panel "Detalle del metodo" (seccion 3.2, columna derecha). Los campos
  * generales se guardan con "Guardar cambios" (el patron de formularios
@@ -142,39 +196,10 @@ export function MethodDetailPanel({
   className?: string;
 }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<MethodDraft>(() => draftFrom(item));
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { draft, update, dirty, saving, error, save, reset } = useMethodDraft(item);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const wallet = useWalletActions(item, () => router.refresh());
-  const dirty = isDirty(draft, item);
-
-  async function save() {
-    if (!draft.name.trim()) {
-      setError("El nombre es requerido");
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    const res = await updateMethod(item.id, {
-      name: draft.name.trim(),
-      type: draft.type,
-      color: draft.color,
-      paymentDay: draft.type === "credit" ? draft.paymentDay : null,
-    });
-    setSaving(false);
-    if (!res.ok) {
-      setError(res.error);
-      return;
-    }
-    showToast({ message: "Cambios guardados" });
-    router.refresh();
-  }
-
-  async function restore() {
-    const res = await updateMethod(item.id, { archived: false });
-    if (res.ok) router.refresh();
-  }
+  const restore = () => restoreMethod(item.id, () => router.refresh());
 
   return (
     <div className={cn("flex flex-col gap-5", className)}>
@@ -197,18 +222,15 @@ export function MethodDetailPanel({
         />
       </FormSection>
 
-      <GeneralSection draft={draft} onChange={(next) => setDraft((d) => ({ ...d, ...next }))} variant={variant} />
-      <CreditSection draft={draft} onChange={(next) => setDraft((d) => ({ ...d, ...next }))} variant={variant} />
+      <GeneralSection draft={draft} onChange={update} variant={variant} />
+      <CreditSection draft={draft} onChange={update} variant={variant} />
 
       {(dirty || error) && (
         <div className="flex items-center justify-end gap-3">
           {error && <span className="text-eb-red mr-auto text-[13px]">{error}</span>}
           <button
             type="button"
-            onClick={() => {
-              setDraft(draftFrom(item));
-              setError(null);
-            }}
+            onClick={reset}
             className="text-eb-text-tertiary px-2 py-2 text-[14px]"
           >
             Cancelar

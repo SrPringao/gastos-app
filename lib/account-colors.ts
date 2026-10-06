@@ -40,7 +40,22 @@ export type AccountTone = {
   bright: string;
   /** Sombra de la tarjeta: el oscuro con alpha */
   shadow: string;
+  /** Color de texto sobre la tarjeta: blanco, u oscuro si el color es muy claro */
+  ink: string;
+  /** Texto secundario sobre la tarjeta (tipo, conteos) */
+  inkMuted: string;
 };
+
+/**
+ * Texto legible sobre el degradado: se mide la luminancia a la mitad del
+ * degradado (lo que realmente queda detras del texto).
+ */
+function inkFor(light: Rgb, dark: Rgb) {
+  const darkInk = luminance(mix(light, dark, 0.5)) > 0.55;
+  return darkInk
+    ? { ink: "#1C1C1E", inkMuted: "rgba(28,28,30,0.72)" }
+    : { ink: "#FFFFFF", inkMuted: "rgba(255,255,255,0.8)" };
+}
 
 const FALLBACK: Rgb = [110, 110, 117];
 const BLACK: Rgb = [0, 0, 0];
@@ -92,22 +107,20 @@ export function accountTone(hex: string | null | undefined): AccountTone {
       dark: fromPalette.to,
       bright: toHex(mix(light, WHITE, 0.12)),
       shadow: `rgba(${dark[0]},${dark[1]},${dark[2]},0.9)`,
+      ...inkFor(light, dark),
     };
   }
-  let base = parseHex(hex) ?? FALLBACK;
-  // Colores muy claros (lima, blanco) o casi negros no aguantan texto
-  // blanco encima ni dejan ver el degradado: se llevan a un rango medio.
-  const lum = luminance(base);
-  if (lum > 0.6) base = mix(base, BLACK, Math.min(0.55, (lum - 0.45) * 1.6));
-  if (lum < 0.12) base = mix(base, WHITE, 0.22);
-
-  const light = base;
-  const dark = mix(base, BLACK, 0.4);
+  // El color elegido por el usuario se respeta tal cual como inicio del
+  // degradado; solo se deriva el tono oscuro del final. La legibilidad se
+  // resuelve con el color del texto (ink), no alterando el color.
+  const light = parseHex(hex) ?? FALLBACK;
+  const dark = mix(light, BLACK, 0.4);
   const [r, g, b] = dark;
   return {
     light: toHex(light),
     dark: toHex(dark),
     bright: toHex(mix(light, WHITE, 0.12)),
     shadow: `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},0.9)`,
+    ...inkFor(light, dark),
   };
 }

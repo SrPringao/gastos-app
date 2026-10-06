@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const REDESIGNED_ROUTES = new Set(["/", "/gastos", "/patrimonio"]);
+const REDESIGNED_ROUTES = new Set(["/", "/gastos", "/cuentas", "/patrimonio"]);
 
 export function AppHeader() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export function AppHeader() {
     router.push("/login");
   }
 
-  // Inicio, Gastos y Patrimonio ya traen su propio header movil (titulo grande +
+  // Inicio, Gastos, Cuentas y Patrimonio ya traen su propio header movil (titulo grande +
   // avatar/acciones); la navegacion vive en la tab bar.
   if (REDESIGNED_ROUTES.has(pathname)) return null;
 
