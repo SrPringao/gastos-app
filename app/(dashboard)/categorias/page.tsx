@@ -89,7 +89,7 @@ function AddCategoryModal({ onSuccess }: { onSuccess: () => void }) {
           placeholder="Ej: Restaurantes"
           autoFocus
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="w-full max-w-xs border-0 bg-transparent p-0 text-center text-3xl font-bold tracking-tight outline-none placeholder:text-muted-foreground/50 focus:ring-0"
+          className="eb-rounded w-full max-w-xs border-0 bg-transparent p-0 text-center text-3xl font-bold tracking-tight outline-none placeholder:text-muted-foreground/50 focus:ring-0"
         />
       </div>
 
@@ -255,14 +255,14 @@ export default function CategoriasPage() {
                   <>
                     <button
                       onClick={() => setConfirmId(null)}
-                      className="text-muted-foreground hover:text-foreground rounded-full px-3 py-1 text-xs transition-colors"
+                      className="text-eb-text-tertiary hover:text-eb-text h-[30px] px-2 text-[13px]"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={() => handleDelete(cat.id)}
                       disabled={deletingId === cat.id}
-                      className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive hover:bg-destructive/20 transition-colors"
+                      className="text-eb-red h-[30px] rounded-[9px] bg-[rgba(255,105,97,0.14)] px-3 text-[13px] font-medium"
                     >
                       {deletingId === cat.id ? "..." : "Confirmar"}
                     </button>
@@ -270,9 +270,10 @@ export default function CategoriasPage() {
                 ) : (
                   <button
                     onClick={() => setConfirmId(cat.id)}
-                    className="text-muted-foreground hover:text-destructive rounded-full p-1.5 transition-colors"
+                    aria-label={`Eliminar ${cat.name}`}
+                    className="text-eb-red flex size-[30px] items-center justify-center rounded-[9px] bg-[rgba(255,105,97,0.14)]"
                   >
-                    <TrashIcon className="size-4" />
+                    <TrashIcon size={14} strokeWidth={2} />
                   </button>
                 )}
               </div>

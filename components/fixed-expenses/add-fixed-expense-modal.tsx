@@ -82,9 +82,9 @@ function ModalContent({
     <div className="flex flex-col gap-6">
       {/* Monto grande */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-muted-foreground text-sm">Monto mensual</span>
+        <span className="text-eb-text-tertiary text-sm">Monto mensual</span>
         <div className="flex items-baseline justify-center gap-0.5">
-          <span className="text-5xl font-bold tracking-tight sm:text-6xl">$</span>
+          <span className="eb-rounded text-eb-text-tertiary text-5xl font-bold tracking-tight sm:text-6xl">$</span>
           <input
             type="text"
             inputMode="decimal"
@@ -96,7 +96,7 @@ function ModalContent({
             placeholder="0"
             autoFocus
             aria-label="Monto"
-            className="w-full min-w-[80px] max-w-[240px] border-0 bg-transparent p-0 text-5xl font-bold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/60 focus:ring-0 sm:text-6xl"
+            className="w-full min-w-[80px] max-w-[240px] border-0 bg-transparent p-0 text-5xl font-bold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/60 focus:ring-0 sm:text-6xl eb-rounded"
           />
         </div>
       </div>
@@ -108,7 +108,7 @@ function ModalContent({
             key={preset}
             type="button"
             onClick={() => setAmount((prev) => String(parseAmount(prev) + preset))}
-            className="bg-muted hover:bg-muted/80 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+            className="text-eb-text-muted rounded-full bg-[var(--eb-glass-strong)] px-4 py-2 text-sm font-medium transition-colors hover:text-eb-text"
           >
             ${preset >= 1000 ? `${preset / 1000}k` : preset}
           </button>
@@ -116,7 +116,7 @@ function ModalContent({
       </div>
 
       {/* Nombre */}
-      <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
+      <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
         <input
           type="text"
           value={name}
@@ -129,8 +129,8 @@ function ModalContent({
 
       {/* Día y categoría en una fila */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-          <p className="text-muted-foreground mb-1 text-xs">Día de pago (opcional)</p>
+        <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
+          <p className="text-eb-text-tertiary mb-1 text-[12px]">Día de pago (opcional)</p>
           <input
             type="number"
             min="1"
@@ -141,8 +141,8 @@ function ModalContent({
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-          <p className="text-muted-foreground mb-1 text-xs">Etiqueta (opcional)</p>
+        <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
+          <p className="text-eb-text-tertiary mb-1 text-[12px]">Etiqueta (opcional)</p>
           <input
             type="text"
             value={category}

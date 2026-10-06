@@ -91,9 +91,9 @@ function EditModal({
     <div className="flex flex-col gap-5">
       {/* Monto */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-muted-foreground text-sm">Monto mensual</span>
+        <span className="text-eb-text-tertiary text-sm">Monto mensual</span>
         <div className="flex items-baseline justify-center gap-0.5">
-          <span className="text-4xl font-bold tracking-tight">$</span>
+          <span className="eb-rounded text-eb-text-tertiary text-4xl font-bold tracking-tight">$</span>
           <input
             type="text"
             inputMode="decimal"
@@ -103,14 +103,14 @@ function EditModal({
               if (v === "" || /^\d*\.?\d{0,2}$/.test(v)) setAmount(v);
             }}
             autoFocus
-            className="w-full min-w-[80px] max-w-[200px] border-0 bg-transparent p-0 text-4xl font-bold tracking-tight tabular-nums outline-none focus:ring-0"
+            className="w-full min-w-[80px] max-w-[200px] border-0 bg-transparent p-0 eb-rounded text-4xl font-bold tracking-tight tabular-nums outline-none focus:ring-0"
           />
         </div>
       </div>
 
       {/* Nombre */}
-      <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-        <p className="text-muted-foreground mb-1 text-xs">Nombre</p>
+      <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
+        <p className="text-eb-text-tertiary mb-1 text-[12px]">Nombre</p>
         <input
           type="text"
           value={name}
@@ -120,8 +120,8 @@ function EditModal({
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-          <p className="text-muted-foreground mb-1 text-xs">Día de pago</p>
+        <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
+          <p className="text-eb-text-tertiary mb-1 text-[12px]">Día de pago</p>
           <input
             type="number"
             min="1"
@@ -132,8 +132,8 @@ function EditModal({
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-          <p className="text-muted-foreground mb-1 text-xs">Etiqueta</p>
+        <div className="rounded-[12px] bg-[var(--eb-ios-fill)] px-4 py-3.5">
+          <p className="text-eb-text-tertiary mb-1 text-[12px]">Etiqueta</p>
           <input
             type="text"
             value={category}
@@ -286,7 +286,10 @@ export function FixedExpensesList({
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-[15px] font-medium">{item.name}</p>
                   {item.category && (
-                    <Badge variant="secondary" className="gap-1 text-xs font-normal">
+                    <Badge
+                      variant="secondary"
+                      className="text-eb-text-secondary gap-1 border-0 bg-[var(--eb-glass-strong)] text-[12px] font-normal"
+                    >
                       <TagIcon className="size-3" />
                       {item.category}
                     </Badge>
@@ -303,7 +306,7 @@ export function FixedExpensesList({
                     </span>
                   )}
                   {paid && paidAt && (
-                    <span className="text-emerald-600 dark:text-emerald-400">
+                    <span className="text-eb-green">
                       Pagado el{" "}
                       {new Date(paidAt).toLocaleDateString("es-MX", {
                         day: "numeric",
@@ -320,14 +323,14 @@ export function FixedExpensesList({
                   <>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-muted-foreground hover:text-foreground rounded-full px-3 py-1.5 text-xs transition-colors"
+                      className="text-eb-text-tertiary hover:text-eb-text h-[30px] px-2 text-[13px]"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
                       disabled={isDeleting}
-                      className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+                      className="text-eb-red h-[30px] rounded-[9px] bg-[rgba(255,105,97,0.14)] px-3 text-[13px] font-medium"
                     >
                       {isDeleting ? "Eliminando…" : "Confirmar"}
                     </button>
@@ -338,10 +341,10 @@ export function FixedExpensesList({
                       onClick={() => togglePayment(item.id)}
                       disabled={isLoading}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                        "flex h-[30px] items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-medium transition-colors",
                         paid
-                          ? "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-400"
-                          : "border-border border hover:bg-muted text-muted-foreground"
+                          ? "text-eb-green bg-[rgba(48,209,88,0.14)] hover:bg-[rgba(48,209,88,0.22)]"
+                          : "text-eb-text-muted hover:text-eb-text bg-[var(--eb-glass-strong)]"
                       )}
                     >
                       {isLoading ? (
@@ -353,15 +356,17 @@ export function FixedExpensesList({
                     </button>
                     <button
                       onClick={() => setEditingItem(item)}
-                      className="text-muted-foreground hover:text-foreground rounded-full p-1.5 transition-colors"
+                      aria-label={`Editar ${item.name}`}
+                      className="text-eb-text-muted flex size-[30px] items-center justify-center rounded-[9px] bg-[var(--eb-glass-strong)]"
                     >
-                      <PencilIcon className="size-4" />
+                      <PencilIcon size={14} strokeWidth={2} />
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(item.id)}
-                      className="text-muted-foreground hover:text-destructive rounded-full p-1.5 transition-colors"
+                      aria-label={`Eliminar ${item.name}`}
+                      className="text-eb-red flex size-[30px] items-center justify-center rounded-[9px] bg-[rgba(255,105,97,0.14)]"
                     >
-                      <TrashIcon className="size-4" />
+                      <TrashIcon size={14} strokeWidth={2} />
                     </button>
                   </>
                 )}

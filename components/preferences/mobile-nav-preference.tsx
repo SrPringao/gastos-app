@@ -101,7 +101,7 @@ export function MobileNavPreference() {
                 "hover:bg-secondary/60 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               )}
             >
-              <span className="bg-secondary text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+              <span className="text-eb-text-secondary flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-[var(--eb-neutral-tile)]">
                 <item.icon className="size-4" />
               </span>
               <span className="flex-1 text-sm font-medium">{candidateLabel(candidate)}</span>
@@ -150,12 +150,12 @@ export function MobileNavPreference() {
               return (
                 <li
                   key={id}
-                  className="border-border bg-background/50 flex items-center gap-2 rounded-lg border px-2 py-1.5"
+                  className="flex items-center gap-2 rounded-[12px] bg-[var(--eb-group-bg)] px-2 py-1.5 shadow-[var(--eb-group-ring)]"
                 >
-                  <span className="bg-primary text-primary-foreground font-figures flex size-5 shrink-0 items-center justify-center rounded-full text-xs">
+                  <span className="eb-rounded flex size-5 shrink-0 items-center justify-center rounded-[6px] text-[11px] font-bold text-white [background:linear-gradient(180deg,var(--eb-accent-light),var(--eb-accent))]">
                     {index + 1}
                   </span>
-                  <span className="bg-secondary text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+                  <span className="text-eb-text-secondary flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-[var(--eb-neutral-tile)]">
                     <item.icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">

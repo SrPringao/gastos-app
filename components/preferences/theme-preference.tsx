@@ -32,18 +32,18 @@ export function ThemePreference() {
                 type="button"
                 onClick={() => setTheme(option.value)}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-4 transition-colors",
+                  "flex flex-col items-center gap-2 rounded-[16px] p-4 transition-colors",
                   isActive
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:bg-secondary/60"
+                    ? "bg-[rgba(94,107,255,0.12)] shadow-[inset_0_0_0_1px_rgba(94,107,255,0.35)]"
+                    : "bg-[var(--eb-group-bg)] shadow-[var(--eb-group-ring)] hover:bg-[var(--eb-fill-subtle)]"
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-10 items-center justify-center rounded-full",
+                    "flex size-10 items-center justify-center rounded-[11px]",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
+                      ? "text-white [background:linear-gradient(180deg,var(--eb-accent-light),var(--eb-accent))] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_4px_10px_-4px_var(--eb-accent-glow)]"
+                      : "text-eb-text-secondary bg-[var(--eb-neutral-tile)]"
                   )}
                 >
                   <option.icon className="size-5" />
