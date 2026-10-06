@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
 import { MobileNav, DashboardMain } from "@/components/mobile-nav";
 import { DesktopQuickMenu } from "@/components/desktop-quick-menu";
 import { PushNotificationPrompt } from "@/components/push-notification-prompt";
@@ -11,6 +10,7 @@ import { Grain } from "@/components/ui/eb/grain";
 import { PrivacyShortcut } from "@/components/privacy";
 import { Toaster } from "@/components/ui/eb/toast";
 import { MobileMenuProvider } from "@/components/mobile-menu-context";
+import { MobileMenu, MobileMenuStage } from "@/components/mobile-menu";
 
 export default async function DashboardLayout({
   children,
@@ -40,24 +40,20 @@ export default async function DashboardLayout({
       >
         <Grain />
         <AppSidebar />
-        <div
-          className="relative z-[1] flex h-full min-w-0 w-full flex-col"
-          style={{
-            touchAction: 'none',
-            overscrollBehavior: 'none'
-          }}
-        >
-          <div 
-            className="sticky top-0 z-50 flex-shrink-0"
-            style={{ 
-              touchAction: 'none'
+        {/* El contenido y la tab bar quedan detras del menu lateral movil */}
+        <MobileMenuStage className="relative z-[1] flex h-full min-w-0 w-full flex-col">
+          <div
+            className="flex h-full min-w-0 w-full flex-col"
+            style={{
+              touchAction: 'none',
+              overscrollBehavior: 'none'
             }}
           >
-            <AppHeader />
+            <DashboardMain>{children}</DashboardMain>
           </div>
-          <DashboardMain>{children}</DashboardMain>
-        </div>
-        <MobileNav />
+          <MobileNav />
+        </MobileMenuStage>
+        <MobileMenu />
         <PrivacyShortcut />
         <Toaster />
         <DesktopQuickMenu />

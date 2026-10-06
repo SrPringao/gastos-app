@@ -18,7 +18,7 @@ import { FEATURES, type FeatureKey } from "@/lib/features";
 
 /**
  * Fuente unica de verdad para la navegacion de la app: sidebar (desktop),
- * mobile-nav (tab bar inferior) y app-header (sheet movil) consumen esta
+ * mobile-nav (tab bar inferior) y mobile-menu (menu lateral movil) consumen esta
  * misma estructura, para que un cambio de item/orden/icono se propague a
  * las tres superficies sin tener que editarlas por separado.
  */

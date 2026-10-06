@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
+  allMobileNavCandidates,
   isNavItemActive,
   resolveTabBarEntries,
   type MobileNavEntry,
@@ -13,11 +14,21 @@ import {
 } from "@/lib/nav-config";
 import { usePreferences } from "@/components/preferences-provider";
 import { QuickActionOverlays } from "@/components/quick-action-overlays";
+import { MobileHeader } from "@/components/mobile-header";
 
 /** Alto de la tab bar: 84px incluyendo el safe area inferior */
 const TAB_BAR_HEIGHT = "max(84px, calc(50px + env(safe-area-inset-bottom)))";
 
+/** Pantallas con su propio MobileHeader (titulo grande + accion derecha) */
+const ROUTES_WITH_OWN_HEADER = new Set(["/", "/gastos", "/cuentas", "/patrimonio"]);
+
 export function DashboardMain({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // El resto de pantallas recibe el mismo header flotante, solo con el boton de menu
+  const genericTitle = ROUTES_WITH_OWN_HEADER.has(pathname)
+    ? null
+    : (allMobileNavCandidates.find((item) => isNavItemActive(pathname, item))?.label ?? "ExpenseBro");
+
   return (
     <main
       data-scrollable
@@ -32,6 +43,7 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
         } as React.CSSProperties
       }
     >
+      {genericTitle && <MobileHeader title={genericTitle} inset={false} />}
       {children}
     </main>
   );

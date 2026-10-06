@@ -502,6 +502,33 @@
   .eb-hdr-compact { transition: none; }
 }
 
+/* Menu lateral movil (seccion 2): panel desde la izquierda y la pagina de
+   atras se reduce, desplaza y desenfoca */
+.eb-menu-panel[data-state="open"] { animation: eb-menu-in 320ms cubic-bezier(.2,.8,.2,1); }
+.eb-menu-panel[data-state="closed"] { animation: eb-menu-out 320ms cubic-bezier(.2,.8,.2,1); }
+.eb-menu-overlay[data-state="open"] { animation: eb-fade-in 320ms cubic-bezier(.2,.8,.2,1); }
+.eb-menu-overlay[data-state="closed"] { animation: eb-fade-out 320ms cubic-bezier(.2,.8,.2,1); }
+@keyframes eb-menu-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes eb-menu-out { from { transform: none; } to { transform: translateX(-100%); } }
+@keyframes eb-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes eb-fade-out { from { opacity: 1; } to { opacity: 0; } }
+.eb-menu-stage {
+  transform-origin: 0% 50%;
+  transition: transform 320ms cubic-bezier(.2,.8,.2,1), filter 320ms cubic-bezier(.2,.8,.2,1), opacity 320ms cubic-bezier(.2,.8,.2,1);
+}
+@media (max-width: 767px) {
+  .eb-menu-stage[data-menu-open="true"] {
+    transform: scale(0.94) translateX(60px);
+    filter: blur(6px);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-menu-panel[data-state],
+  .eb-menu-overlay[data-state] { animation: none; }
+  .eb-menu-stage { transition: none; }
+}
+
 /* Titulo de pagina de una palabra ("Octubre", "Patrimonio") */
 .eb-title {
   margin: 0;

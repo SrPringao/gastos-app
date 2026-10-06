@@ -20,6 +20,7 @@ export function MobileHeader({
   subtitle,
   rightAction,
   tint = "indigo",
+  inset = true,
   titleClassName,
   children,
 }: {
@@ -31,6 +32,11 @@ export function MobileHeader({
   rightAction?: React.ReactNode;
   /** Tinte del glow del estado compacto: verde en Patrimonio, indigo en el resto */
   tint?: "indigo" | "green";
+  /**
+   * true (default): va dentro del contenedor de la pagina y compensa su
+   * padding (lateral y superior). false: va directo en <main>, sin contenedor.
+   */
+  inset?: boolean;
   /** Clases del contenedor del titulo grande (ajuste del gap con la fila) */
   titleClassName?: string;
   /** Titulo grande de la pagina (con su sobretitulo); se observa para el estado compacto */
@@ -61,9 +67,9 @@ export function MobileHeader({
       <header
         ref={headerRef}
         data-compact={compact}
-        className="sticky top-0 z-40 -mx-4 md:hidden"
+        className={cn("sticky top-0 z-40 md:hidden", inset && "-mx-4")}
         style={{
-          marginTop: "calc(-1 * (env(safe-area-inset-top) + 8px))",
+          marginTop: inset ? "calc(-1 * (env(safe-area-inset-top) + 8px))" : undefined,
           paddingTop: "calc(env(safe-area-inset-top) + 8px)",
         }}
       >

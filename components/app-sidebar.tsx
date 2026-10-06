@@ -204,14 +204,11 @@ function GlassButton({
   );
 }
 
-export function AppSidebar() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+/** Tema, sincronizar y cerrar sesion: compartidos por el sidebar y el menu movil */
+export function useSessionActions() {
   const router = useRouter();
   const { theme, setTheme } = usePreferences();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [manuallyOpen, setManuallyOpen] = useState<Record<string, boolean>>({});
-  const activeTab = searchParams.get("tab") ?? undefined;
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -225,6 +222,109 @@ export function AppSidebar() {
     router.push("/login");
   }
 
+  return {
+    theme,
+    toggleTheme: () => setTheme(theme === "dark" ? "light" : "dark"),
+    isRefreshing,
+    handleRefresh,
+    handleSignOut,
+  };
+}
+
+/**
+ * Secciones del sidebar (Principal, Cuentas, Gestion, Sistema) con su
+ * estado activo segun la ruta. La reutiliza el menu lateral movil.
+ */
+export function SidebarNav({ className }: { className?: string }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [manuallyOpen, setManuallyOpen] = useState<Record<string, boolean>>({});
+  const activeTab = searchParams.get("tab") ?? undefined;
+
+  return (
+    <nav aria-label="Principal" className={className}>
+      {navGroups.map((group, groupIndex) => (
+        <div key={group.label}>
+          <NavGroupLabel first={groupIndex === 0}>{group.label}</NavGroupLabel>
+          <div className="space-y-0.5">
+            {group.items.map((item) => {
+              const isActive = isNavItemActive(pathname, item);
+
+              if (!item.subItems) {
+                return (
+                  <NavLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    icon={item.icon}
+                    isActive={isActive}
+                  />
+                );
+              }
+
+              const isOpen = isActive || manuallyOpen[item.label];
+              return (
+                <div key={item.label}>
+                  <NavGroupTrigger
+                    label={item.label}
+                    icon={item.icon}
+                    isActive={isActive}
+                    isOpen={isOpen}
+                    onToggle={() =>
+                      setManuallyOpen((prev) => ({
+                        ...prev,
+                        [item.label]: !prev[item.label],
+                      }))
+                    }
+                  />
+                  {isOpen && (
+                    <div className="space-y-0.5 pt-0.5 pb-1">
+                      {item.subItems.map((sub) => (
+                        <NavSubLink
+                          key={sub.tab ?? sub.href}
+                          href={sub.href}
+                          label={sub.label}
+                          icon={sub.icon}
+                          isActive={
+                            sub.tab ? isActive && activeTab === sub.tab : pathname === sub.href
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+/** Fila "Cerrar sesion" con el mismo lenguaje que los items del sidebar */
+export function SignOutRow({ onSignOut, className }: { onSignOut: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onSignOut}
+      className={cn(rowBase, "text-eb-text-secondary hover:bg-[rgba(255,105,97,0.1)] hover:text-eb-red", className)}
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-7 shrink-0 items-center justify-center rounded-[8px]"
+        style={{ background: "var(--eb-neutral-tile)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}
+      >
+        <LogOut size={16} strokeWidth={2} />
+      </span>
+      Cerrar sesión
+    </button>
+  );
+}
+
+export function AppSidebar() {
+  const { theme, toggleTheme, isRefreshing, handleRefresh, handleSignOut } = useSessionActions();
+
   return (
     <aside
       className="eb-card text-eb-text fixed top-3 bottom-3 left-3 z-30 hidden w-64 flex-col overflow-hidden rounded-[26px] md:flex"
@@ -237,69 +337,13 @@ export function AppSidebar() {
         </Link>
       </div>
 
-      <nav aria-label="Principal" className="flex-1 overflow-y-auto px-3 py-4">
-        {navGroups.map((group, groupIndex) => (
-          <div key={group.label}>
-            <NavGroupLabel first={groupIndex === 0}>{group.label}</NavGroupLabel>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const isActive = isNavItemActive(pathname, item);
-
-                if (!item.subItems) {
-                  return (
-                    <NavLink
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      icon={item.icon}
-                      isActive={isActive}
-                    />
-                  );
-                }
-
-                const isOpen = isActive || manuallyOpen[item.label];
-                return (
-                  <div key={item.label}>
-                    <NavGroupTrigger
-                      label={item.label}
-                      icon={item.icon}
-                      isActive={isActive}
-                      isOpen={isOpen}
-                      onToggle={() =>
-                        setManuallyOpen((prev) => ({
-                          ...prev,
-                          [item.label]: !prev[item.label],
-                        }))
-                      }
-                    />
-                    {isOpen && (
-                      <div className="space-y-0.5 pt-0.5 pb-1">
-                        {item.subItems.map((sub) => (
-                          <NavSubLink
-                            key={sub.tab ?? sub.href}
-                            href={sub.href}
-                            label={sub.label}
-                            icon={sub.icon}
-                            isActive={
-                              sub.tab ? isActive && activeTab === sub.tab : pathname === sub.href
-                            }
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
+      <SidebarNav className="flex-1 overflow-y-auto px-3 py-4" />
 
       <div className="border-eb-separator border-t p-3">
         <div className="mb-2 flex items-center justify-center gap-2">
           <GlassButton
             label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={toggleTheme}
           >
             {theme === "dark" ? <SunIcon size={16} strokeWidth={2} /> : <MoonIcon size={16} strokeWidth={2} />}
           </GlassButton>
@@ -307,20 +351,7 @@ export function AppSidebar() {
             <RefreshCw size={16} strokeWidth={2} className={cn(isRefreshing && "animate-spin")} />
           </GlassButton>
         </div>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className={cn(rowBase, "text-eb-text-secondary w-full hover:bg-[rgba(255,105,97,0.1)] hover:text-eb-red")}
-        >
-          <span
-            aria-hidden="true"
-            className="flex size-7 shrink-0 items-center justify-center rounded-[8px]"
-            style={{ background: "var(--eb-neutral-tile)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}
-          >
-            <LogOut size={16} strokeWidth={2} />
-          </span>
-          Cerrar sesión
-        </button>
+        <SignOutRow onSignOut={handleSignOut} className="w-full" />
       </div>
     </aside>
   );
