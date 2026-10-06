@@ -656,7 +656,7 @@ export function NetWorthView({
       <PageGlow variant="net-worth" className="md:hidden" />
       <div className="relative z-[1] mx-auto flex max-w-[1120px] flex-col gap-[26px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14 md:gap-7 md:px-6 md:pt-10 md:pb-16 lg:px-12">
         <header className="flex items-end justify-between gap-4 px-1 md:px-0">
-          <h1 className="m-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em]">Patrimonio</h1>
+          <h1 className="eb-title">Patrimonio</h1>
           <div className="flex items-center gap-2">
             <button
               type="button"

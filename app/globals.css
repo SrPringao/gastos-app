@@ -393,6 +393,24 @@
   font-family: var(--eb-font-rounded);
 }
 
+/* Titulo de pagina de una palabra ("Octubre", "Patrimonio") */
+.eb-title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Titulo de tarjeta ("Recientes", "Cuentas") */
+.eb-card-title {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--eb-text);
+}
+
 .eb-link {
   color: var(--eb-link);
   transition: color 150ms ease;
@@ -421,7 +439,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eb-anim { transition: none !important; }
+  .eb-anim,
+  .eb-row,
+  .eb-row-actions,
+  .eb-btn-primary,
+  .eb-link {
+    transition: none !important;
+  }
 }
 
 /* Recharts pone su <svg> raiz como focuseable (accesibilidad de teclado),

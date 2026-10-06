@@ -6,7 +6,7 @@ import {
 } from "@/lib/services/fixed-expenses";
 import { FixedExpensesList } from "@/components/fixed-expenses/fixed-expenses-list";
 import { AddFixedExpenseTrigger } from "@/components/fixed-expenses/add-fixed-expense-trigger";
-import { MonthSelector } from "@/components/month-selector";
+import { MonthSwitcher } from "@/components/ui/eb/month-switcher";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ export default async function GastosFijosPage({
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Gastos Fijos</h1>
+          <h1 className="eb-title">Gastos Fijos</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Seguimiento de pagos recurrentes — {monthLabel}
           </p>
@@ -49,7 +49,7 @@ export default async function GastosFijosPage({
             <AddFixedExpenseTrigger />
           </div>
           <Suspense fallback={null}>
-            <MonthSelector />
+            <MonthSwitcher />
           </Suspense>
         </div>
       </div>

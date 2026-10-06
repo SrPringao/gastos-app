@@ -134,7 +134,7 @@ export default async function DashboardPage({
               </div>
               <Suspense
                 fallback={
-                  <h1 className="m-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em]">
+                  <h1 className="eb-title">
                     {month}
                   </h1>
                 }
@@ -183,7 +183,7 @@ export default async function DashboardPage({
               <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
                 {formatLongDay(today)}
               </div>
-              <h1 className="m-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em]">
+              <h1 className="eb-title">
                 {month}
               </h1>
             </div>

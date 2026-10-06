@@ -16,7 +16,7 @@ import { ExpensesByDayCard } from "@/components/expenses-dashboard/expenses-by-d
 import { ExpensesBudgetProgressChart } from "@/components/expenses-dashboard/expenses-budget-progress-chart";
 import { ExpensesByAccountChart } from "@/components/expenses-dashboard/expenses-by-account-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MonthSelector } from "@/components/month-selector";
+import { MonthSwitcher } from "@/components/ui/eb/month-switcher";
 import { BudgetAlert } from "@/components/expenses-dashboard/budget-alert";
 import { Suspense } from "react";
 
@@ -65,7 +65,7 @@ export default async function GastosPage({
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-heading-sm tracking-tight">Gastos</h1>
+          <h1 className="eb-title">Gastos</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Metricas, graficas e historial de transacciones
           </p>
@@ -75,7 +75,7 @@ export default async function GastosPage({
             <QuickAddExpense accounts={accounts} categories={categories} />
           </div>
           <Suspense fallback={null}>
-            <MonthSelector />
+            <MonthSwitcher />
           </Suspense>
         </div>
       </div>

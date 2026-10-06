@@ -15,7 +15,7 @@ export default async function AgregarAutomatizacionPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="eb-title">
           Agregar automatizacion
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">

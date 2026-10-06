@@ -169,7 +169,7 @@ export function ScenarioSimulator({
           <FlaskConicalIcon className="text-primary size-5" />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          <h1 className="eb-title">
             Simulador de escenarios
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">

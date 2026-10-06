@@ -5,7 +5,7 @@ import { getCategories } from "@/lib/services/categories";
 import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
 import { redirect } from "next/navigation";
 import { ScenarioSimulator } from "@/components/scenario-simulator";
-import { MonthSelector } from "@/components/month-selector";
+import { MonthSwitcher } from "@/components/ui/eb/month-switcher";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,7 @@ export default async function SimuladorPage({
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div />
         <Suspense fallback={null}>
-          <MonthSelector />
+          <MonthSwitcher />
         </Suspense>
       </div>
 

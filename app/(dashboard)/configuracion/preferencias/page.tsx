@@ -12,7 +12,7 @@ export default async function PreferenciasPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-heading-sm tracking-tight">Preferencias</h1>
+        <h1 className="eb-title">Preferencias</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Ajustes personales de la app, guardados en tu cuenta
         </p>

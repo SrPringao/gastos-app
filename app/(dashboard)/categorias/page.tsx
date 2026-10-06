@@ -209,7 +209,7 @@ export default function CategoriasPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Categorías</h1>
+          <h1 className="eb-title">Categorías</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Administra las categorías de tus gastos
           </p>
