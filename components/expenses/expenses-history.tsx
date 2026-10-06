@@ -241,7 +241,9 @@ export function HistoryDesktop({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className="text-eb-text flex min-w-[150px] flex-none flex-col gap-2 rounded-[16px] px-[14px] py-3 text-left"
+      // Con pocos metodos se reparten el ancho del Historial (fila simetrica);
+      // con muchos conservan 150px y la fila se desplaza en horizontal.
+      className="text-eb-text flex min-w-[150px] flex-[1_1_150px] flex-col gap-2 rounded-[16px] px-[14px] py-3 text-left"
       style={
         active
           ? { background: "var(--eb-chip-active)", boxShadow: "var(--eb-chip-active-shadow)" }
