@@ -14,7 +14,7 @@ const rowClass =
   "flex min-h-[48px] w-full items-center gap-3 px-4 text-left text-[16px] transition-colors hover:bg-[var(--eb-fill-subtle)]";
 
 /**
- * Avatar del header movil. Abre el perfil: navegacion completa (lo que no
+ * Avatar del header movil (accion derecha de Inicio). Abre el perfil: navegacion completa (lo que no
  * cabe en la tab bar), tema, sincronizar, configuracion y cerrar sesion.
  */
 export function ProfileMenu({ name }: { name: string }) {
@@ -42,8 +42,8 @@ export function ProfileMenu({ name }: { name: string }) {
         <button
           type="button"
           aria-label="Perfil"
-          className="text-eb-text flex size-9 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold"
-          style={{ background: "var(--eb-avatar-bg)" }}
+          className="eb-hdr-btn text-eb-text text-[15px] font-semibold"
+          style={{ background: "var(--eb-hdr-avatar-bg)", boxShadow: "var(--eb-hdr-avatar-shadow)" }}
         >
           {initialOf(name)}
         </button>

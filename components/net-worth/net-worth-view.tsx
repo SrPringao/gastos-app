@@ -22,6 +22,7 @@ import { CategoryTile } from "@/components/ui/eb/category-tile";
 import { SegmentedBar } from "@/components/ui/eb/segmented-bar";
 import { GroupHeader } from "@/components/ui/eb/grouped-list";
 import { PageGlow } from "@/components/ui/eb/page-glow";
+import { MobileHeader, HeaderIconButton } from "@/components/mobile-header";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PRIVATE_MASK, usePrivacy } from "@/components/privacy";
 import { EntryFormDialog } from "@/components/net-worth/entry-form-dialog";
@@ -266,12 +267,15 @@ export function NetWorthView({
   entries,
   projections,
   highlightEntryId,
+  footer,
 }: {
   accounts: Account[];
   entries: NetWorthEntry[];
   projections: NetWorthProjection[];
   /** Item a resaltar al llegar desde Cuentas ("Ver en Patrimonio") */
   highlightEntryId?: number;
+  /** Contenido al final de la pagina, dentro del contenedor del header sticky movil */
+  footer?: React.ReactNode;
 }) {
   const router = useRouter();
   const { hidden, toggle: toggleHidden } = usePrivacy("netWorth");
@@ -295,7 +299,8 @@ export function NetWorthView({
     const timer = window.setTimeout(() => el.classList.remove("eb-highlight"), 2400);
     return () => window.clearTimeout(timer);
   }, [highlightEntryId]);
-  const [addOpen, setAddOpen] = useState(false);
+  // Menu "Agregar": un trigger en el header movil y otro en el de escritorio
+  const [addOpen, setAddOpen] = useState<"mobile" | "desktop" | null>(null);
   const [busy, setBusy] = useState(false);
   const today = todayDateString();
 
@@ -686,11 +691,57 @@ export function NetWorthView({
     </div>
   );
 
+  function addMenu(where: "mobile" | "desktop", trigger: React.ReactNode) {
+    return (
+      <Popover open={addOpen === where} onOpenChange={(open) => setAddOpen(open ? where : null)}>
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+        <PopoverContent align="end" className="w-52 p-1.5">
+          {(
+            [
+              { kind: "asset", label: "Positivo", hint: "Cuenta, préstamo o ingreso" },
+              { kind: "debt", label: "Deuda", hint: "Tarjeta o pago pendiente" },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.kind}
+              type="button"
+              onClick={() => {
+                setAddOpen(null);
+                setDialog({ type: "entry", kind: option.kind });
+              }}
+              className="flex w-full flex-col rounded-[10px] px-3 py-2 text-left transition-colors hover:bg-[var(--eb-fill-subtle)]"
+            >
+              <span className="text-[15px] font-medium">{option.label}</span>
+              <span className="text-eb-text-tertiary text-[12px]">{option.hint}</span>
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
-    <div className="relative overflow-hidden">
+    // overflow-clip (no hidden): hidden crearia otro contenedor de scroll y romperia el sticky del header movil
+    <div className="relative overflow-clip">
       <PageGlow variant="net-worth" className="md:hidden" />
-      <div className="relative z-[1] mx-auto flex max-w-[1120px] flex-col gap-[26px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14 md:gap-7 md:px-6 md:pt-10 md:pb-16 lg:px-12">
-        <header className="flex items-end justify-between gap-4 px-1 md:px-0">
+      <div className="relative z-[1] mx-auto flex max-w-[1120px] flex-col gap-[26px] px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-14 md:gap-7 md:px-6 md:pt-10 md:pb-16 lg:px-12">
+        <MobileHeader
+          title="Patrimonio"
+          tint="green"
+          titleClassName="-mt-3 md:hidden"
+          rightAction={addMenu(
+            "mobile",
+            <HeaderIconButton aria-label="Agregar">
+              <PlusIcon size={18} strokeWidth={2.4} aria-hidden="true" />
+            </HeaderIconButton>
+          )}
+        >
+          <header className="px-1">
+            <h1 className="eb-title">Patrimonio</h1>
+          </header>
+        </MobileHeader>
+
+        <header className="hidden items-end justify-between gap-4 md:flex">
           <h1 className="eb-title">Patrimonio</h1>
           <div className="flex items-center gap-2">
             <button
@@ -703,34 +754,12 @@ export function NetWorthView({
             >
               {hidden ? <EyeOffIcon size={18} strokeWidth={2} /> : <EyeIcon size={18} strokeWidth={2} />}
             </button>
-            <Popover open={addOpen} onOpenChange={setAddOpen}>
-              <PopoverTrigger asChild>
-                <button type="button" aria-label="Agregar" className={headerButtonClass} style={headerButtonStyle}>
-                  <PlusIcon size={18} strokeWidth={2.4} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-52 p-1.5">
-                {(
-                  [
-                    { kind: "asset", label: "Positivo", hint: "Cuenta, préstamo o ingreso" },
-                    { kind: "debt", label: "Deuda", hint: "Tarjeta o pago pendiente" },
-                  ] as const
-                ).map((option) => (
-                  <button
-                    key={option.kind}
-                    type="button"
-                    onClick={() => {
-                      setAddOpen(false);
-                      setDialog({ type: "entry", kind: option.kind });
-                    }}
-                    className="flex w-full flex-col rounded-[10px] px-3 py-2 text-left transition-colors hover:bg-[var(--eb-fill-subtle)]"
-                  >
-                    <span className="text-[15px] font-medium">{option.label}</span>
-                    <span className="text-eb-text-tertiary text-[12px]">{option.hint}</span>
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
+            {addMenu(
+              "desktop",
+              <button type="button" aria-label="Agregar" className={headerButtonClass} style={headerButtonStyle}>
+                <PlusIcon size={18} strokeWidth={2.4} />
+              </button>
+            )}
           </div>
         </header>
 
@@ -746,6 +775,8 @@ export function NetWorthView({
           {leftColumn}
           {rightColumn}
         </div>
+
+        {footer}
       </div>
 
       {dialog?.type === "entry" && (

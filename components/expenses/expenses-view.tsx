@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SlidersHorizontalIcon } from "lucide-react";
 import { MonthSwitcher, MonthTitleSelect } from "@/components/ui/eb/month-switcher";
 import { PageGlow } from "@/components/ui/eb/page-glow";
+import { MobileHeader, HeaderIconButton } from "@/components/mobile-header";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NewExpenseButton } from "@/components/dashboard/new-expense-button";
 import { SpentKpi, TransactionsKpi, LargestKpi } from "@/components/expenses/expenses-kpis";
@@ -92,44 +93,46 @@ export function ExpensesView({
   return (
     <>
       {/* Movil (< 768px) */}
-      <div className="relative overflow-hidden md:hidden">
+      {/* overflow-clip (no hidden): hidden crearia otro contenedor de scroll y romperia el sticky del header */}
+      <div className="relative overflow-clip md:hidden">
         <PageGlow variant="home" />
-        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14">
-          <header className="flex items-end justify-between px-1">
-            <div className="flex flex-col gap-0.5">
+        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-14">
+          <MobileHeader
+            title="Gastos"
+            subtitle={`${month} ${monthKey.slice(0, 4)}`}
+            titleClassName="-mt-2"
+            rightAction={
+              <Sheet>
+                <SheetTrigger asChild>
+                  <HeaderIconButton aria-label="Filtros">
+                    <SlidersHorizontalIcon size={18} strokeWidth={2.2} aria-hidden="true" />
+                    {filters.hasFilters && (
+                      <span className="bg-eb-accent absolute top-1 right-1 size-2 rounded-full" aria-hidden="true" />
+                    )}
+                  </HeaderIconButton>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="text-eb-text rounded-t-[24px] px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+                >
+                  <SheetHeader className="p-0 text-left">
+                    <SheetTitle className="eb-card-title">Filtros</SheetTitle>
+                    <SheetDescription className="sr-only">Categoría, fecha y orden del historial</SheetDescription>
+                  </SheetHeader>
+                  <MobileFilterControls filters={filters} categories={edit.categories} />
+                </SheetContent>
+              </Sheet>
+            }
+          >
+            <header className="flex flex-col gap-0.5 px-1">
               <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
                 {month} {monthKey.slice(0, 4)}
               </div>
               <Suspense fallback={<h1 className="eb-title">Gastos</h1>}>
                 <MonthTitleSelect title="Gastos" />
               </Suspense>
-            </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Filtros"
-                  className="text-eb-link relative flex size-9 items-center justify-center rounded-full"
-                  style={{ background: "var(--eb-glass-strong)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
-                >
-                  <SlidersHorizontalIcon size={18} strokeWidth={2.2} aria-hidden="true" />
-                  {filters.hasFilters && (
-                    <span className="bg-eb-accent absolute top-1 right-1 size-2 rounded-full" aria-hidden="true" />
-                  )}
-                </button>
-              </SheetTrigger>
-              <SheetContent
-                side="bottom"
-                className="text-eb-text rounded-t-[24px] px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
-              >
-                <SheetHeader className="p-0 text-left">
-                  <SheetTitle className="eb-card-title">Filtros</SheetTitle>
-                  <SheetDescription className="sr-only">Categoría, fecha y orden del historial</SheetDescription>
-                </SheetHeader>
-                <MobileFilterControls filters={filters} categories={edit.categories} />
-              </SheetContent>
-            </Sheet>
-          </header>
+            </header>
+          </MobileHeader>
 
           <SpentKpi variant="mobile" monthLabel={month} stats={stats} budget={budget} />
           <div className="grid grid-cols-2 gap-[14px]">

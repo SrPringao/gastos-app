@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRightIcon, PlusIcon, ZapIcon } from "lucide-react";
 import { EbCard } from "@/components/ui/eb/card";
 import { PageGlow } from "@/components/ui/eb/page-glow";
+import { MobileHeader, HeaderIconButton } from "@/components/mobile-header";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { showToast } from "@/components/ui/eb/toast";
 import { CardChip, PreviewCard, SHORTCUT_GRADIENT, ShortcutBadge, TYPE_LABELS, cardSurface } from "./method-cards";
@@ -394,26 +395,26 @@ export function AccountsMobile({
   }
 
   return (
-    <div className="relative overflow-hidden md:hidden">
+    // overflow-clip (no hidden): hidden crearia otro contenedor de scroll y romperia el sticky del header
+    <div className="relative overflow-clip md:hidden">
       <PageGlow variant="home" />
-      <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14">
-        <header className="flex items-end justify-between px-1">
-          <div className="flex flex-col gap-0.5">
+      <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-14">
+        <MobileHeader
+          title="Cuentas"
+          titleClassName="-mt-2"
+          rightAction={
+            <HeaderIconButton aria-label="Nuevo método" onClick={onNewMethod}>
+              <PlusIcon size={18} strokeWidth={2.4} aria-hidden="true" />
+            </HeaderIconButton>
+          }
+        >
+          <header className="flex flex-col gap-0.5 px-1">
             <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
               Métodos de pago
             </div>
             <h1 className="eb-title">Cuentas</h1>
-          </div>
-          <button
-            type="button"
-            aria-label="Nuevo método"
-            onClick={onNewMethod}
-            className="text-eb-link flex size-9 items-center justify-center rounded-full"
-            style={{ background: "var(--eb-glass-strong)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
-          >
-            <PlusIcon size={18} strokeWidth={2.4} />
-          </button>
-        </header>
+          </header>
+        </MobileHeader>
 
         {active.length > 0 ? (
           <>

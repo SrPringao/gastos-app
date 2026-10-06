@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>ExpenseBro · Inicio iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#F5F5F7}
+a{color:#8C95FF;text-decoration:none}a:hover{color:#B3B9FF}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 1600px; position: relative; overflow: hidden; background: radial-gradient(90% 40% at 70% -6%, rgba(94,107,255,0.16), rgba(94,107,255,0) 70%), #050506; font-variant-numeric: tabular-nums">
+<svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.07; mix-blend-mode: overlay; pointer-events: none"><filter id="grainPI"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grainPI)"/></svg>
+<div style="position: relative; box-sizing: border-box; padding: 54px 16px 140px; display: flex; flex-direction: column; gap: 14px">
+
+<div style="display: flex; align-items: center; justify-content: space-between; height: 44px">
+<a href="Phone-Menu.dc.html" aria-label="Abrir menú" style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.08); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.06), 0 6px 16px -8px rgba(0,0,0,0.8); color: #F5F5F7; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></a>
+<button aria-label="Perfil" style="width: 40px; height: 40px; border-radius: 20px; border: 0; background: linear-gradient(180deg, #4A4A50, #2E2E33); box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), inset 0 0 0 1px rgba(255,255,255,0.06), 0 6px 16px -8px rgba(0,0,0,0.8); color: #F5F5F7; font-size: 15px; font-weight: 600">F</button>
+</div>
+
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px; margin-bottom: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; font-weight: 600; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.04em">Viernes 2 oct</div>
+<h1 style="margin: 0; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; display: flex; align-items: center; gap: 6px">Octubre<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></h1>
+</div>
+</header>
+
+<section style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 15px; color: #98989F">Gastado este mes</div>
+<div style="display: flex; align-items: baseline; gap: 1px; letter-spacing: -0.03em; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif"><span style="font-size: 44px; font-weight: 700; line-height: 1">$5,635</span><span style="font-size: 22px; font-weight: 600; color: #8E8E93">.60</span></div>
+</div>
+<div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 3px; padding: 2px; box-sizing: border-box; background: rgba(0,0,0,0.45); box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05)">
+<div style="width: 87.5%; border-radius: 4px; background: linear-gradient(180deg, {{accentLight}}, {{accent}}); box-shadow: 0 0 12px {{accentGlow}}"></div>
+<div style="width: 10.6%; border-radius: 4px; background: linear-gradient(180deg, #5FE07F, #28B44C)"></div>
+<div style="width: 1.9%; border-radius: 4px; background: linear-gradient(180deg, #D4B0FF, #A673F0)"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{accent}}"></span><span style="flex: 1">Revolut Crédito</span><span style="font-weight: 600">$4,932.60</span></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #30D158"></span><span style="flex: 1">Efectivo</span><span style="font-weight: 600">$600.00</span></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 15px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #BF8CFF"></span><span style="flex: 1">Nu Crédito</span><span style="font-weight: 600">$103.00</span></div>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<section style="aspect-ratio: 1; box-sizing: border-box; background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 24px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between">
+<div style="display: flex; justify-content: space-between; align-items: flex-start">
+<div style="font-size: 13px; font-weight: 600; color: #98989F">Presupuesto</div>
+<div style="position: relative; width: 62px; height: 62px">
+<svg width="62" height="62" viewBox="0 0 62 62" style="transform: rotate(-90deg)"><defs><linearGradient id="ringPI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{accentLight}}"/><stop offset="1" stop-color="{{accent}}"/></linearGradient></defs><circle cx="31" cy="31" r="25" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8"/><circle cx="31" cy="31" r="25" fill="none" stroke="url(#ringPI)" stroke-width="8" stroke-linecap="round" stroke-dasharray="98.3 157.1" style="filter: drop-shadow(0 0 5px {{accentGlow}})"/></svg>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">63%</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; color: #8E8E93">Te quedan</div>
+<div style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif">$3,364</div>
+<div style="font-size: 12px; color: #8E8E93">≈ $116 al día</div>
+</div>
+</section>
+<section style="aspect-ratio: 1; box-sizing: border-box; background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 24px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between">
+<div style="display: flex; justify-content: space-between; align-items: flex-start">
+<div style="font-size: 13px; font-weight: 600; color: #98989F">Próximo pago</div>
+<div style="width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(180deg, #FFB340, #FF8A00); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; color: #8E8E93">Plata Crédito</div>
+<div style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif">$6,103</div>
+<div style="font-size: 12px; color: #FF9F0A">En 16 días</div>
+</div>
+</section>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em">Recientes</h2>
+<a href="#" style="font-size: 15px; padding: 10px 0 10px 12px">Ver todo</a>
+</div>
+<div style="background: linear-gradient(180deg, #202024 0%, #17171A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.05), 0 24px 48px -24px rgba(0,0,0,0.9); border-radius: 22px; overflow: hidden">
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: linear-gradient(180deg, #FFB340, #FF8A00); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px">OXXO</span><span style="font-size: 13px; color: #8E8E93">Revolut Crédito · 1 oct</span></div>
+<span style="font-size: 16px; font-weight: 600">−$170.00</span>
+</div>
+</div>
+
+<div style="position: relative; display: flex; min-height: 60px; overflow: hidden">
+<div style="position: absolute; right: 0; top: 0; bottom: 0; display: flex">
+<button style="width: 74px; border: 0; background: #636366; color: #fff; font-size: 13px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>Editar</button>
+<button style="width: 74px; border: 0; background: #E5484D; color: #fff; font-size: 13px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Borrar</button>
+</div>
+<div style="position: relative; width: 100%; transform: translateX(-148px); background: #1D1D20; box-shadow: 8px 0 16px -6px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 12px; padding: 0 16px; box-sizing: border-box">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: linear-gradient(180deg, #5AC8FA, #1E8FE0); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15"/><path d="M4 20h11"/><path d="M7 8h5"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; white-space: nowrap">Costco Gas Gdl San Isidro</span><span style="font-size: 13px; color: #8E8E93">Revolut Crédito · 1 oct</span></div>
+<span style="font-size: 16px; font-weight: 600">−$947.60</span>
+</div>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: linear-gradient(180deg, #FFE066, #F5B800); box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); color: #3A2A00; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3"/><path d="M17 3c-2.5 2-2.5 7 0 9v9"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px">Elotes Sal</span><span style="font-size: 13px; color: #8E8E93">Revolut Crédito · 1 oct</span></div>
+<span style="font-size: 16px; font-weight: 600">−$95.00</span>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: linear-gradient(180deg, #8C95FF, #4F5BF0); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16v-4l2-5h10l2 5v4"/><path d="M3 12h18v5H3z"/><path d="M6 17v2M18 17v2"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.07)">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px">Verificación carro</span><span style="font-size: 13px; color: #8E8E93">Revolut Crédito · 1 oct</span></div>
+<span style="font-size: 16px; font-weight: 600">−$550.00</span>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 60px">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: linear-gradient(180deg, #5FE07F, #24A846); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); color: #fff; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+<div style="flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px">Heat</span><span style="font-size: 13px; color: #8E8E93">Efectivo · 1 oct</span></div>
+<span style="font-size: 16px; font-weight: 600">−$600.00</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em">Cuentas</h2>
+<a href="#" style="font-size: 15px; padding: 10px 0 10px 12px">Todas</a>
+</div>
+<div style="display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px">
+<div style="flex: none; width: 168px; height: 106px; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%), linear-gradient(145deg, #8E55F0 0%, #5B22C4 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(91,34,196,0.8); display: flex; flex-direction: column; justify-content: space-between"><div style="font-size: 14px; font-weight: 600; color: #fff">Nu</div><div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: rgba(255,255,255,0.8)">Débito</span><span style="font-size: 18px; font-weight: 700; color: #fff">$5,700</span></div></div>
+<div style="flex: none; width: 168px; height: 106px; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, #3E44C9 0%, #1E2170 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(30,33,112,0.9); display: flex; flex-direction: column; justify-content: space-between"><div style="font-size: 14px; font-weight: 600; color: #fff">Revolut</div><div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: rgba(255,255,255,0.8)">Débito</span><span style="font-size: 18px; font-weight: 700; color: #fff">$25,501</span></div></div>
+<div style="flex: none; width: 168px; height: 106px; border-radius: 16px; padding: 14px; box-sizing: border-box; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.2), rgba(255,255,255,0) 55%), linear-gradient(145deg, #13969C 0%, #0A5559 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.1), 0 14px 28px -14px rgba(10,85,89,0.9); display: flex; flex-direction: column; justify-content: space-between"><div style="font-size: 14px; font-weight: 600; color: #fff">Openbank</div><div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: rgba(255,255,255,0.8)">Débito</span><span style="font-size: 18px; font-weight: 700; color: #fff">$47,399</span></div></div>
+</div>
+</section>
+</div>
+
+<nav aria-label="Pestañas" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 8px 10px 0; background: rgba(22,22,24,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start">
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: {{accent}}; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Inicio</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Gastos</a>
+<div style="display: flex; justify-content: center"><button aria-label="Nuevo gasto" style="width: 52px; height: 52px; margin-top: -14px; border-radius: 26px; border: 0; background: linear-gradient(180deg, {{accentLight}}, {{accent}}); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 24px -6px {{accentGlow}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><path d="M16 15h2"/></svg>Cuentas</a>
+<a href="Phone-Patrimonio.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; min-height: 44px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Patrimonio</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5E6BFF","options":["#5E6BFF","#0A84FF","#30D158","#FF9F0A"]},"$preview":{"width":390,"height":1600}}'>
+class Component extends DCLogic {
+renderVals() {
+const accent = this.props.accent ?? '#5E6BFF';
+const h = accent.replace('#', '');
+const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+const mix = (c) => Math.round(c + (255 - c) * 0.32);
+return { accent, accentLight: 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')', accentGlow: 'rgba(' + r + ',' + g + ',' + b + ',0.45)' };
+}
+}
+</script>
+</body>
+</html>

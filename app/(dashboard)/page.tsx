@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/eb/month-switcher";
 import { PageGlow } from "@/components/ui/eb/page-glow";
 import { ProfileMenu } from "@/components/profile-menu";
+import { MobileHeader } from "@/components/mobile-header";
+import { formatMoney } from "@/lib/utils/money";
 import { SpentCard } from "@/components/dashboard/spent-card";
 import { BudgetCard } from "@/components/dashboard/budget-card";
 import {
@@ -132,11 +134,17 @@ export default async function DashboardPage({
   return (
     <>
       {/* Movil (< 768px): Phone-Inicio.dc.html */}
-      <div className="relative overflow-hidden md:hidden">
+      {/* overflow-clip (no hidden): hidden crearia otro contenedor de scroll y romperia el sticky del header */}
+      <div className="relative overflow-clip md:hidden">
         <PageGlow variant="home" />
-        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14">
-          <header className="flex items-end justify-between px-1">
-            <div className="flex flex-col gap-0.5">
+        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-14">
+          <MobileHeader
+            title={month}
+            subtitle={`${formatMoney(totalSpent)} gastado`}
+            rightAction={<ProfileMenu name={user.displayName || user.email || "Perfil"} />}
+            titleClassName="-mt-2"
+          >
+            <header className="flex flex-col gap-0.5 px-1">
               <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
                 {formatShortWeekday(today)}
               </div>
@@ -149,9 +157,8 @@ export default async function DashboardPage({
               >
                 <MonthTitleSelect />
               </Suspense>
-            </div>
-            <ProfileMenu name={user.displayName || user.email || "Perfil"} />
-          </header>
+            </header>
+          </MobileHeader>
 
           <SpentCard
             variant="mobile"

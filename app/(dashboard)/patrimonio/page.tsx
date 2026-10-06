@@ -25,16 +25,12 @@ export default async function PatrimonioPage({
   ]);
 
   return (
-    <>
-      <NetWorthView
-        accounts={accounts}
-        entries={netWorthEntries}
-        projections={projections}
-        highlightEntryId={highlightEntryId}
-      />
-      <div className="mx-auto max-w-[1120px] px-4 pb-14 md:px-6 md:pb-16 lg:px-12">
-        <PatrimonioReportCard />
-      </div>
-    </>
+    <NetWorthView
+      accounts={accounts}
+      entries={netWorthEntries}
+      projections={projections}
+      highlightEntryId={highlightEntryId}
+      footer={<PatrimonioReportCard />}
+    />
   );
 }
