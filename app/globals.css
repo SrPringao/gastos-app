@@ -56,6 +56,27 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Rediseño "Apple dark": tokens --eb-* expuestos como utilidades de Tailwind */
+  --font-eb: var(--eb-font);
+  --font-eb-rounded: var(--eb-font-rounded);
+  --color-eb-bg: var(--eb-bg);
+  --color-eb-text: var(--eb-text);
+  --color-eb-text-strong: var(--eb-text-strong);
+  --color-eb-text-secondary: var(--eb-text-secondary);
+  --color-eb-text-tertiary: var(--eb-text-tertiary);
+  --color-eb-text-muted: var(--eb-text-muted);
+  --color-eb-chevron: var(--eb-chevron);
+  --color-eb-separator: var(--eb-separator);
+  --color-eb-fill-subtle: var(--eb-fill-subtle);
+  --color-eb-accent: var(--eb-accent);
+  --color-eb-accent-light: var(--eb-accent-light);
+  --color-eb-link: var(--eb-link);
+  --color-eb-link-hover: var(--eb-link-hover);
+  --color-eb-green: var(--eb-green);
+  --color-eb-red: var(--eb-red);
+  --color-eb-orange: var(--eb-orange);
+  --color-eb-purple: var(--eb-purple);
 }
 
 /*
@@ -176,6 +197,227 @@
   box-shadow: var(--glass-shadow);
 }
 
+/*
+  Rediseño "Apple dark" (design-reference/expensebro-redesign-prompt.md).
+  Tokens --eb-*: el diseño aprobado es el oscuro; el claro solo replica el
+  mismo sistema con valores coherentes (seccion 2.7). El sidebar de
+  escritorio NO usa estos tokens: conserva su look original.
+*/
+:root {
+  --eb-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --eb-font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+
+  /* Fondo */
+  --eb-bg: #F2F2F7;
+  --eb-bg-glow: radial-gradient(70% 45% at 62% -8%, rgba(94,107,255,0.08), rgba(94,107,255,0) 70%);
+  --eb-bg-glow-home-mobile: radial-gradient(90% 40% at 70% -6%, rgba(94,107,255,0.10), rgba(94,107,255,0) 70%);
+  --eb-bg-glow-net-worth: radial-gradient(90% 30% at 30% -4%, rgba(48,209,88,0.10), rgba(48,209,88,0) 70%);
+  --eb-grain-opacity: 0.03;
+
+  /* Superficies */
+  --eb-surface-top: #FFFFFF;
+  --eb-surface-bottom: #FAFAFC;
+  --eb-surface: linear-gradient(180deg, var(--eb-surface-top) 0%, var(--eb-surface-bottom) 100%);
+  --eb-surface-shadow: inset 0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04), 0 20px 40px -24px rgba(0,0,0,0.18);
+  --eb-surface-shadow-sm: inset 0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04), 0 20px 40px -24px rgba(0,0,0,0.18);
+  --eb-hero-tint: rgba(94,107,255,0.08);
+  --eb-separator: rgba(0,0,0,0.08);
+  --eb-fill-subtle: rgba(0,0,0,0.035);
+  --eb-well: rgba(0,0,0,0.04);
+  --eb-well-ring: rgba(0,0,0,0.04);
+  --eb-track: rgba(0,0,0,0.06);
+  --eb-track-shadow: inset 0 1px 1px rgba(0,0,0,0.06);
+  --eb-ring-track: rgba(0,0,0,0.06);
+  --eb-mini-track: rgba(0,0,0,0.08);
+  --eb-row-raised: #FFFFFF;
+
+  /* Texto */
+  --eb-text: #1C1C1E;
+  --eb-text-strong: #000000;
+  --eb-text-secondary: #6E6E73;
+  --eb-text-tertiary: #6E6E73;
+  --eb-text-muted: #3A3A3C;
+  --eb-chevron: #AEAEB2;
+
+  /* Acento */
+  --eb-accent: #5E6BFF;
+  --eb-accent-light: #929AFF;
+  --eb-accent-glow: rgba(94,107,255,0.35);
+  --eb-link: #4F5BF0;
+  --eb-link-hover: #3A45D6;
+
+  /* Semanticos */
+  --eb-green: #248A3D;
+  --eb-green-grad: linear-gradient(180deg, #5FE07F, #24A846);
+  --eb-red: #D70015;
+  --eb-red-grad: linear-gradient(180deg, #FF8E88, #E5484D);
+  --eb-orange: #C93400;
+  --eb-purple: #8944AB;
+
+  /* Controles de vidrio y barras flotantes */
+  --eb-glass-bg: rgba(0,0,0,0.04);
+  --eb-glass-ring: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 0 0 1px rgba(0,0,0,0.06);
+  --eb-glass-strong: rgba(0,0,0,0.05);
+  --eb-segment-active: linear-gradient(180deg, #FFFFFF, #F7F7FA);
+  --eb-segment-active-shadow: inset 0 0 0 1px rgba(0,0,0,0.04), 0 3px 8px rgba(0,0,0,0.12);
+  --eb-tabbar-bg: rgba(249,249,251,0.82);
+  --eb-tabbar-border: rgba(0,0,0,0.08);
+  --eb-avatar-bg: #E5E5EA;
+  --eb-neutral-tile: #E5E5EA;
+}
+
+.dark {
+  /* Fondo */
+  --eb-bg: #050506;
+  --eb-bg-glow: radial-gradient(70% 45% at 62% -8%, rgba(94,107,255,0.13), rgba(94,107,255,0) 70%),
+                radial-gradient(50% 40% at 100% 100%, rgba(48,209,88,0.05), rgba(48,209,88,0) 70%);
+  --eb-bg-glow-home-mobile: radial-gradient(90% 40% at 70% -6%, rgba(94,107,255,0.16), rgba(94,107,255,0) 70%);
+  --eb-bg-glow-net-worth: radial-gradient(90% 30% at 30% -4%, rgba(48,209,88,0.14), rgba(48,209,88,0) 70%);
+  --eb-grain-opacity: 0.07;
+
+  /* Superficies (tarjetas) */
+  --eb-surface-top: #202024;
+  --eb-surface-bottom: #17171A;
+  --eb-surface: linear-gradient(180deg, var(--eb-surface-top) 0%, var(--eb-surface-bottom) 100%);
+  --eb-surface-shadow: inset 0 1px 0 rgba(255,255,255,0.08),
+                       inset 0 0 0 1px rgba(255,255,255,0.05),
+                       0 30px 60px -30px rgba(0,0,0,0.9);
+  --eb-surface-shadow-sm: inset 0 1px 0 rgba(255,255,255,0.08),
+                          inset 0 0 0 1px rgba(255,255,255,0.05),
+                          0 24px 48px -24px rgba(0,0,0,0.9);
+  --eb-hero-tint: rgba(94,107,255,0.14);
+  --eb-separator: rgba(255,255,255,0.06);
+  --eb-fill-subtle: rgba(255,255,255,0.035);
+  --eb-well: rgba(0,0,0,0.30);
+  --eb-well-ring: rgba(255,255,255,0.05);
+  --eb-track: rgba(0,0,0,0.45);
+  --eb-track-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05);
+  --eb-ring-track: rgba(255,255,255,0.07);
+  --eb-mini-track: #2C2C2E;
+  --eb-row-raised: #1D1D20;
+
+  /* Texto */
+  --eb-text: #F5F5F7;
+  --eb-text-strong: #FFFFFF;
+  --eb-text-secondary: #A1A1A6;
+  --eb-text-tertiary: #8E8E93;
+  --eb-text-muted: #C7C7CC;
+  --eb-chevron: #636366;
+
+  /* Acento (marca) */
+  --eb-accent: #5E6BFF;
+  --eb-accent-light: #929AFF;
+  --eb-accent-glow: rgba(94,107,255,0.45);
+  --eb-link: #8C95FF;
+  --eb-link-hover: #B3B9FF;
+
+  /* Semanticos */
+  --eb-green: #30D158;
+  --eb-green-grad: linear-gradient(180deg, #5FE07F, #24A846);
+  --eb-red: #FF6961;
+  --eb-red-grad: linear-gradient(180deg, #FF8E88, #E5484D);
+  --eb-orange: #FF9F0A;
+  --eb-purple: #BF8CFF;
+
+  /* Controles de vidrio y barras flotantes */
+  --eb-glass-bg: rgba(255,255,255,0.06);
+  --eb-glass-ring: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.06);
+  --eb-glass-strong: rgba(255,255,255,0.08);
+  --eb-segment-active: linear-gradient(180deg, #48484C, #36363A);
+  --eb-segment-active-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 3px 8px rgba(0,0,0,0.4);
+  --eb-tabbar-bg: rgba(22,22,24,0.82);
+  --eb-tabbar-border: rgba(255,255,255,0.08);
+  --eb-avatar-bg: #3A3A3C;
+  --eb-neutral-tile: #2C2C2E;
+}
+
+/* Area de contenido: fondo casi negro + brillo ambiental. El grano va
+   aparte en <Grain />. */
+.eb-page {
+  position: relative;
+  isolation: isolate;
+  background: var(--eb-bg-glow), var(--eb-bg);
+  color: var(--eb-text);
+  font-family: var(--eb-font);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+.eb-page--home-mobile { background: var(--eb-bg-glow-home-mobile), var(--eb-bg); }
+.eb-page--net-worth { background: var(--eb-bg-glow-net-worth), var(--eb-bg); }
+
+.eb-card {
+  background: var(--eb-surface);
+  box-shadow: var(--eb-surface-shadow);
+  border-radius: 26px;
+  color: var(--eb-text);
+}
+.eb-card--sm { box-shadow: var(--eb-surface-shadow-sm); }
+.eb-card--hero {
+  background: radial-gradient(90% 120% at 0% 0%, var(--eb-hero-tint), rgba(94,107,255,0) 60%),
+              var(--eb-surface);
+}
+
+.eb-glass {
+  background: var(--eb-glass-bg);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: var(--eb-glass-ring);
+  border-radius: 12px;
+  padding: 3px;
+}
+
+.eb-btn-primary {
+  background: linear-gradient(180deg, var(--eb-accent-light) 0%, var(--eb-accent) 100%);
+  color: #fff;
+  font-weight: 600;
+  border: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 24px -8px var(--eb-accent-glow);
+  transition: filter 150ms ease, transform 150ms ease;
+}
+.eb-btn-primary:hover { filter: brightness(1.06); }
+.eb-btn-primary:active { transform: scale(0.97); }
+
+.eb-well {
+  background: var(--eb-well);
+  box-shadow: inset 0 0 0 1px var(--eb-well-ring);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.eb-rounded {
+  font-family: var(--eb-font-rounded);
+}
+
+.eb-link {
+  color: var(--eb-link);
+  transition: color 150ms ease;
+}
+.eb-link:hover { color: var(--eb-link-hover); }
+
+/* Fila de lista: hover suave; las acciones solo aparecen con hover/foco */
+.eb-row { transition: background-color 150ms ease; }
+.eb-row:hover, .eb-row:focus-within { background: var(--eb-fill-subtle); }
+.eb-row-actions { opacity: 0; pointer-events: none; transition: opacity 150ms ease; }
+.eb-row:hover .eb-row-actions,
+.eb-row:focus-within .eb-row-actions { opacity: 1; pointer-events: auto; }
+@media (hover: none) {
+  .eb-row-actions { opacity: 1; pointer-events: auto; }
+}
+
+/* Tiles de categoria (estilo Ajustes de iOS) */
+.eb-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px -4px var(--tile-shadow, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-anim { transition: none !important; }
+}
+
 /* Recharts pone su <svg> raiz como focuseable (accesibilidad de teclado),
    pero el navegador tambien lo enfoca al hacer click con mouse, mostrando
    el anillo de foco por defecto alrededor de toda la grafica. Se oculta
@@ -217,7 +459,14 @@
   
   body {
     @apply bg-background text-foreground;
+    font-family: var(--eb-font);
+    -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* El sidebar de escritorio conserva su tipografia original (Geist) */
+  .eb-legacy-font {
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   }
   
   button, a, [role="button"] {
@@ -255,8 +504,9 @@
   }
 
   /* Numeros de dinero/fecha en mono, alineados tabularmente */
+  /* Cifras: SF Pro Rounded, alineadas tabularmente */
   .font-figures {
-    font-family: var(--font-mono);
+    font-family: var(--eb-font-rounded);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }

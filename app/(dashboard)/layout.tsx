@@ -7,6 +7,7 @@ import { SetupReminderPrompt } from "@/components/setup-reminder-prompt";
 import { getCurrentUserId } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
+import { Grain } from "@/components/ui/eb/grain";
 
 export default async function DashboardLayout({
   children,
@@ -27,15 +28,19 @@ export default async function DashboardLayout({
 
   return (
     <div
-      className="bg-muted/30 h-screen h-[100dvh] flex w-full max-w-full overflow-hidden md:flex-row md:pl-[17rem]"
+      className="eb-page h-screen h-[100dvh] flex w-full max-w-full overflow-hidden md:flex-row md:pl-[17rem]"
       style={{
         touchAction: 'none',
         overscrollBehavior: 'none'
       }}
     >
-      <AppSidebar />
+      <Grain />
+      {/* El sidebar conserva su look original, incluida su tipografia */}
+      <div className="eb-legacy-font contents">
+        <AppSidebar />
+      </div>
       <div
-        className="relative flex h-full min-w-0 w-full flex-col"
+        className="relative z-[1] flex h-full min-w-0 w-full flex-col"
         style={{
           touchAction: 'none',
           overscrollBehavior: 'none'
