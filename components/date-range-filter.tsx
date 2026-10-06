@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarIcon, XIcon } from "lucide-react";
+import { CalendarIcon, ChevronDownIcon, XIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,6 +18,8 @@ type DateRangeFilterProps = {
   from: string;
   to: string;
   onChange: (from: string, to: string) => void;
+  /** ios: boton compacto del Historial ("Fecha ⌄"), alto 36 y fondo gris */
+  appearance?: "default" | "ios";
 };
 
 /** Parsea un string YYYY-MM-DD como fecha local (sin desfase de zona horaria) */
@@ -38,7 +40,12 @@ function toInputValue(date: Date): string {
  * Un solo click (sin arrastrar a un segundo dia) filtra por esa fecha unica;
  * seleccionar dos dias filtra por el rango completo.
  */
-export function DateRangeFilter({ from, to, onChange }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  from,
+  to,
+  onChange,
+  appearance = "default",
+}: DateRangeFilterProps) {
   const [open, setOpen] = useState(false);
 
   const range: DateRange | undefined = useMemo(
@@ -76,6 +83,16 @@ export function DateRangeFilter({ from, to, onChange }: DateRangeFilterProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
+        {appearance === "ios" ? (
+          <button
+            type="button"
+            className="text-eb-text flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-medium"
+            style={{ background: "rgba(118,118,128,0.18)" }}
+          >
+            <span className="max-w-[180px] truncate">{label}</span>
+            <ChevronDownIcon size={12} strokeWidth={2.6} className="text-eb-text-tertiary" aria-hidden="true" />
+          </button>
+        ) : (
         <Button
           type="button"
           variant="outline"
@@ -104,6 +121,7 @@ export function DateRangeFilter({ from, to, onChange }: DateRangeFilterProps) {
             </span>
           )}
         </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         className="w-auto p-0"

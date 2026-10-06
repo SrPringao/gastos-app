@@ -114,17 +114,20 @@ export function MonthSwitcher({ className }: { className?: string }) {
   );
 }
 
-/** Titulo movil "Octubre ⌄": el chevron (y el titulo) abren la lista de meses */
-export function MonthTitleSelect({ className }: { className?: string }) {
+/**
+ * Titulo movil con chevron que abre la lista de meses: "Octubre ⌄" en
+ * Inicio, "Gastos ⌄" en Gastos (`title`).
+ */
+export function MonthTitleSelect({ title, className }: { title?: string; className?: string }) {
   const { selected, options, goTo } = useMonthNavigation();
   return (
     <h1 className={cn("m-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em]", className)}>
       <Select value={selected} onValueChange={goTo}>
         <SelectTrigger
-          aria-label={`${monthName(selected)}, elegir mes`}
+          aria-label={`${title ?? monthName(selected)}, elegir mes`}
           className="text-eb-text h-auto gap-1.5 rounded-none border-0 bg-transparent p-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em] shadow-none dark:bg-transparent dark:hover:bg-transparent [&>svg]:hidden"
         >
-          {monthName(selected)}
+          {title ?? monthName(selected)}
           <ChevronDownIcon size={18} strokeWidth={2.4} className="text-eb-text-tertiary" aria-hidden="true" />
         </SelectTrigger>
         <MonthOptions options={options} />

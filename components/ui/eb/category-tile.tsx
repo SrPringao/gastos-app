@@ -7,9 +7,18 @@ type CategoryTileProps = {
   icon?: LucideIcon | null;
   /** Texto cuando no hay icono (inicial del comercio o de la cuenta) */
   label?: string;
-  /** 36: listas de gastos (radio 10). 30: Patrimonio (radio 8). */
-  size?: 36 | 30;
+  /** 36: listas (radio 10). 32: KPI Mayor gasto (9). 30: Patrimonio (8). 28: widget movil (8). */
+  size?: TileSize;
   className?: string;
+};
+
+type TileSize = 36 | 32 | 30 | 28;
+
+const TILE_METRICS: Record<TileSize, { radius: number; glyph: number; label: string }> = {
+  36: { radius: 10, glyph: 18, label: "text-[15px]" },
+  32: { radius: 9, glyph: 16, label: "text-[14px]" },
+  30: { radius: 8, glyph: 16, label: "text-[13px]" },
+  28: { radius: 8, glyph: 15, label: "text-[13px]" },
 };
 
 export function CategoryTile({
@@ -20,7 +29,7 @@ export function CategoryTile({
   className,
 }: CategoryTileProps) {
   const tone = TILE_COLORS[color];
-  const glyphSize = size === 36 ? 18 : 16;
+  const metrics = TILE_METRICS[size];
 
   return (
     <div
@@ -30,7 +39,7 @@ export function CategoryTile({
         {
           width: size,
           height: size,
-          borderRadius: size === 36 ? 10 : 8,
+          borderRadius: metrics.radius,
           background: `linear-gradient(180deg, ${tone.from}, ${tone.to})`,
           color: tone.glyph,
           "--tile-shadow": tone.shadow ?? "transparent",
@@ -38,9 +47,11 @@ export function CategoryTile({
       }
     >
       {Icon ? (
-        <Icon size={glyphSize} strokeWidth={2} />
+        <Icon size={metrics.glyph} strokeWidth={2} />
       ) : (
-        <span className="text-[13px] leading-none font-semibold">{label}</span>
+        <span className={cn("leading-none font-semibold", metrics.label)}>
+          {label}
+        </span>
       )}
     </div>
   );

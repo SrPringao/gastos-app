@@ -268,7 +268,7 @@ export function EntryFormDialog({
               <Label htmlFor="entry-contact">Quien te debe (opcional)</Label>
               <Input
                 id="entry-contact"
-                placeholder="Ej: Camila"
+                placeholder="Ej: Pedro"
                 value={values.contact}
                 onChange={(e) => setValues((v) => ({ ...v, contact: e.target.value }))}
               />

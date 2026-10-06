@@ -1,26 +1,16 @@
+import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth";
-import {
-  getTotalSpentThisMonth,
-  getSpentByAccountThisMonth,
-  getExpenseCountThisMonth,
-  getDailySpentByAccountThisMonth,
-} from "@/lib/services/dashboard";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
 import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
-import { redirect } from "next/navigation";
-import { QuickAddExpense } from "@/components/quick-add-expense";
-import { ExpensesList } from "@/components/expenses-list";
-import { ExpensesMetrics } from "@/components/expenses-dashboard/expenses-metrics";
-import { ExpensesByDayCard } from "@/components/expenses-dashboard/expenses-by-day-card";
-import { ExpensesBudgetProgressChart } from "@/components/expenses-dashboard/expenses-budget-progress-chart";
-import { ExpensesByAccountChart } from "@/components/expenses-dashboard/expenses-by-account-chart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MonthSwitcher } from "@/components/ui/eb/month-switcher";
-import { BudgetAlert } from "@/components/expenses-dashboard/budget-alert";
-import { Suspense } from "react";
+import { getExpensesWithDetails } from "@/lib/services/expenses";
+import { todayDateString } from "@/lib/utils/dates";
+import { ExpensesView } from "@/components/expenses/expenses-view";
 
 export const dynamic = "force-dynamic";
+
+/** Tope de gastos por mes que se cargan para KPIs, graficas e historial */
+const MONTH_LIMIT = 5000;
 
 export default async function GastosPage({
   searchParams,
@@ -30,117 +20,27 @@ export default async function GastosPage({
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
 
+  const today = todayDateString();
   const params = await searchParams;
-  const monthParam = params.month;
   const monthKey =
-    monthParam && /^\d{4}-\d{2}$/.test(monthParam)
-      ? monthParam
-      : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    params.month && /^\d{4}-\d{2}$/.test(params.month) ? params.month : today.slice(0, 7);
 
-  const [
-    accounts,
-    categories,
-    totalSpent,
-    countThisMonth,
-    dailyByAccount,
-    monthlyBudget,
-    byAccount,
-  ] = await Promise.all([
+  const [accounts, categories, budget, expenses] = await Promise.all([
     getAccounts(userId),
     getCategories(userId),
-    getTotalSpentThisMonth(userId, monthKey),
-    getExpenseCountThisMonth(userId, monthKey),
-    getDailySpentByAccountThisMonth(userId, monthKey),
     getMonthlyBudget(userId, monthKey),
-    getSpentByAccountThisMonth(userId, monthKey),
+    getExpensesWithDetails(userId, MONTH_LIMIT, monthKey),
   ]);
 
-  const [y, m] = monthKey.split("-").map(Number);
-  const monthName = new Date(y, m - 1, 1).toLocaleDateString("es-MX", {
-    month: "long",
-  });
-  const monthLabel = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="eb-title">Gastos</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Metricas, graficas e historial de transacciones
-          </p>
-        </div>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="w-full sm:w-auto">
-            <QuickAddExpense accounts={accounts} categories={categories} />
-          </div>
-          <Suspense fallback={null}>
-            <MonthSwitcher />
-          </Suspense>
-        </div>
-      </div>
-
-      <div className="mb-8 space-y-4">
-        <ExpensesMetrics
-          totalSpent={totalSpent}
-          countThisMonth={countThisMonth}
-          monthLabel={monthLabel}
-        />
-        <BudgetAlert
-          totalSpentCents={totalSpent}
-          monthlyBudgetCents={monthlyBudget}
-          monthLabel={monthLabel}
-        />
-      </div>
-
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        <ExpensesByDayCard data={dailyByAccount} />
-        <Card>
-          <CardHeader>
-            <CardTitle>Progreso vs presupuesto mensual</CardTitle>
-            <p className="text-muted-foreground text-sm font-normal">
-              Acumulado diario comparado con tu presupuesto
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ExpensesBudgetProgressChart
-              data={dailyByAccount.reduce<
-                { date: string; totalCents: number }[]
-              >((acc, row) => {
-                const existing = acc.find((d) => d.date === row.date);
-                if (existing) {
-                  existing.totalCents += row.total;
-                } else {
-                  acc.push({ date: row.date, totalCents: row.total });
-                }
-                return acc;
-              }, [])}
-              monthlyBudgetCents={monthlyBudget}
-              monthLabel={monthLabel}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mb-6 sm:mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Por metodo de pago (este mes)</CardTitle>
-            <p className="text-muted-foreground text-sm font-normal">
-              Gasto por cuenta
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ExpensesByAccountChart data={byAccount} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <ExpensesList
-        accounts={accounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
-        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
-        monthKey={monthKey}
-      />
-    </div>
+    <ExpensesView
+      key={monthKey}
+      expenses={expenses}
+      accounts={accounts}
+      categories={categories}
+      budget={budget}
+      monthKey={monthKey}
+      today={today}
+    />
   );
 }
