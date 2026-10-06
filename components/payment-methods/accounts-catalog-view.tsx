@@ -86,15 +86,18 @@ export function AccountsCatalogDesktop({
   suggestions,
   monthShort,
   onNewMethod,
+  selectedId,
+  onSelectedIdChange,
 }: {
   items: PaymentMethodCatalogItem[];
   suggestions: string[];
   monthShort: string;
   onNewMethod: () => void;
+  selectedId: number | null;
+  onSelectedIdChange: (id: number) => void;
 }) {
   const wide = useMediaQuery("(min-width: 1000px)");
   const [showArchived, setShowArchived] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(() => defaultSelection(items));
   // Debajo de 1000px el detalle va en un modal que se abre al tocar una tarjeta
   const [dialogOpen, setDialogOpen] = useState(false);
   const cardRefs = useRef(new Map<number, HTMLButtonElement>());
@@ -107,7 +110,7 @@ export function AccountsCatalogDesktop({
   const order = visible.map((i) => i.id);
 
   function select(id: number) {
-    setSelectedId(id);
+    onSelectedIdChange(id);
     if (!wide) setDialogOpen(true);
   }
 

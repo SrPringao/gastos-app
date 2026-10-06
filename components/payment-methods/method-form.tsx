@@ -17,6 +17,9 @@ export type MethodDraft = {
   paymentDay: number | null;
 };
 
+/** Borrador del flujo "Nuevo metodo": el tipo puede no estar elegido aun */
+export type NewMethodDraft = Omit<MethodDraft, "type"> & { type: PaymentMethodType | null };
+
 // ---------------------------------------------------------------------------
 // Contenedores de lista agrupada
 // ---------------------------------------------------------------------------
@@ -106,7 +109,7 @@ function TypeSegmented({
   onChange,
   variant,
 }: {
-  value: PaymentMethodType;
+  value: PaymentMethodType | null;
   onChange: (type: PaymentMethodType) => void;
   variant: Variant;
 }) {
@@ -223,7 +226,7 @@ export function GeneralSection({
   onChange,
   variant,
 }: {
-  draft: MethodDraft;
+  draft: MethodDraft | NewMethodDraft;
   onChange: (next: Partial<MethodDraft>) => void;
   variant: Variant;
 }) {
@@ -319,7 +322,7 @@ export function CreditSection({
   onChange,
   variant,
 }: {
-  draft: MethodDraft;
+  draft: MethodDraft | NewMethodDraft;
   onChange: (next: Partial<MethodDraft>) => void;
   variant: Variant;
 }) {
