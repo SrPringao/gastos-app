@@ -295,7 +295,7 @@
   --eb-hdr-fade: linear-gradient(180deg, rgba(242,242,247,0.92) 0%, rgba(242,242,247,0.75) 45%, rgba(242,242,247,0) 100%);
   --eb-hdr-glow-indigo: radial-gradient(90% 100% at 70% -20%, rgba(94,107,255,0.10), rgba(94,107,255,0) 70%);
   --eb-hdr-glow-green: radial-gradient(90% 100% at 70% -20%, rgba(48,209,88,0.10), rgba(48,209,88,0) 70%);
-  --eb-menu-panel-bg: rgba(255,255,255,0.92);
+  --eb-menu-panel-bg: rgba(255,255,255,0.97);
   --eb-menu-panel-border: rgba(0,0,0,0.08);
   --eb-menu-panel-shadow: 0 30px 80px -20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
 }
@@ -394,7 +394,7 @@
   --eb-hdr-fade: linear-gradient(180deg, rgba(5,5,6,0.92) 0%, rgba(5,5,6,0.75) 45%, rgba(5,5,6,0) 100%);
   --eb-hdr-glow-indigo: radial-gradient(90% 100% at 70% -20%, rgba(94,107,255,0.18), rgba(94,107,255,0) 70%);
   --eb-hdr-glow-green: radial-gradient(90% 100% at 70% -20%, rgba(48,209,88,0.18), rgba(48,209,88,0) 70%);
-  --eb-menu-panel-bg: rgba(24,24,24,0.92);
+  --eb-menu-panel-bg: rgba(24,24,24,0.97);
   --eb-menu-panel-border: rgba(255,255,255,0.09);
   --eb-menu-panel-shadow: 0 30px 80px -20px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.06);
 }
@@ -503,24 +503,34 @@
 }
 
 /* Menu lateral movil (seccion 2): panel desde la izquierda y la pagina de
-   atras se reduce, desplaza y desenfoca */
-.eb-menu-panel[data-state="open"] { animation: eb-menu-in 320ms cubic-bezier(.2,.8,.2,1); }
-.eb-menu-panel[data-state="closed"] { animation: eb-menu-out 320ms cubic-bezier(.2,.8,.2,1); }
-.eb-menu-overlay[data-state="open"] { animation: eb-fade-in 320ms cubic-bezier(.2,.8,.2,1); }
-.eb-menu-overlay[data-state="closed"] { animation: eb-fade-out 320ms cubic-bezier(.2,.8,.2,1); }
-@keyframes eb-menu-in { from { transform: translateX(-100%); } to { transform: none; } }
-@keyframes eb-menu-out { from { transform: none; } to { transform: translateX(-100%); } }
+   atras se reduce y desplaza. Solo se animan transform y opacity (los
+   resuelve la GPU sin repintar): un filter: blur() animado sobre toda la
+   pagina trababa la transicion en iPhone. */
+.eb-menu-panel { will-change: transform; }
+.eb-menu-panel[data-state="open"] { animation: eb-menu-in 280ms cubic-bezier(.2,.8,.2,1); }
+.eb-menu-panel[data-state="closed"] { animation: eb-menu-out 220ms cubic-bezier(.4,0,1,1); }
+.eb-menu-overlay[data-state="open"] { animation: eb-fade-in 280ms ease-out; }
+.eb-menu-overlay[data-state="closed"] { animation: eb-fade-out 220ms ease-in; }
+@keyframes eb-menu-in { from { transform: translate3d(-100%,0,0); } to { transform: translate3d(0,0,0); } }
+@keyframes eb-menu-out { from { transform: translate3d(0,0,0); } to { transform: translate3d(-100%,0,0); } }
 @keyframes eb-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes eb-fade-out { from { opacity: 1; } to { opacity: 0; } }
 .eb-menu-stage {
   transform-origin: 0% 50%;
-  transition: transform 320ms cubic-bezier(.2,.8,.2,1), filter 320ms cubic-bezier(.2,.8,.2,1), opacity 320ms cubic-bezier(.2,.8,.2,1);
+  transition: transform 280ms cubic-bezier(.2,.8,.2,1), opacity 280ms cubic-bezier(.2,.8,.2,1);
 }
 @media (max-width: 767px) {
   .eb-menu-stage[data-menu-open="true"] {
     transform: scale(0.94) translateX(60px);
-    filter: blur(6px);
     opacity: 0.7;
+  }
+  /* Con el menu abierto la pagina queda bajo el overlay: sin vidrio (blur)
+     que recalcular en cada cuadro mientras se escala */
+  .eb-menu-stage[data-menu-open="true"] .eb-hdr-btn,
+  .eb-menu-stage[data-menu-open="true"] .eb-hdr-fade,
+  .eb-menu-stage[data-menu-open="true"] nav[aria-label="Pestañas"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

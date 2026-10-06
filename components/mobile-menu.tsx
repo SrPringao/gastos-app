@@ -16,7 +16,7 @@ const SWIPE_CLOSE_PX = 60;
 
 /**
  * Contenido de la app que queda detras del menu movil: mientras esta
- * abierto se reduce, desplaza y desenfoca (solo < 768px, ver globals.css).
+ * abierto se reduce y desplaza (solo < 768px, ver globals.css).
  */
 export function MobileMenuStage({
   className,
@@ -94,8 +94,6 @@ export function MobileMenu() {
           style={{
             top: "calc(env(safe-area-inset-top) + 8px)",
             background: "var(--eb-menu-panel-bg)",
-            WebkitBackdropFilter: "blur(30px) saturate(160%)",
-            backdropFilter: "blur(30px) saturate(160%)",
             border: "1px solid var(--eb-menu-panel-border)",
             boxShadow: "var(--eb-menu-panel-shadow)",
             fontFamily: "var(--eb-font)",
