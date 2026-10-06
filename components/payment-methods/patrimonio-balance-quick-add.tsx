@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircleIcon, ArrowUpRightIcon, CheckIcon } from "lucide-react";
+import { AlertCircleIcon, ArrowUpRightIcon, CheckIcon, PencilIcon } from "lucide-react";
 import { Money } from "@/components/ui/eb/money";
 import { showToast } from "@/components/ui/eb/toast";
+import { usePrivacy } from "@/components/privacy";
 import { formatMoney } from "@/lib/utils/money";
 import { cn } from "@/lib/utils";
 import type { PaymentMethodType } from "@/lib/payment-methods";
@@ -134,6 +135,132 @@ function Destination({ type, name, variant }: { type: PaymentMethodType; name: s
   );
 }
 
+/**
+ * Estado B: el metodo ya tiene item en Patrimonio. Muestra el saldo y
+ * permite editarlo aqui mismo (actualiza ese mismo item) o ir a Patrimonio.
+ */
+function BalanceRow({
+  method,
+  item,
+  variant,
+}: {
+  method: { name: string; type: PaymentMethodType };
+  item: { id: number; amount: number };
+  variant: Variant;
+}) {
+  const router = useRouter();
+  const { hidden } = usePrivacy("netWorth");
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const copy = COPY[method.type];
+  const mobile = variant === "mobile";
+  const cents = parseAmountInput(value);
+
+  function startEditing() {
+    // Con "ocultar saldos" activo en Patrimonio, el campo arranca vacio
+    setValue(hidden ? "" : (item.amount / 100).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setError(null);
+    setEditing(true);
+  }
+
+  async function patchAmount(amount: number) {
+    const res = await fetch(`/api/net-worth/entries/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok ? null : data?.error || "No se pudo guardar el saldo";
+  }
+
+  async function save() {
+    if (cents === null) return;
+    if (cents === item.amount) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const previous = item.amount;
+    const failure = await patchAmount(cents);
+    setSaving(false);
+    if (failure) {
+      setError(failure);
+      return;
+    }
+    setEditing(false);
+    router.refresh();
+    showToast({
+      message: `${copy.label} de ${method.name}: ${formatMoney(cents)}`,
+      action: {
+        label: "Deshacer",
+        onClick: async () => {
+          await patchAmount(previous);
+          router.refresh();
+        },
+      },
+    });
+  }
+
+  const pad = mobile ? "px-4" : "px-[14px]";
+  return (
+    <div
+      className="eb-privacy-swap overflow-hidden rounded-[14px] [&>*+*]:border-t [&>*+*]:border-[var(--eb-separator)]"
+      style={{
+        background: mobile ? "var(--eb-group-solid)" : "var(--eb-group-bg)",
+        boxShadow: mobile ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "var(--eb-group-ring)",
+      }}
+    >
+      {editing ? (
+        <div className={cn("flex flex-col gap-3 py-3", pad)}>
+          <AmountField label={copy.label} value={value} onChange={setValue} variant={variant} />
+          <p className="text-eb-text-tertiary text-[12px]">
+            {method.type === "credit"
+              ? "Cuánto debes hoy en esta tarjeta. Se actualiza su deuda en Patrimonio."
+              : "Cuánto tienes hoy. Se actualiza su saldo en Patrimonio."}
+          </p>
+          {error && <p className="text-eb-red text-[13px]">{error}</p>}
+          <div className="flex items-center justify-end gap-3">
+            <button type="button" onClick={() => setEditing(false)} className="text-eb-text-tertiary px-2 py-2 text-[14px]">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={saving || cents === null}
+              onClick={save}
+              className="eb-btn-primary h-9 rounded-[18px] px-4 text-[14px] disabled:opacity-40"
+            >
+              {saving ? "Guardando..." : "Guardar"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={cn("flex min-h-12 items-center justify-between gap-3", pad)}>
+          <span className={cn("whitespace-nowrap", mobile ? "text-[16px]" : "text-[15px]")}>{copy.label}</span>
+          <Money value={item.amount} private="netWorth" className="text-[15px] font-semibold" />
+        </div>
+      )}
+      {!editing && (
+        <div className={cn("flex min-h-11 items-center justify-between gap-3", pad)}>
+          <button type="button" onClick={startEditing} className="eb-link flex items-center gap-1.5 text-[14px]">
+            <PencilIcon size={14} strokeWidth={2.2} aria-hidden="true" />
+            Editar saldo
+          </button>
+          <Link
+            href={`/patrimonio?entry=${item.id}`}
+            className="eb-link flex items-center gap-0.5 text-[14px] whitespace-nowrap"
+          >
+            Ver en Patrimonio
+            <ArrowUpRightIcon size={14} strokeWidth={2.2} aria-hidden="true" />
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export type BalanceDraft = {
   /** Texto del campo de monto */
   amount: string;
@@ -143,8 +270,8 @@ export type BalanceDraft = {
 
 /**
  * Bloque "Saldo en Patrimonio" (seccion 4). Estado A: el metodo no tiene
- * item en Patrimonio y se puede crear aqui. Estado B: ya lo tiene; solo
- * se muestra (los saldos se editan unicamente en Patrimonio).
+ * item en Patrimonio y se puede crear aqui. Estado B: ya lo tiene; se
+ * muestra y se puede editar aqui mismo (actualiza ese item de Patrimonio).
  *
  * Con `draft` funciona como campo del flujo "Nuevo metodo": no guarda,
  * solo reporta el monto elegido al padre.
@@ -172,30 +299,7 @@ export function PatrimonioBalanceQuickAdd({
 
   // Estado B
   if (item) {
-    return (
-      <div
-        className={cn(
-          "eb-privacy-swap flex min-h-12 items-center justify-between gap-3 overflow-hidden rounded-[14px]",
-          mobile ? "px-4" : "px-[14px]"
-        )}
-        style={{
-          background: mobile ? "var(--eb-group-solid)" : "var(--eb-group-bg)",
-          boxShadow: mobile ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "var(--eb-group-ring)",
-        }}
-      >
-        <span className={cn("whitespace-nowrap", mobile ? "text-[16px]" : "text-[15px]")}>{copy.label}</span>
-        <span className="flex items-center gap-2.5 whitespace-nowrap">
-          <Money value={item.amount} private="netWorth" className="text-[15px] font-semibold" />
-          <Link
-            href={`/patrimonio?entry=${item.id}`}
-            className="eb-link flex items-center gap-0.5 text-[14px] whitespace-nowrap"
-          >
-            Ver en Patrimonio
-            <ArrowUpRightIcon size={14} strokeWidth={2.2} aria-hidden="true" />
-          </Link>
-        </span>
-      </div>
-    );
+    return <BalanceRow method={method} item={item} variant={variant} />;
   }
 
   const value = draft ? draft.amount : amount;
