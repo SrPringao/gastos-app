@@ -35,7 +35,7 @@ export default async function GastosPage({
 
   return (
     <ExpensesView
-      key={`${monthKey}-${params.method ?? ""}`}
+      key={monthKey}
       expenses={expenses}
       accounts={accounts}
       categories={categories}

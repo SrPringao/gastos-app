@@ -138,13 +138,58 @@ function SearchField({ filters, size }: { filters: ExpenseFilters; size: "deskto
   );
 }
 
+/**
+ * Totales por cuenta para el filtro. Si el filtro activo es una cuenta sin
+ * gastos en el mes (por ejemplo, al llegar desde "Ver sus gastos"), se
+ * agrega en $0 para que se vea seleccionada y se pueda quitar.
+ */
+function accountsForFilter(
+  accountTotals: AccountTotal[],
+  accountFilter: string,
+  accounts: { id: number; name: string }[]
+): AccountTotal[] {
+  if (accountFilter === "all" || accountTotals.some((a) => String(a.accountId) === accountFilter)) {
+    return accountTotals;
+  }
+  const account = accounts.find((a) => String(a.id) === accountFilter);
+  if (!account) return accountTotals;
+  return [
+    ...accountTotals,
+    { accountId: account.id, accountName: account.name, total: 0, count: 0, share: 0, tone: "gray" },
+  ];
+}
+
 /** Estado vacio del historial */
 function EmptyState({
   filters,
   monthCount,
   monthLabel,
   newExpense,
-}: Pick<HistoryProps, "filters" | "monthCount" | "monthLabel" | "newExpense">) {
+  accountName,
+}: Pick<HistoryProps, "filters" | "monthCount" | "monthLabel" | "newExpense"> & {
+  /** Cuenta del filtro activo, si hay */
+  accountName?: string;
+}) {
+  const q = filters.search.trim();
+  // Solo el filtro de cuenta deja la lista vacia: se dice cual y como salir
+  if (accountName && !q && monthCount > 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+        <p className="text-eb-text-secondary text-[15px]">
+          {accountName} no tiene gastos en {monthLabel.toLocaleLowerCase("es-MX")}
+          {filters.dateFrom ? " en esas fechas" : ""}
+        </p>
+        <button
+          type="button"
+          onClick={() => filters.setAccountFilter("all")}
+          className="eb-link rounded-full px-3 py-1.5 text-[14px] font-semibold"
+          style={{ background: "rgba(94,107,255,0.14)" }}
+        >
+          Ver todas las cuentas
+        </button>
+      </div>
+    );
+  }
   if (monthCount === 0) {
     return (
       <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
@@ -162,7 +207,6 @@ function EmptyState({
       </div>
     );
   }
-  const q = filters.search.trim();
   return (
     <p className="text-eb-text-tertiary px-6 py-10 text-center text-[14px]">
       {q ? `Sin resultados para “${q}”` : "No hay gastos con los filtros aplicados."}
@@ -187,6 +231,8 @@ export function HistoryDesktop({
 }: HistoryProps & { className?: string }) {
   const groups = groupByDayWithTotals(filters.filtered);
   const activeAccount = filters.accountFilter;
+  const filterAccounts = accountsForFilter(accountTotals, activeAccount, edit.accounts);
+  const activeName = filterAccounts.find((a) => String(a.accountId) === activeAccount)?.accountName;
 
   const accountCard = (key: string, active: boolean, onClick: () => void, children: React.ReactNode) => (
     <button
@@ -224,7 +270,7 @@ export function HistoryDesktop({
           </div>
         </div>
 
-        {accountTotals.length > 0 && (
+        {filterAccounts.length > 0 && (
           <div role="tablist" aria-label="Filtrar por cuenta" className="flex gap-2 overflow-x-auto pb-1">
             {accountCard(
               "all",
@@ -240,7 +286,7 @@ export function HistoryDesktop({
                 </span>
               </>
             )}
-            {accountTotals.map((a) =>
+            {filterAccounts.map((a) =>
               accountCard(
                 String(a.accountId),
                 activeAccount === String(a.accountId),
@@ -266,7 +312,13 @@ export function HistoryDesktop({
       </div>
 
       {groups.length === 0 ? (
-        <EmptyState filters={filters} monthCount={monthCount} monthLabel={monthLabel} newExpense={newExpense} />
+        <EmptyState
+          filters={filters}
+          monthCount={monthCount}
+          monthLabel={monthLabel}
+          newExpense={newExpense}
+          accountName={activeName}
+        />
       ) : (
         <div className="flex flex-col pt-2 pb-3">
           {groups.map((group, index) => (
@@ -314,6 +366,8 @@ export function HistoryMobile({
 }: HistoryProps) {
   const [openId, setOpenId] = useState<number | null>(null);
   const groups = groupByDayWithTotals(filters.filtered);
+  const filterAccounts = accountsForFilter(accountTotals, filters.accountFilter, edit.accounts);
+  const activeName = filterAccounts.find((a) => String(a.accountId) === filters.accountFilter)?.accountName;
   const filteredTotal = filters.filtered.reduce((sum, e) => sum + e.amount, 0);
   const swipeEdit = {
     ...edit,
@@ -353,14 +407,14 @@ export function HistoryMobile({
         </span>
       </div>
       <SearchField filters={filters} size="mobile" />
-      {accountTotals.length > 0 && (
+      {filterAccounts.length > 0 && (
         <div
           role="tablist"
           aria-label="Filtrar por cuenta"
           className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {chip("all", filters.accountFilter === "all", () => filters.setAccountFilter("all"), "Todas")}
-          {accountTotals.map((a) =>
+          {filterAccounts.map((a) =>
             chip(
               String(a.accountId),
               filters.accountFilter === String(a.accountId),
@@ -377,7 +431,13 @@ export function HistoryMobile({
 
       {groups.length === 0 ? (
         <EbCard size="list-sm" as="div">
-          <EmptyState filters={filters} monthCount={monthCount} monthLabel={monthLabel} newExpense={newExpense} />
+          <EmptyState
+          filters={filters}
+          monthCount={monthCount}
+          monthLabel={monthLabel}
+          newExpense={newExpense}
+          accountName={activeName}
+        />
         </EbCard>
       ) : (
         <div className="flex flex-col gap-[14px]">

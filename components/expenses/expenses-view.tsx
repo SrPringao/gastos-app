@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SlidersHorizontalIcon } from "lucide-react";
 import { MonthSwitcher, MonthTitleSelect } from "@/components/ui/eb/month-switcher";
@@ -47,6 +47,15 @@ export function ExpensesView({
 }) {
   const router = useRouter();
   const filters = useExpenseFilters(expenses, { accountId: initialAccountId });
+
+  // ?method=<id> solo fija el filtro inicial: se quita de la URL para que al
+  // recargar o cambiar de mes no se vuelva a aplicar solo.
+  useEffect(() => {
+    if (!initialAccountId) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("method");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search);
+  }, [initialAccountId]);
   const activeAccounts = accounts.filter((a) => !a.archivedAt);
   const month = monthName(monthKey);
   const accountTotals = buildAccountTotals(expenses);
