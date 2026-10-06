@@ -29,7 +29,7 @@ export async function PATCH(
       syncEnabled: body.syncEnabled,
     });
 
-    if (result.error) {
+    if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 

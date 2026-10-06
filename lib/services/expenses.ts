@@ -4,6 +4,7 @@ import { eq, desc, and, sql } from "drizzle-orm";
 import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
 import { getAccountByName } from "@/lib/services/accounts";
 import { getTotalSpentThisMonth } from "@/lib/services/dashboard";
+import { notifyBudgetMilestone } from "@/lib/services/push-notifications";
 import { applyExpenseToSyncedNetWorth } from "@/lib/services/net-worth";
 
 function monthKeyFromExpenseDate(date: string | Date): string | null {
