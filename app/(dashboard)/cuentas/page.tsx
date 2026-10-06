@@ -1,32 +1,33 @@
-import { getCurrentUserId } from "@/lib/auth";
-import { getAccounts } from "@/lib/services/accounts";
-import { getCategories } from "@/lib/services/categories";
-import { AccountsCard } from "@/components/dashboard/accounts-card";
-import { UnassignedCardsCard } from "@/components/dashboard/unassigned-cards-card";
 import { redirect } from "next/navigation";
+import { getCurrentUserId } from "@/lib/auth";
+import { getPaymentMethodsCatalog } from "@/lib/payment-methods";
+import { getUnassignedCardGroups } from "@/lib/services/card-name-mappings";
+import { todayDateString } from "@/lib/utils/dates";
+import { AccountsPage } from "@/components/payment-methods/accounts-page";
 
 export const dynamic = "force-dynamic";
+
 export default async function CuentasPage() {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
 
-  const [accounts, categories] = await Promise.all([
-    getAccounts(userId),
-    getCategories(userId),
+  const monthKey = todayDateString().slice(0, 7);
+  const [items, unassigned] = await Promise.all([
+    getPaymentMethodsCatalog(userId, monthKey),
+    getUnassignedCardGroups(userId),
   ]);
 
+  const [y, m] = monthKey.split("-").map(Number);
+  const monthShort = new Date(Date.UTC(y, m - 1, 15))
+    .toLocaleDateString("es-MX", { month: "short", timeZone: "UTC" })
+    .replace(".", "");
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="eb-title">Cuentas</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Administra tus metodos de pago
-        </p>
-      </div>
-      <div className="space-y-6">
-        <AccountsCard accounts={accounts} categories={categories} />
-        <UnassignedCardsCard accounts={accounts} />
-      </div>
-    </div>
+    <AccountsPage
+      items={items}
+      // Nombres que llegaron del atajo sin metodo: se sugieren al agregar un nombre de Wallet
+      suggestions={unassigned.map((u) => u.rawCardName)}
+      monthShort={monthShort}
+    />
   );
 }
