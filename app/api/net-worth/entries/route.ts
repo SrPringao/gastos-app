@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       kind: body.kind,
       amount: body.amount,
       dueDate: body.dueDate ?? null,
+      syncEnabled: Boolean(body.syncEnabled),
     });
 
     if (result.error) {

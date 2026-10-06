@@ -26,6 +26,7 @@ export async function PATCH(
       amount: body.amount,
       dueDate: body.dueDate,
       sortOrder: body.sortOrder,
+      syncEnabled: body.syncEnabled,
     });
 
     if (result.error) {

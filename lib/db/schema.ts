@@ -114,6 +114,10 @@ export const netWorthEntries = pgTable("net_worth_entries", {
   amount: integer("amount").notNull(), // en centavos
   dueDate: timestamp("due_date"), // fecha maxima de pago, solo aplica a deudas
   sortOrder: integer("sort_order").default(0).notNull(),
+  // Si true y hay accountId, los gastos de esa cuenta mueven este saldo
+  // a partir de syncEnabledAt (no retroactivo).
+  syncEnabled: boolean("sync_enabled").default(false).notNull(),
+  syncEnabledAt: timestamp("sync_enabled_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

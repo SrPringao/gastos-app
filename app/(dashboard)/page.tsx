@@ -8,7 +8,9 @@ import {
   getTotalSpentThisMonth,
   getSpentByAccountThisMonth,
   getRecentExpenses,
+  getLastRegisteredDaySpend,
 } from "@/lib/services/dashboard";
+import { formatDate } from "@/lib/utils/dates";
 import { redirect } from "next/navigation";
 import { MetricsCard } from "@/components/dashboard/metrics-card";
 import { AccountsCard } from "@/components/dashboard/accounts-card";
@@ -40,12 +42,14 @@ export default async function DashboardPage({
     totalSpent,
     spentByAccount,
     recentExpenses,
+    lastDaySpend,
   ] = await Promise.all([
     getAccounts(userId),
     getCategories(userId),
     getTotalSpentThisMonth(userId, monthKey),
     getSpentByAccountThisMonth(userId, monthKey),
     getRecentExpenses(userId, 5, monthKey),
+    getLastRegisteredDaySpend(userId, monthKey),
   ]);
 
   const [y, m] = monthKey.split("-").map(Number);
@@ -95,9 +99,16 @@ export default async function DashboardPage({
         </div>
         <div className="min-w-0 sm:col-span-2 xl:col-span-3">
           <MetricsCard
-            title="Ultimos gastos"
-            value={recentExpenses.length > 0 ? recentExpenses.length : 0}
-            subtitle="Transacciones recientes"
+            title={lastDaySpend.isToday ? "Gastado hoy" : "Ultimo dia"}
+            value={lastDaySpend.total}
+            subtitle={
+              lastDaySpend.date
+                ? lastDaySpend.isToday
+                  ? `${lastDaySpend.count} ${lastDaySpend.count === 1 ? "gasto" : "gastos"}`
+                  : `${formatDate(lastDaySpend.date)} · ${lastDaySpend.count} ${lastDaySpend.count === 1 ? "gasto" : "gastos"}`
+                : "Sin gastos registrados"
+            }
+            formatAsCurrency
             icon={<ReceiptIcon className="size-5" />}
           />
         </div>

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { netWorthEntries, netWorthProjections } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 
 export async function getNetWorthEntries(userId: string | null) {
   if (!userId) return [];
@@ -26,6 +26,7 @@ export type CreateNetWorthEntryInput = {
   kind: "asset" | "debt";
   amount: number;
   dueDate?: string | null;
+  syncEnabled?: boolean;
 };
 
 export type UpdateNetWorthEntryInput = {
@@ -35,13 +36,72 @@ export type UpdateNetWorthEntryInput = {
   amount?: number;
   dueDate?: string | null;
   sortOrder?: number;
+  syncEnabled?: boolean;
 };
+
+async function assertUniqueSyncedAccount(
+  userId: string,
+  accountId: number,
+  exceptId?: number
+) {
+  const filters = [
+    eq(netWorthEntries.userId, userId),
+    eq(netWorthEntries.accountId, accountId),
+    eq(netWorthEntries.syncEnabled, true),
+  ];
+  if (exceptId != null) filters.push(ne(netWorthEntries.id, exceptId));
+  const rows = await db
+    .select({ id: netWorthEntries.id, label: netWorthEntries.label })
+    .from(netWorthEntries)
+    .where(and(...filters))
+    .limit(1);
+  const other = rows[0];
+  if (other) {
+    return {
+      error: `Ya hay una entrada sincronizada con esa cuenta (${other.label}).`,
+    };
+  }
+  return null;
+}
+
+export async function applyExpenseToSyncedNetWorth(input: {
+  userId: string;
+  accountId: number;
+  amountCents: number;
+  expenseCreatedAt: Date;
+}) {
+  const { userId, accountId, amountCents, expenseCreatedAt } = input;
+  if (!amountCents) return;
+
+  const entries = await db
+    .select()
+    .from(netWorthEntries)
+    .where(
+      and(
+        eq(netWorthEntries.userId, userId),
+        eq(netWorthEntries.accountId, accountId),
+        eq(netWorthEntries.syncEnabled, true)
+      )
+    );
+
+  for (const entry of entries) {
+    if (!entry.syncEnabledAt) continue;
+    if (expenseCreatedAt.getTime() < entry.syncEnabledAt.getTime()) continue;
+    const signed = entry.kind === "debt" ? amountCents : -amountCents;
+    const next = Math.max(0, entry.amount + signed);
+    if (next === entry.amount) continue;
+    await db
+      .update(netWorthEntries)
+      .set({ amount: next, updatedAt: new Date() })
+      .where(eq(netWorthEntries.id, entry.id));
+  }
+}
 
 export async function createNetWorthEntry(
   userId: string,
   input: CreateNetWorthEntryInput
 ) {
-  const { accountId, label, kind, amount, dueDate } = input;
+  const { accountId, label, kind, amount, dueDate, syncEnabled } = input;
 
   if (!label?.trim()) {
     return { error: "El nombre es requerido" };
@@ -53,6 +113,16 @@ export async function createNetWorthEntry(
     return { error: "Monto invalido" };
   }
 
+  const wantsSync = Boolean(syncEnabled);
+  const linkedAccountId = accountId ?? null;
+  if (wantsSync && !linkedAccountId) {
+    return { error: "Elige un metodo de pago para sincronizar" };
+  }
+  if (wantsSync && linkedAccountId) {
+    const conflict = await assertUniqueSyncedAccount(userId, linkedAccountId);
+    if (conflict) return conflict;
+  }
+
   const siblings = await db
     .select({ sortOrder: netWorthEntries.sortOrder })
     .from(netWorthEntries)
@@ -61,12 +131,14 @@ export async function createNetWorthEntry(
 
   await db.insert(netWorthEntries).values({
     userId,
-    accountId: accountId ?? null,
+    accountId: linkedAccountId,
     label: label.trim(),
     kind,
     amount,
     dueDate: dueDate ? new Date(dueDate) : null,
     sortOrder: maxSortOrder + 1,
+    syncEnabled: wantsSync,
+    syncEnabledAt: wantsSync ? new Date() : null,
   });
 
   return { success: true };
@@ -85,7 +157,8 @@ export async function updateNetWorthEntry(
     return { error: "No autorizado" };
   }
 
-  const { accountId, label, kind, amount, dueDate, sortOrder } = input;
+  const { accountId, label, kind, amount, dueDate, sortOrder, syncEnabled } =
+    input;
 
   if (label !== undefined && !label?.trim()) {
     return { error: "El nombre es requerido" };
@@ -100,6 +173,31 @@ export async function updateNetWorthEntry(
     return { error: "Monto invalido" };
   }
 
+  const nextAccountId =
+    accountId !== undefined ? accountId : existing.accountId;
+  let nextSync =
+    syncEnabled !== undefined ? Boolean(syncEnabled) : existing.syncEnabled;
+  if (!nextAccountId) nextSync = false;
+  if (nextSync && nextAccountId) {
+    const conflict = await assertUniqueSyncedAccount(
+      userId,
+      nextAccountId,
+      id
+    );
+    if (conflict) return conflict;
+  }
+
+  const accountChanged =
+    accountId !== undefined && accountId !== existing.accountId;
+  const turningOn = nextSync && !existing.syncEnabled;
+  const turningOff = !nextSync && existing.syncEnabled;
+  let nextSyncEnabledAt = existing.syncEnabledAt;
+  if (turningOff || !nextSync) {
+    nextSyncEnabledAt = null;
+  } else if (turningOn || (nextSync && accountChanged)) {
+    nextSyncEnabledAt = new Date();
+  }
+
   await db
     .update(netWorthEntries)
     .set({
@@ -111,6 +209,8 @@ export async function updateNetWorthEntry(
         dueDate: dueDate ? new Date(dueDate) : null,
       }),
       ...(sortOrder !== undefined && { sortOrder }),
+      syncEnabled: nextSync,
+      syncEnabledAt: nextSyncEnabledAt,
       updatedAt: new Date(),
     })
     .where(eq(netWorthEntries.id, id));

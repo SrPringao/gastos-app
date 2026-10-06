@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { accounts, categories, expenses } from "@/lib/db/schema";
+import { todayDateString } from "@/lib/utils/dates";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 function getMonthBounds(year?: number, month?: number, monthKey?: string) {
@@ -78,6 +79,56 @@ export async function getSpentOnDate(userId: string, dateStr: string) {
   return {
     total: result[0]?.total ?? 0,
     count: result[0]?.count ?? 0,
+  };
+}
+
+function toYmd(value: unknown): string | null {
+  if (value == null) return null;
+  const str = String(value).trim();
+  const datePart = str.split("T")[0]?.split(" ")[0] ?? "";
+  return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : null;
+}
+
+export async function getLastRegisteredDaySpend(
+  userId: string,
+  monthKey?: string
+) {
+  const today = todayDateString();
+  const currentMonthKey = today.slice(0, 7);
+  const viewingCurrentMonth = !monthKey || monthKey === currentMonthKey;
+  const monthBounds = viewingCurrentMonth
+    ? null
+    : getMonthBounds(undefined, undefined, monthKey);
+
+  const lastDayFilter = viewingCurrentMonth
+    ? and(
+        eq(expenses.userId, userId),
+        sql`DATE(${expenses.date}) <= ${today}::date`
+      )
+    : and(
+        eq(expenses.userId, userId),
+        sql`DATE(${expenses.date}) >= ${monthBounds!.start}::date`,
+        sql`DATE(${expenses.date}) <= ${monthBounds!.end}::date`
+      );
+
+  const lastDayRow = await db
+    .select({
+      date: sql<string>`MAX(DATE(${expenses.date}))::text`,
+    })
+    .from(expenses)
+    .where(lastDayFilter);
+
+  const lastDate = toYmd(lastDayRow[0]?.date);
+  if (!lastDate) {
+    return { date: null, total: 0, count: 0, isToday: false };
+  }
+
+  const spent = await getSpentOnDate(userId, lastDate);
+  return {
+    date: lastDate,
+    total: spent.total,
+    count: spent.count,
+    isToday: lastDate === today,
   };
 }
 

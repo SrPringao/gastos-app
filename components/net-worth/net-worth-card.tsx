@@ -78,6 +78,7 @@ type EntryFormValues = {
   accountId: string;
   amount: string;
   dueDate: string;
+  syncEnabled: boolean;
 };
 
 const EMPTY_FORM: EntryFormValues = {
@@ -85,6 +86,7 @@ const EMPTY_FORM: EntryFormValues = {
   accountId: NO_ACCOUNT,
   amount: "",
   dueDate: "",
+  syncEnabled: false,
 };
 
 /**
@@ -122,6 +124,7 @@ function EntryFormDialog({
         accountId: entry.accountId ? String(entry.accountId) : NO_ACCOUNT,
         amount: String(entry.amount / 100),
         dueDate: entry.dueDate ? dbDateToInputValue(entry.dueDate) : "",
+        syncEnabled: entry.syncEnabled,
       });
     } else {
       setValues(EMPTY_FORM);
@@ -131,10 +134,14 @@ function EntryFormDialog({
   }, [open, entry]);
 
   function handleAccountChange(accountId: string) {
-    setValues((v) => ({ ...v, accountId }));
-    if (labelEditedByUser || isEditing) return;
     const account = accounts.find((acc) => acc.id === Number(accountId));
-    if (account) setValues((v) => ({ ...v, accountId, label: account.name }));
+    setValues((v) => ({
+      ...v,
+      accountId,
+      syncEnabled: accountId === NO_ACCOUNT ? false : v.syncEnabled,
+      label:
+        !labelEditedByUser && !isEditing && account ? account.name : v.label,
+    }));
   }
 
   async function handleSubmit() {
@@ -148,6 +155,7 @@ function EntryFormDialog({
         accountId: values.accountId === NO_ACCOUNT ? null : Number(values.accountId),
         amount: Math.round(parseFloat(values.amount || "0") * 100),
         dueDate: kind === "debt" && values.dueDate ? values.dueDate : null,
+        syncEnabled: values.syncEnabled,
       };
 
       const res = await fetch(
@@ -217,6 +225,44 @@ function EntryFormDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div
+            className={cn(
+              "flex items-start justify-between gap-3 rounded-[10px] border p-3",
+              values.accountId === NO_ACCOUNT && "opacity-60"
+            )}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Sincronizar con gastos</p>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {values.accountId === NO_ACCOUNT
+                  ? "Elige un metodo de pago para activarla."
+                  : kind === "debt"
+                    ? "A partir de ahora, cada gasto nuevo de esa cuenta se suma a esta deuda."
+                    : "A partir de ahora, cada gasto nuevo de esa cuenta se resta de este positivo."}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={values.syncEnabled}
+              disabled={values.accountId === NO_ACCOUNT}
+              onClick={() =>
+                setValues((v) => ({ ...v, syncEnabled: !v.syncEnabled }))
+              }
+              className={cn(
+                "relative inline-flex h-6 w-10 shrink-0 rounded-full transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none",
+                values.syncEnabled ? "bg-primary" : "bg-input"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none mt-0.5 block size-5 rounded-full bg-white shadow-sm transition-transform",
+                  values.syncEnabled ? "translate-x-[18px]" : "translate-x-0.5"
+                )}
+              />
+            </button>
           </div>
 
           {kind === "debt" && (
@@ -303,6 +349,14 @@ function EntryRow({
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate text-sm font-medium">{entry.label}</p>
           {entry.kind === "debt" && <DueDateBadge dueDate={entry.dueDate} />}
+          {entry.syncEnabled && (
+            <Badge
+              variant="secondary"
+              className="border-primary/30 bg-primary/10 font-medium"
+            >
+              Sincronizado
+            </Badge>
+          )}
         </div>
         {account && (
           <p className="text-muted-foreground truncate text-xs">{account.name}</p>

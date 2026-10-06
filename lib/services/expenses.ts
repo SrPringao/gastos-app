@@ -4,7 +4,7 @@ import { eq, desc, and, sql } from "drizzle-orm";
 import { resolveAccountIdFromCardName } from "@/lib/services/card-name-mappings";
 import { getAccountByName } from "@/lib/services/accounts";
 import { getTotalSpentThisMonth } from "@/lib/services/dashboard";
-import { notifyBudgetMilestone } from "@/lib/services/push-notifications";
+import { applyExpenseToSyncedNetWorth } from "@/lib/services/net-worth";
 
 function monthKeyFromExpenseDate(date: string | Date): string | null {
   if (typeof date === "string") {
@@ -81,15 +81,27 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
     resolvedAccountId = accountId;
   }
 
-  await db.insert(expenses).values({
-    userId,
-    amount: amountCents,
-    accountId: resolvedAccountId,
-    rawCardName,
-    categoryId: categoryId ?? null,
-    date: new Date(date),
-    description: description || null,
-  });
+  const [created] = await db
+    .insert(expenses)
+    .values({
+      userId,
+      amount: amountCents,
+      accountId: resolvedAccountId,
+      rawCardName,
+      categoryId: categoryId ?? null,
+      date: new Date(date),
+      description: description || null,
+    })
+    .returning();
+
+  if (created) {
+    await applyExpenseToSyncedNetWorth({
+      userId,
+      accountId: resolvedAccountId,
+      amountCents,
+      expenseCreatedAt: created.createdAt,
+    });
+  }
 
   const monthKey = monthKeyFromExpenseDate(date);
   if (monthKey) {
@@ -224,6 +236,24 @@ export async function updateExpense(
 
   const newAmountCents =
     amount !== undefined ? Math.round(amount * 100) : existing.amount;
+  const newAccountId = accountId !== undefined ? accountId : existing.accountId;
+  if (
+    newAmountCents !== existing.amount ||
+    newAccountId !== existing.accountId
+  ) {
+    await applyExpenseToSyncedNetWorth({
+      userId,
+      accountId: existing.accountId,
+      amountCents: -existing.amount,
+      expenseCreatedAt: existing.createdAt,
+    });
+    await applyExpenseToSyncedNetWorth({
+      userId,
+      accountId: newAccountId,
+      amountCents: newAmountCents,
+      expenseCreatedAt: existing.createdAt,
+    });
+  }
   const monthKey = monthKeyFromExpenseDate(
     date !== undefined ? date : existing.date
   );
@@ -249,6 +279,12 @@ export async function deleteExpense(userId: string, id: number) {
     return { error: "No autorizado" };
   }
 
+  await applyExpenseToSyncedNetWorth({
+    userId,
+    accountId: existing.accountId,
+    amountCents: -existing.amount,
+    expenseCreatedAt: existing.createdAt,
+  });
   await db.delete(expenses).where(eq(expenses.id, id));
   return { success: true };
 }
