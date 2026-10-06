@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, id: result.id });
   } catch (error) {
     console.error("[API] POST /api/net-worth/entries:", error);
     return NextResponse.json(

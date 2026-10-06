@@ -277,6 +277,15 @@
   --eb-chip-active-shadow: inset 0 0 0 1px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.08);
   --eb-chip-idle: rgba(0,0,0,0.03);
   --eb-chip-idle-ring: inset 0 0 0 1px rgba(0,0,0,0.06);
+
+  /* Listas agrupadas de formularios (panel de Cuentas y hojas) */
+  --eb-group-bg: rgba(0,0,0,0.03);
+  --eb-group-ring: inset 0 0 0 1px rgba(0,0,0,0.06);
+  --eb-group-solid: #FFFFFF;
+  --eb-sheet-bg: #F2F2F7;
+  --eb-segmented-bg: rgba(118,118,128,0.12);
+  --eb-segmented-active: linear-gradient(180deg, #FFFFFF, #F7F7FA);
+  --eb-segmented-active-shadow: inset 0 0 0 1px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.12);
 }
 
 .dark {
@@ -355,6 +364,15 @@
   --eb-chip-active-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.08);
   --eb-chip-idle: rgba(255,255,255,0.03);
   --eb-chip-idle-ring: inset 0 0 0 1px rgba(255,255,255,0.06);
+
+  /* Listas agrupadas de formularios (panel de Cuentas y hojas) */
+  --eb-group-bg: rgba(0,0,0,0.25);
+  --eb-group-ring: inset 0 0 0 1px rgba(255,255,255,0.05);
+  --eb-group-solid: #1C1C1F;
+  --eb-sheet-bg: #111113;
+  --eb-segmented-bg: rgba(118,118,128,0.24);
+  --eb-segmented-active: linear-gradient(180deg, #5A5A60, #48484E);
+  --eb-segmented-active-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.35);
 }
 
 /* Area de contenido: fondo casi negro + brillo ambiental. El grano va
@@ -464,6 +482,13 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px -4px var(--tile-shadow, transparent);
 }
 
+/* Item resaltado al llegar desde otra pantalla (Ver en Patrimonio) */
+@keyframes eb-highlight-pulse {
+  0%, 100% { background-color: transparent; }
+  20%, 60% { background-color: rgba(94,107,255,0.16); }
+}
+.eb-highlight { animation: eb-highlight-pulse 2.4s ease-in-out; }
+
 /* Ocultar/mostrar saldos: la cifra nueva entra con opacidad + blur */
 @keyframes eb-privacy-in {
   from { opacity: 0; filter: blur(4px); }
@@ -472,7 +497,7 @@
 .eb-privacy-swap { animation: eb-privacy-in 150ms ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
-  .eb-privacy-swap { animation: none; }
+  .eb-privacy-swap, .eb-highlight { animation: none; }
   .eb-anim,
   .eb-row,
   .eb-row-actions,

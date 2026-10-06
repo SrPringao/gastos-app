@@ -6,9 +6,17 @@ import { PatrimonioReportCard } from "@/components/net-worth/patrimonio-report-c
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-export default async function PatrimonioPage() {
+export default async function PatrimonioPage({
+  searchParams,
+}: {
+  /** `entry`: item a resaltar (link "Ver en Patrimonio" desde Cuentas) */
+  searchParams: Promise<{ entry?: string }>;
+}) {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
+
+  const { entry } = await searchParams;
+  const highlightEntryId = entry && /^\d+$/.test(entry) ? Number(entry) : undefined;
 
   const [accounts, netWorthEntries, projections] = await Promise.all([
     getAccounts(userId),
@@ -18,7 +26,12 @@ export default async function PatrimonioPage() {
 
   return (
     <>
-      <NetWorthView accounts={accounts} entries={netWorthEntries} projections={projections} />
+      <NetWorthView
+        accounts={accounts}
+        entries={netWorthEntries}
+        projections={projections}
+        highlightEntryId={highlightEntryId}
+      />
       <div className="mx-auto max-w-[1120px] px-4 pb-14 md:px-6 md:pb-16 lg:px-12">
         <PatrimonioReportCard />
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownIcon,
@@ -170,6 +170,7 @@ function NetWorthRow({
   indent = false,
   titleClassName,
   ariaExpanded,
+  entryId,
 }: {
   leading: React.ReactNode;
   title: React.ReactNode;
@@ -182,10 +183,13 @@ function NetWorthRow({
   indent?: boolean;
   titleClassName?: string;
   ariaExpanded?: boolean;
+  /** Ancla para "Ver en Patrimonio" desde Cuentas (?entry=<id>) */
+  entryId?: number;
 }) {
   const interactive = !!onActivate;
   return (
     <div
+      id={entryId ? `nw-entry-${entryId}` : undefined}
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
       aria-expanded={ariaExpanded}
@@ -261,16 +265,36 @@ export function NetWorthView({
   accounts,
   entries,
   projections,
+  highlightEntryId,
 }: {
   accounts: Account[];
   entries: NetWorthEntry[];
   projections: NetWorthProjection[];
+  /** Item a resaltar al llegar desde Cuentas ("Ver en Patrimonio") */
+  highlightEntryId?: number;
 }) {
   const router = useRouter();
   const { hidden, toggle: toggleHidden } = usePrivacy("netWorth");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [view, setView] = useState<"today" | "projected">("today");
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    // Si el item resaltado esta dentro de un grupo colapsado, se abre
+    const target = entries.find((e) => e.id === highlightEntryId);
+    if (!target) return {};
+    if (target.kind === "debt" && target.amount === 0) return { zeroDebts: true };
+    const contact = target.contact?.trim().toLocaleLowerCase("es-MX");
+    return contact ? { [`contact-${contact}`]: true } : {};
+  });
+
+  useEffect(() => {
+    if (!highlightEntryId) return;
+    const el = document.getElementById(`nw-entry-${highlightEntryId}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.classList.add("eb-highlight");
+    const timer = window.setTimeout(() => el.classList.remove("eb-highlight"), 2400);
+    return () => window.clearTimeout(timer);
+  }, [highlightEntryId]);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const today = todayDateString();
@@ -389,6 +413,7 @@ export function NetWorthView({
         }
         trailing={<Money value={entry.amount} private="netWorth" className="text-[16px] font-medium" />}
         onActivate={edit(entry)}
+        entryId={entry.id}
         actions={rowActions(section, index)}
       />
     );
@@ -495,6 +520,7 @@ export function NetWorthView({
               title={entry.label}
               trailing={<Money value={entry.amount} private="netWorth" className="text-[16px] font-medium" />}
               onActivate={edit(entry)}
+        entryId={entry.id}
               actions={rowActions(accountEntries, index)}
             />
           ))
@@ -515,6 +541,7 @@ export function NetWorthView({
                   subtitle={group.concepts.length > 0 ? group.concepts.join(" · ") : undefined}
                   trailing={<Money value={group.total} private="netWorth" className="text-[16px] font-medium" />}
                   onActivate={edit(entry)}
+        entryId={entry.id}
                   actions={rowActions(sectionEntries, sectionEntries.indexOf(entry))}
                 />
               );
@@ -550,6 +577,7 @@ export function NetWorthView({
                       titleClassName="text-[15px] text-eb-text-muted"
                       trailing={<Money value={entry.amount} private="netWorth" className="text-[15px]" />}
                       onActivate={edit(entry)}
+        entryId={entry.id}
                       actions={rowActions(group.entries, index)}
                     />
                   ))}
@@ -570,6 +598,7 @@ export function NetWorthView({
                 <Money value={entry.amount} sign="positive" private="netWorth" className="text-eb-green text-[16px] font-medium" />
               }
               onActivate={edit(entry)}
+        entryId={entry.id}
               actions={rowActions(incomes, index)}
             />
           ))}
