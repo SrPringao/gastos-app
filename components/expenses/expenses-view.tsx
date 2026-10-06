@@ -94,15 +94,15 @@ export function ExpensesView({
       {/* Movil (< 768px) */}
       <div className="relative overflow-hidden md:hidden">
         <PageGlow variant="home" />
-        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14">
+        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-4 pb-14">
           <header className="flex items-end justify-between px-1">
             <div className="flex flex-col gap-0.5">
-              <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
-                {month} {monthKey.slice(0, 4)}
-              </div>
-              <Suspense fallback={<h1 className="eb-title">Gastos</h1>}>
-                <MonthTitleSelect title="Gastos" />
-              </Suspense>
+                <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
+                  {month} {monthKey.slice(0, 4)}
+                </div>
+                <Suspense fallback={<h1 className="eb-title">Gastos</h1>}>
+                  <MonthTitleSelect title="Gastos" />
+                </Suspense>
             </div>
             <Sheet>
               <SheetTrigger asChild>

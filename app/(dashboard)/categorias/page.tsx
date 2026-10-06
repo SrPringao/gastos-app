@@ -210,13 +210,13 @@ export default function CategoriasPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1120px] flex-col gap-7 px-4 pt-6 pb-16 md:px-6 md:pt-10 lg:px-12">
+    <div className="mx-auto flex max-w-[1120px] flex-col gap-7 px-4 pt-4 pb-16 md:px-6 md:pt-10 lg:px-12">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
-            Organiza tus gastos
-          </div>
-          <h1 className="eb-title">Categorías</h1>
+            <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
+              Organiza tus gastos
+            </div>
+            <h1 className="eb-title">Categorías</h1>
         </div>
         <AddCategoryModal onSuccess={() => { load(); router.refresh(); }} />
       </header>

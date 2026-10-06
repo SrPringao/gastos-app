@@ -134,21 +134,21 @@ export default async function DashboardPage({
       {/* Movil (< 768px): Phone-Inicio.dc.html */}
       <div className="relative overflow-hidden md:hidden">
         <PageGlow variant="home" />
-        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-[max(64px,calc(env(safe-area-inset-top)+20px))] pb-14">
+        <div className="relative z-[1] flex flex-col gap-[22px] px-4 pt-4 pb-14">
           <header className="flex items-end justify-between px-1">
             <div className="flex flex-col gap-0.5">
-              <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
-                {formatShortWeekday(today)}
-              </div>
-              <Suspense
-                fallback={
-                  <h1 className="eb-title">
-                    {month}
-                  </h1>
-                }
-              >
-                <MonthTitleSelect />
-              </Suspense>
+                <div className="text-eb-text-tertiary text-[13px] font-semibold tracking-[0.04em] uppercase">
+                  {formatShortWeekday(today)}
+                </div>
+                <Suspense
+                  fallback={
+                    <h1 className="eb-title">
+                      {month}
+                    </h1>
+                  }
+                >
+                  <MonthTitleSelect />
+                </Suspense>
             </div>
             <ProfileMenu name={user.displayName || user.email || "Perfil"} />
           </header>
