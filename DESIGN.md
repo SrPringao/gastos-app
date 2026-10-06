@@ -192,6 +192,7 @@ rounded:
   chip: "4px"
   input: "10px"
   sidebar-pill: "30px"
+  full: "9999px"
 spacing:
   grid-gap: "20px"
   page-gap: "28px"

@@ -48,15 +48,16 @@ export function SegmentedBar({
         boxShadow: "var(--eb-track-shadow)",
       }}
     >
-      {/* El riel interno crece de 0 a 100% al montar; los segmentos se
-          reparten el ancho con flex-grow para que los huecos de 3px no
-          empujen al ultimo fuera del riel. */}
+      {/* El riel interno se revela de izquierda a derecha al montar con
+          clip-path (sin animar el ancho, que recalcula layout). Los
+          segmentos se reparten el ancho con flex-grow para que los huecos
+          de 3px no empujen al ultimo fuera del riel. */}
       <div
-        className="eb-anim flex h-full overflow-hidden"
+        className="eb-anim flex h-full w-full"
         style={{
-          width: filled ? "100%" : "0%",
           gap: 3,
-          transition: "width .6s cubic-bezier(.2,.8,.2,1)",
+          clipPath: filled ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+          transition: "clip-path .6s cubic-bezier(.2,.8,.2,1)",
         }}
       >
         {segments.map((segment) => {
