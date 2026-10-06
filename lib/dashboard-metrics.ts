@@ -374,16 +374,31 @@ export type ReceivableGroup<T> = {
   entries: T[];
 };
 
-/** "Te deben": agrupa por contacto; sin contacto, cada positivo es su fila */
-export function groupReceivables<
-  T extends { id: number; label: string; amount: number; contact?: string | null },
->(entries: T[]): ReceivableGroup<T>[] {
+type ReceivableLike = { id: number; label: string; amount: number; contact?: string | null; contactId?: number | null };
+
+/**
+ * Clave del grupo de "Te deben" de un positivo: por persona guardada
+ * (contactId); los positivos viejos que solo tienen texto se agrupan por el
+ * texto. null = sin persona (fila suelta).
+ */
+export function receivableGroupKey(entry: Pick<ReceivableLike, "contact" | "contactId">): string | null {
+  if (entry.contactId != null) return `contact-${entry.contactId}`;
+  const contact = entry.contact?.trim();
+  return contact ? `contact-text-${contact.toLocaleLowerCase("es-MX")}` : null;
+}
+
+/** "Te deben": agrupa por persona; sin persona, cada positivo es su fila */
+export function groupReceivables<T extends ReceivableLike>(
+  entries: T[],
+  /** Nombre actual de cada persona guardada (id -> nombre) */
+  contactNames: Map<number, string> = new Map()
+): ReceivableGroup<T>[] {
   const groups: ReceivableGroup<T>[] = [];
-  const byContact = new Map<string, ReceivableGroup<T>>();
+  const byKey = new Map<string, ReceivableGroup<T>>();
 
   for (const entry of entries) {
-    const contact = entry.contact?.trim();
-    if (!contact) {
+    const key = receivableGroupKey(entry);
+    if (!key) {
       groups.push({
         key: `entry-${entry.id}`,
         name: entry.label,
@@ -393,11 +408,14 @@ export function groupReceivables<
       });
       continue;
     }
-    const key = contact.toLocaleLowerCase("es-MX");
-    let group = byContact.get(key);
+    let group = byKey.get(key);
     if (!group) {
-      group = { key: `contact-${key}`, name: contact, concepts: [], total: 0, entries: [] };
-      byContact.set(key, group);
+      const name =
+        (entry.contactId != null ? contactNames.get(entry.contactId) : undefined) ??
+        entry.contact?.trim() ??
+        entry.label;
+      group = { key, name, concepts: [], total: 0, entries: [] };
+      byKey.set(key, group);
       groups.push(group);
     }
     group.total += entry.amount;

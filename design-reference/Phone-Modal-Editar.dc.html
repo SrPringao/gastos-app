@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>ExpenseBro · Editar en Patrimonio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+html,body{overflow:hidden;scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#F5F5F7}
+a{color:#8C95FF;text-decoration:none}
+button,input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #000; font-variant-numeric: tabular-nums">
+<div aria-hidden="true" style="position: absolute; left: 14px; right: 14px; top: 10px; height: 200px; border-radius: 14px; background: radial-gradient(90% 60% at 30% 0%, rgba(48,209,88,0.18), rgba(48,209,88,0) 70%), #0B0B0D; opacity: 0.55; padding: 14px 18px; box-sizing: border-box"><div style="font-size: 15px; font-weight: 600; text-align: center; color: #8E8E93">Patrimonio</div></div>
+
+<div role="dialog" aria-modal="true" aria-label="Editar Nu Débito" style="position: absolute; left: 0; right: 0; top: 46px; bottom: 0; border-radius: 14px 14px 0 0; background: #111113; box-shadow: 0 -1px 0 rgba(255,255,255,0.08), 0 -20px 40px rgba(0,0,0,0.6); overflow: hidden">
+<div style="width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.25); margin: 6px auto 0"></div>
+<div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 8px 0">
+<button style="justify-self: start; border: 0; background: transparent; padding: 12px 10px; font-size: 17px; color: #8C95FF">Cancelar</button>
+<span style="font-size: 17px; font-weight: 600">Nu Débito</span>
+<button style="justify-self: end; border: 0; background: transparent; padding: 12px 10px; font-size: 17px; font-weight: 600; color: #8C95FF">Guardar</button>
+</div>
+
+<div style="padding: 10px 16px 40px; display: flex; flex-direction: column; gap: 20px">
+
+<label style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 16px 18px; border-radius: 18px; background: radial-gradient(100% 120% at 50% 0%, rgba(48,209,88,0.14), rgba(48,209,88,0) 65%), #1C1C1F; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.04)">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #8E8E93"><span style="width: 7px; height: 7px; border-radius: 4px; background: #30D158"></span>Saldo · Cuenta</span>
+<span style="display: flex; align-items: baseline; gap: 2px; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif">
+<span style="font-size: 30px; font-weight: 700; color: #30D158">$</span>
+<input inputmode="decimal" aria-label="Monto" value="26,520" style="width: 170px; border: 0; outline: 0; background: transparent; color: #fff; text-align: center; font-family: inherit; font-size: 44px; font-weight: 700; letter-spacing: -0.02em; caret-color: #30D158">
+<span style="font-size: 22px; font-weight: 600; color: #636366">.00</span>
+</span>
+<span style="font-size: 12px; color: #8E8E93">Antes $5,700.00 · <b style="color: #30D158; font-weight: 600">+$20,820.00</b></span>
+</label>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="border-radius: 14px; background: #1C1C1F; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); overflow: hidden">
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.06)"><span style="font-size: 16px; flex: none">Nombre</span><input aria-label="Nombre" value="Nu Débito" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; text-align: right; color: #A1A1A6; font-size: 16px"></label>
+<div style="padding: 10px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 10px"><span style="font-size: 16px">Sección</span>
+<div role="radiogroup" aria-label="Sección" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: 9px; background: rgba(118,118,128,0.24)">
+<button role="radio" aria-checked="true" style="height: 30px; border: 0; border-radius: 7px; background: linear-gradient(180deg, #5A5A60, #48484E); box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.35); color: #fff; font-size: 13px; font-weight: 600">Cuenta</button>
+<button role="radio" aria-checked="false" style="height: 30px; border: 0; border-radius: 7px; background: transparent; color: #C7C7CC; font-size: 13px">Te deben</button>
+<button role="radio" aria-checked="false" style="height: 30px; border: 0; border-radius: 7px; background: transparent; color: #C7C7CC; font-size: 13px">Por recibir</button>
+</div></div>
+<button style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 16px; border: 0; background: transparent; color: #F5F5F7; text-align: left"><span style="font-size: 16px">Método de pago</span><span style="display: flex; align-items: center; gap: 10px; font-size: 16px"><span style="width: 38px; height: 25px; border-radius: 5px; position: relative; background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%), linear-gradient(145deg, #8E55F0 0%, #5B22C4 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)"><span style="position: absolute; left: 5px; top: 8px; width: 8px; height: 6px; border-radius: 2px; background: linear-gradient(135deg, #F3E1A6, #C9A55A)"></span></span>Nu Débito<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></span></button>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<div style="border-radius: 14px; background: #1C1C1F; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); overflow: hidden">
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px"><span style="font-size: 16px">Sincronizar con gastos</span>
+<span role="switch" aria-checked="false" style="width: 51px; height: 31px; flex: none; border-radius: 16px; background: rgba(120,120,128,0.32); position: relative"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 14px; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.16)"></span></span></label>
+</div>
+<div style="padding: 4px 16px 0; font-size: 13px; color: #8E8E93; line-height: 1.4">Si lo activas, cada gasto nuevo con Nu Débito se resta de este saldo.</div>
+</section>
+
+<section style="border-radius: 14px; background: #1C1C1F; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); overflow: hidden">
+<button style="width: 100%; min-height: 48px; padding: 0 16px; border: 0; background: transparent; color: #FF6961; font-size: 16px; text-align: center">Eliminar de Patrimonio</button>
+</section>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

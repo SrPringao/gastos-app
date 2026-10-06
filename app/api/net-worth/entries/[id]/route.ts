@@ -29,6 +29,7 @@ export async function PATCH(
       syncEnabled: body.syncEnabled,
       assetKind: body.assetKind,
       contact: body.contact,
+      contactId: body.contactId,
     });
 
     if ("error" in result) {

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { netWorthEntries, netWorthProjections } from "@/lib/db/schema";
+import { contacts, netWorthEntries, netWorthProjections } from "@/lib/db/schema";
 import { and, eq, ne } from "drizzle-orm";
 import { inferAssetKind } from "@/lib/dashboard-metrics";
 
@@ -30,6 +30,8 @@ export type CreateNetWorthEntryInput = {
   syncEnabled?: boolean;
   assetKind?: AssetKind | null;
   contact?: string | null;
+  /** Persona guardada; si viene, manda sobre `contact` (texto) */
+  contactId?: number | null;
 };
 
 export type UpdateNetWorthEntryInput = {
@@ -42,6 +44,7 @@ export type UpdateNetWorthEntryInput = {
   syncEnabled?: boolean;
   assetKind?: AssetKind | null;
   contact?: string | null;
+  contactId?: number | null;
 };
 
 const ASSET_KINDS = ["account", "receivable", "income"] as const;
@@ -54,6 +57,30 @@ function isValidAssetKind(value: unknown): value is AssetKind | null {
 function normalizeContact(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+}
+
+/**
+ * Resuelve la persona de un positivo: con contactId valida que sea del
+ * usuario y copia su nombre al texto `contact` (se conserva durante la
+ * migracion). undefined = no se envio, no se toca.
+ */
+async function resolveContact(
+  userId: string,
+  contactId: number | null | undefined,
+  contactText: string | null | undefined
+): Promise<{ error: string } | { contactId?: number | null; contact?: string | null }> {
+  if (contactId === undefined) {
+    return contactText === undefined ? {} : { contact: normalizeContact(contactText) };
+  }
+  if (contactId === null) return { contactId: null, contact: null };
+  if (!Number.isInteger(contactId)) return { error: "Persona invalida" };
+  const rows = await db
+    .select({ id: contacts.id, name: contacts.name })
+    .from(contacts)
+    .where(and(eq(contacts.id, contactId), eq(contacts.userId, userId)))
+    .limit(1);
+  if (!rows[0]) return { error: "Persona no encontrada" };
+  return { contactId: rows[0].id, contact: rows[0].name };
 }
 
 async function assertUniqueSyncedAccount(
@@ -118,7 +145,7 @@ export async function createNetWorthEntry(
   userId: string,
   input: CreateNetWorthEntryInput
 ) {
-  const { accountId, label, kind, amount, dueDate, syncEnabled, assetKind, contact } =
+  const { accountId, label, kind, amount, dueDate, syncEnabled, assetKind, contact, contactId } =
     input;
 
   if (!label?.trim()) {
@@ -149,6 +176,9 @@ export async function createNetWorthEntry(
     if (conflict) return conflict;
   }
 
+  const person = kind === "asset" ? await resolveContact(userId, contactId, contact) : {};
+  if ("error" in person) return person;
+
   const siblings = await db
     .select({ sortOrder: netWorthEntries.sortOrder })
     .from(netWorthEntries)
@@ -169,7 +199,8 @@ export async function createNetWorthEntry(
       kind === "asset"
         ? (assetKind ?? inferAssetKind({ label: label.trim(), accountId: linkedAccountId }))
         : null,
-    contact: kind === "asset" ? normalizeContact(contact) : null,
+    contact: kind === "asset" ? (person.contact ?? null) : null,
+    contactId: kind === "asset" ? (person.contactId ?? null) : null,
   }).returning({ id: netWorthEntries.id });
 
   return { success: true as const, id: created.id };
@@ -246,6 +277,7 @@ export async function updateNetWorthEntry(
     syncEnabled,
     assetKind,
     contact,
+    contactId,
   } = input;
 
   if (label !== undefined && !label?.trim()) {
@@ -264,6 +296,9 @@ export async function updateNetWorthEntry(
   if (assetKind !== undefined && !isValidAssetKind(assetKind)) {
     return { error: "Tipo de positivo invalido" };
   }
+
+  const person = await resolveContact(userId, contactId, contact);
+  if ("error" in person) return person;
 
   const nextAccountId =
     accountId !== undefined ? accountId : existing.accountId;
@@ -306,7 +341,8 @@ export async function updateNetWorthEntry(
       }),
       ...(sortOrder !== undefined && { sortOrder }),
       ...(assetKind !== undefined && { assetKind }),
-      ...(contact !== undefined && { contact: normalizeContact(contact) }),
+      ...(person.contact !== undefined && { contact: person.contact }),
+      ...(person.contactId !== undefined && { contactId: person.contactId }),
       syncEnabled: nextSync,
       syncEnabledAt: nextSyncEnabledAt,
       updatedAt: new Date(),

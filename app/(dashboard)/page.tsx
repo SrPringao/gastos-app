@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { getCurrentUser } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getCategories } from "@/lib/services/categories";
-import { getMonthlyBudget } from "@/lib/services/monthly-budgets";
+import { getDefaultBudget, getMonthlyBudget } from "@/lib/services/monthly-budgets";
 import { getNetWorthEntries } from "@/lib/services/net-worth";
 import {
   getTotalSpentThisMonth,
@@ -74,6 +74,7 @@ export default async function DashboardPage({
     recentExpenses,
     budget,
     netWorthEntries,
+    defaultBudget,
   ] = await Promise.all([
     getAccounts(userId, { includeArchived: true }),
     getCategories(userId),
@@ -82,6 +83,7 @@ export default async function DashboardPage({
     getRecentExpenses(userId, 5, monthKey),
     getMonthlyBudget(userId, monthKey),
     getNetWorthEntries(userId),
+    getDefaultBudget(userId),
   ]);
   // Archivados: fuera de "Agregar gasto" y de los resumenes, pero sus
   // gastos se pueden seguir editando.
@@ -174,6 +176,7 @@ export default async function DashboardPage({
               summary={budgetSummary}
               monthKey={monthKey}
               monthLabel={month}
+              defaultBudget={defaultBudget}
             />
             <NextPaymentWidget
               payment={nextPayment ? toItem(nextPayment) : null}
@@ -222,6 +225,7 @@ export default async function DashboardPage({
               summary={budgetSummary}
               monthKey={monthKey}
               monthLabel={month}
+              defaultBudget={defaultBudget}
               className="col-span-12 min-[1000px]:col-span-3"
             />
             <UpcomingPaymentsCard

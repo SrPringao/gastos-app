@@ -1,113 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { ClockIcon } from "lucide-react";
 import { EbCard } from "@/components/ui/eb/card";
 import { Money } from "@/components/ui/eb/money";
 import { ProgressRing } from "@/components/ui/eb/progress-ring";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { BudgetSheet } from "@/components/dashboard/budget-sheet";
 import { formatMoney } from "@/lib/utils/money";
 import type { BudgetSummary } from "@/lib/dashboard-metrics";
 import { cn } from "@/lib/utils";
-
-function EditBudgetDialog({
-  open,
-  onOpenChange,
-  monthKey,
-  monthLabel,
-  currentCents,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  monthKey: string;
-  monthLabel: string;
-  currentCents: number | null;
-}) {
-  const router = useRouter();
-  const [draft, setDraft] = useState(currentCents ? (currentCents / 100).toFixed(2) : "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function save() {
-    const parsed = Number(draft);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      setError("Ingresa un monto valido");
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/monthly-budget", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month: monthKey, amount: parsed }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(data?.error || "Error al guardar");
-        return;
-      }
-      onOpenChange(false);
-      router.refresh();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (next) setDraft(currentCents ? (currentCents / 100).toFixed(2) : "");
-        onOpenChange(next);
-      }}
-    >
-      <DialogContent className="max-w-sm">
-        <DialogHeader className="text-left">
-          <DialogTitle>Presupuesto de {monthLabel.toLocaleLowerCase("es-MX")}</DialogTitle>
-          <DialogDescription>Cuanto planeas gastar en total este mes.</DialogDescription>
-        </DialogHeader>
-        <form
-          className="space-y-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            save();
-          }}
-        >
-          <Label htmlFor="budget-amount">Monto</Label>
-          <Input
-            id="budget-amount"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            autoFocus
-          />
-          {error && <p className="text-destructive text-sm">{error}</p>}
-          <DialogFooter className="pt-2">
-            <Button type="submit" disabled={saving}>
-              {saving ? "Guardando..." : "Guardar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 /** Texto de la pastilla inferior segun el estado del presupuesto (seccion 5.2) */
 function BudgetHint({ summary }: { summary: Exclude<BudgetSummary, { state: "unset" }> }) {
@@ -141,12 +42,27 @@ type BudgetCardProps = {
   summary: BudgetSummary;
   monthKey: string;
   monthLabel: string;
+  /** Presupuesto por defecto ("Usar para los siguientes meses") */
+  defaultBudget: number | null;
   variant?: "desktop" | "mobile";
   className?: string;
 };
 
-export function BudgetCard({ summary, monthKey, monthLabel, variant = "desktop", className }: BudgetCardProps) {
-  const [editing, setEditing] = useState(false);
+export function BudgetCard({
+  summary,
+  monthKey,
+  monthLabel,
+  defaultBudget,
+  variant = "desktop",
+  className,
+}: BudgetCardProps) {
+  // `sheetKey` cambia en cada apertura: la hoja arranca con el valor vigente
+  const [sheetKey, setSheetKey] = useState(0);
+  const [editing, setEditingState] = useState(false);
+  const setEditing = (next: boolean) => {
+    if (next) setSheetKey((k) => k + 1);
+    setEditingState(next);
+  };
   const isSet = summary.state !== "unset";
   const ratio = isSet ? summary.usedRatio : 0;
   const over = isSet && summary.remaining < 0;
@@ -155,15 +71,19 @@ export function BudgetCard({ summary, monthKey, monthLabel, variant = "desktop",
     ? `${summary.usedPercent} % del presupuesto usado`
     : "Sin presupuesto definido";
 
-  const dialog = (
-    <EditBudgetDialog
-      open={editing}
-      onOpenChange={setEditing}
-      monthKey={monthKey}
-      monthLabel={monthLabel}
-      currentCents={isSet ? summary.budget : null}
-    />
-  );
+  const dialog =
+    sheetKey > 0 ? (
+      <BudgetSheet
+        key={sheetKey}
+        open={editing}
+        onClose={() => setEditing(false)}
+        monthKey={monthKey}
+        monthLabel={monthLabel}
+        currentCents={isSet ? summary.budget : null}
+        spent={summary.spent}
+        defaultBudget={defaultBudget}
+      />
+    ) : null;
 
   if (variant === "mobile") {
     return (

@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       syncEnabled: Boolean(body.syncEnabled),
       assetKind: body.assetKind,
       contact: body.contact,
+      contactId: body.contactId,
     });
 
     if ("error" in result) {

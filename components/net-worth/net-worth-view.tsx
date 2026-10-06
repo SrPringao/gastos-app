@@ -23,15 +23,15 @@ import { SegmentedBar } from "@/components/ui/eb/segmented-bar";
 import { GroupHeader } from "@/components/ui/eb/grouped-list";
 import { PageGlow } from "@/components/ui/eb/page-glow";
 import { MobileHeader, HeaderIconButton } from "@/components/mobile-header";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PRIVATE_MASK, usePrivacy } from "@/components/privacy";
-import { EntryFormDialog } from "@/components/net-worth/entry-form-dialog";
+import { PatrimonioEntrySheet } from "@/components/net-worth/patrimonio-entry-sheet";
 import { ProjectionDialog } from "@/components/net-worth/projection-dialog";
 import { accountTone } from "@/lib/account-colors";
 import {
   debtCycleProgress,
   daysBetween,
   groupReceivables,
+  receivableGroupKey,
   initialOf,
   resolveAssetKind,
   effectiveDueDate,
@@ -39,12 +39,12 @@ import {
 import { formatMoney } from "@/lib/utils/money";
 import { todayDateString } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
-import type { Account, NetWorthEntry, NetWorthProjection } from "@/lib/db/schema";
+import type { Account, Contact, NetWorthEntry, NetWorthProjection } from "@/lib/db/schema";
 
-type DialogState =
-  | { type: "entry"; kind: "asset" | "debt"; entry?: NetWorthEntry }
-  | { type: "projection"; projection?: NetWorthProjection }
-  | null;
+type DialogState = { type: "projection"; projection?: NetWorthProjection } | null;
+
+/** Hoja Nuevo/Editar: `key` cambia en cada apertura para reiniciar el formulario */
+type EntrySheetState = { key: number; kind: "asset" | "debt"; entry?: NetWorthEntry };
 
 // ---------------------------------------------------------------------------
 // Piezas visuales
@@ -266,12 +266,15 @@ export function NetWorthView({
   accounts,
   entries,
   projections,
+  contacts,
   highlightEntryId,
   footer,
 }: {
   accounts: Account[];
   entries: NetWorthEntry[];
   projections: NetWorthProjection[];
+  /** Personas guardadas (archivadas incluidas, para nombrar sus grupos) */
+  contacts: Contact[];
   /** Item a resaltar al llegar desde Cuentas ("Ver en Patrimonio") */
   highlightEntryId?: number;
   /** Contenido al final de la pagina, dentro del contenedor del header sticky movil */
@@ -286,8 +289,8 @@ export function NetWorthView({
     const target = entries.find((e) => e.id === highlightEntryId);
     if (!target) return {};
     if (target.kind === "debt" && target.amount === 0) return { zeroDebts: true };
-    const contact = target.contact?.trim().toLocaleLowerCase("es-MX");
-    return contact ? { [`contact-${contact}`]: true } : {};
+    const key = receivableGroupKey(target);
+    return key ? { [key]: true } : {};
   });
 
   useEffect(() => {
@@ -299,8 +302,8 @@ export function NetWorthView({
     const timer = window.setTimeout(() => el.classList.remove("eb-highlight"), 2400);
     return () => window.clearTimeout(timer);
   }, [highlightEntryId]);
-  // Menu "Agregar": un trigger en el header movil y otro en el de escritorio
-  const [addOpen, setAddOpen] = useState<"mobile" | "desktop" | null>(null);
+  const [entrySheet, setEntrySheet] = useState<EntrySheetState | null>(null);
+  const [entrySheetOpen, setEntrySheetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const today = todayDateString();
 
@@ -313,7 +316,11 @@ export function NetWorthView({
   const assets = entries.filter((e) => e.kind === "asset");
   const debts = entries.filter((e) => e.kind === "debt");
   const accountEntries = assets.filter((e) => resolveAssetKind(e) === "account");
-  const receivables = groupReceivables(assets.filter((e) => resolveAssetKind(e) === "receivable"));
+  const contactNames = useMemo(() => new Map(contacts.map((c) => [c.id, c.name])), [contacts]);
+  const receivables = groupReceivables(
+    assets.filter((e) => resolveAssetKind(e) === "receivable"),
+    contactNames
+  );
   const incomes = assets.filter((e) => resolveAssetKind(e) === "income");
   const activeDebts = debts.filter((e) => e.amount > 0);
   const zeroDebts = debts.filter((e) => e.amount === 0);
@@ -332,6 +339,11 @@ export function NetWorthView({
 
   function refresh() {
     router.refresh();
+  }
+
+  function openEntry(kind: "asset" | "debt", entry?: NetWorthEntry) {
+    setEntrySheet({ key: Date.now(), kind, entry });
+    setEntrySheetOpen(true);
   }
 
   async function deleteEntry(entry: NetWorthEntry) {
@@ -375,12 +387,12 @@ export function NetWorthView({
       name: entry.label,
       onMoveUp: index > 0 ? () => move(section, index, -1) : undefined,
       onMoveDown: index < section.length - 1 ? () => move(section, index, 1) : undefined,
-      onEdit: () => setDialog({ type: "entry", kind: entry.kind, entry }),
+      onEdit: () => openEntry(entry.kind, entry),
       onDelete: () => deleteEntry(entry),
     };
   }
 
-  const edit = (entry: NetWorthEntry) => () => setDialog({ type: "entry", kind: entry.kind, entry });
+  const edit = (entry: NetWorthEntry) => () => openEntry(entry.kind, entry);
 
   function debtRow(entry: NetWorthEntry, section: NetWorthEntry[], index: number, indent = false) {
     const due = effectiveDueDate(entry, paymentDayByAccount, today);
@@ -652,6 +664,20 @@ export function NetWorthView({
             {expanded.zeroDebts && zeroDebts.map((entry, index) => debtRow(entry, zeroDebts, index, true))}
           </div>
         )}
+        <button
+          type="button"
+          onClick={() => openEntry("debt")}
+          className="eb-row text-eb-link flex min-h-[52px] w-full items-center gap-3 px-4 text-left text-[16px]"
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-[30px] flex-none items-center justify-center rounded-full"
+            style={{ background: "rgba(94,107,255,0.18)" }}
+          >
+            <PlusIcon size={16} strokeWidth={2.4} />
+          </span>
+          Agregar deuda
+        </button>
       </Section>
 
       <Section
@@ -691,35 +717,6 @@ export function NetWorthView({
     </div>
   );
 
-  function addMenu(where: "mobile" | "desktop", trigger: React.ReactNode) {
-    return (
-      <Popover open={addOpen === where} onOpenChange={(open) => setAddOpen(open ? where : null)}>
-        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent align="end" className="w-52 p-1.5">
-          {(
-            [
-              { kind: "asset", label: "Positivo", hint: "Cuenta, préstamo o ingreso" },
-              { kind: "debt", label: "Deuda", hint: "Tarjeta o pago pendiente" },
-            ] as const
-          ).map((option) => (
-            <button
-              key={option.kind}
-              type="button"
-              onClick={() => {
-                setAddOpen(null);
-                setDialog({ type: "entry", kind: option.kind });
-              }}
-              className="flex w-full flex-col rounded-[10px] px-3 py-2 text-left transition-colors hover:bg-[var(--eb-fill-subtle)]"
-            >
-              <span className="text-[15px] font-medium">{option.label}</span>
-              <span className="text-eb-text-tertiary text-[12px]">{option.hint}</span>
-            </button>
-          ))}
-        </PopoverContent>
-      </Popover>
-    );
-  }
-
   return (
     // overflow-clip (no hidden): hidden crearia otro contenedor de scroll y romperia el sticky del header movil
     <div className="relative overflow-clip">
@@ -729,12 +726,11 @@ export function NetWorthView({
           title="Patrimonio"
           tint="green"
           titleClassName="-mt-3 md:hidden"
-          rightAction={addMenu(
-            "mobile",
-            <HeaderIconButton aria-label="Agregar">
+          rightAction={
+            <HeaderIconButton aria-label="Agregar" onClick={() => openEntry("asset")}>
               <PlusIcon size={18} strokeWidth={2.4} aria-hidden="true" />
             </HeaderIconButton>
-          )}
+          }
         >
           <header className="px-1">
             <h1 className="eb-title">Patrimonio</h1>
@@ -754,12 +750,15 @@ export function NetWorthView({
             >
               {hidden ? <EyeOffIcon size={18} strokeWidth={2} /> : <EyeIcon size={18} strokeWidth={2} />}
             </button>
-            {addMenu(
-              "desktop",
-              <button type="button" aria-label="Agregar" className={headerButtonClass} style={headerButtonStyle}>
-                <PlusIcon size={18} strokeWidth={2.4} />
-              </button>
-            )}
+            <button
+              type="button"
+              aria-label="Agregar"
+              onClick={() => openEntry("asset")}
+              className={headerButtonClass}
+              style={headerButtonStyle}
+            >
+              <PlusIcon size={18} strokeWidth={2.4} />
+            </button>
           </div>
         </header>
 
@@ -779,13 +778,16 @@ export function NetWorthView({
         {footer}
       </div>
 
-      {dialog?.type === "entry" && (
-        <EntryFormDialog
-          kind={dialog.kind}
+      {entrySheet && (
+        <PatrimonioEntrySheet
+          key={entrySheet.key}
+          open={entrySheetOpen}
+          onClose={() => setEntrySheetOpen(false)}
+          entry={entrySheet.entry}
+          initialKind={entrySheet.kind}
           accounts={accounts}
-          entry={dialog.entry}
-          open
-          onOpenChange={(open) => !open && setDialog(null)}
+          entries={entries}
+          contacts={contacts}
           onSaved={refresh}
         />
       )}

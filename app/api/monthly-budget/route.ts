@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMonthlyBudget, upsertMonthlyBudget } from "@/lib/services/monthly-budgets";
+import {
+  getDefaultBudget,
+  getMonthlyBudget,
+  setDefaultBudget,
+  upsertMonthlyBudget,
+} from "@/lib/services/monthly-budgets";
 import { getCurrentUserId } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
@@ -17,8 +22,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const amount = await getMonthlyBudget(userId, month);
-    return NextResponse.json({ amount: amount ?? 0 });
+    const [amount, defaultBudget] = await Promise.all([
+      getMonthlyBudget(userId, month),
+      getDefaultBudget(userId),
+    ]);
+    return NextResponse.json({ amount: amount ?? 0, defaultBudget });
   } catch (error) {
     console.error("[API] GET /api/monthly-budget:", error);
     return NextResponse.json(
@@ -55,6 +63,15 @@ export async function PUT(request: NextRequest) {
     const result = await upsertMonthlyBudget(userId, month, amountCents);
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    // "Usar para los siguientes meses": true lo guarda como presupuesto por
+    // defecto, false lo quita; sin el campo no se toca.
+    if (typeof body.useAsDefault === "boolean") {
+      const saved = await setDefaultBudget(userId, body.useAsDefault ? amountCents : null);
+      if (saved.error) {
+        return NextResponse.json({ error: saved.error }, { status: 400 });
+      }
     }
 
     return NextResponse.json({ success: true, amount: amountCents });

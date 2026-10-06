@@ -32,13 +32,15 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
   return (
     <main
       data-scrollable
-      className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[var(--eb-tabbar-h)] md:pb-0"
+      className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-none pb-[calc(var(--eb-tabbar-h)+16px)] md:pb-0"
       style={
         {
           WebkitOverflowScrolling: "touch",
           touchAction: "pan-y",
-          overscrollBehavior: "contain",
-          overscrollBehaviorY: "contain",
+          // none (no contain): sin rebote elastico, que dejaba ver el fondo
+          // liso detras del glow al jalar hacia arriba
+          overscrollBehavior: "none",
+          overscrollBehaviorY: "none",
           "--eb-tabbar-h": TAB_BAR_HEIGHT,
         } as React.CSSProperties
       }

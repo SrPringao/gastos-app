@@ -1,6 +1,7 @@
 import { getCurrentUserId } from "@/lib/auth";
 import { getAccounts } from "@/lib/services/accounts";
 import { getNetWorthEntries, getNetWorthProjections } from "@/lib/services/net-worth";
+import { getContacts } from "@/lib/services/contacts";
 import { NetWorthView } from "@/components/net-worth/net-worth-view";
 import { PatrimonioReportCard } from "@/components/net-worth/patrimonio-report-card";
 import { redirect } from "next/navigation";
@@ -18,10 +19,11 @@ export default async function PatrimonioPage({
   const { entry } = await searchParams;
   const highlightEntryId = entry && /^\d+$/.test(entry) ? Number(entry) : undefined;
 
-  const [accounts, netWorthEntries, projections] = await Promise.all([
+  const [accounts, netWorthEntries, projections, contacts] = await Promise.all([
     getAccounts(userId),
     getNetWorthEntries(userId),
     getNetWorthProjections(userId),
+    getContacts(userId, { includeArchived: true }),
   ]);
 
   return (
@@ -29,6 +31,7 @@ export default async function PatrimonioPage({
       accounts={accounts}
       entries={netWorthEntries}
       projections={projections}
+      contacts={contacts}
       highlightEntryId={highlightEntryId}
       footer={<PatrimonioReportCard />}
     />

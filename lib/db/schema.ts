@@ -103,6 +103,26 @@ export const fixedExpenses = pgTable("fixed_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Personas guardadas ("¿Quién te debe?" en Patrimonio). name_key es el nombre
+// normalizado (lib/contacts.ts) para evitar duplicados como "Camila"/"camila".
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    nameKey: text("name_key").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    // Archivada: no aparece en los chips; sus positivos se conservan
+    archivedAt: timestamp("archived_at"),
+  },
+  (table) => ({
+    userNameKeyUnique: uniqueIndex("contacts_user_name_key_unique").on(table.userId, table.nameKey),
+  })
+);
+
 // Patrimonio: saldos positivos y deudas manuales, independientes de expenses/fixedExpenses
 export const netWorthEntries = pgTable("net_worth_entries", {
   id: serial("id").primaryKey(),
@@ -124,8 +144,10 @@ export const netWorthEntries = pgTable("net_worth_entries", {
   // Solo positivos: en que seccion de Patrimonio aparece. null = se infiere
   // (metodo de pago ligado -> account, "sueldo" -> income, resto -> receivable).
   assetKind: text("asset_kind", { enum: ["account", "receivable", "income"] }),
-  // Persona que debe el positivo, para agrupar "Te deben"
+  // Persona que debe el positivo, para agrupar "Te deben". contactId es la
+  // fuente de verdad; el texto se conserva durante la migracion.
   contact: text("contact"),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -222,6 +244,8 @@ export const userPreferences = pgTable("user_preferences", {
   // Hrefs (en orden) de las secciones elegidas para la tab bar movil.
   // Null = usar el default (Inicio, Gastos, Cuentas, Configuracion).
   mobileNavItems: text("mobile_nav_items").array(),
+  // Presupuesto por defecto (centavos): lo usan los meses sin presupuesto propio
+  defaultBudget: integer("default_budget"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -260,6 +284,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   apiTokens: many(apiTokens),
   netWorthEntries: many(netWorthEntries),
   netWorthProjections: many(netWorthProjections),
+  contacts: many(contacts),
   cardNameMappings: many(cardNameMappings),
   pushSubscriptions: many(pushSubscriptions),
   preferences: many(userPreferences),
@@ -342,6 +367,15 @@ export const netWorthEntriesRelations = relations(netWorthEntries, ({ one }) => 
     fields: [netWorthEntries.accountId],
     references: [accounts.id],
   }),
+  contactRef: one(contacts, {
+    fields: [netWorthEntries.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
+  user: one(users, { fields: [contacts.userId], references: [users.id] }),
+  netWorthEntries: many(netWorthEntries),
 }));
 
 export const netWorthProjectionsRelations = relations(netWorthProjections, ({ one }) => ({
@@ -368,6 +402,7 @@ export type NewCategory = InferInsertModel<typeof categories>;
 export type Expense = InferSelectModel<typeof expenses>;
 export type NewExpense = InferInsertModel<typeof expenses>;
 export type MonthlyBudget = InferSelectModel<typeof monthlyBudgets>;
+export type Contact = InferSelectModel<typeof contacts>;
 export type NewMonthlyBudget = InferInsertModel<typeof monthlyBudgets>;
 export type FixedExpense = InferSelectModel<typeof fixedExpenses>;
 export type NewFixedExpense = InferInsertModel<typeof fixedExpenses>;

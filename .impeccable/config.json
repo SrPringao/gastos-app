@@ -26,6 +26,18 @@
         "value": "12px",
         "createdAt": "2026-08-20T05:39:11.513Z",
         "reason": "tooltip de Recharts (contentStyle inline): coincide con el tamano de metadata/eyebrow ya documentado (12px), solo declarado inline porque asi lo requiere el contentStyle de la libreria"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "30px",
+        "createdAt": "2026-10-06T20:55:06.167Z",
+        "reason": "spec design-reference/expensebro-modales-prompt.md 2.1: AmountHero '$' en 30px/700"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(120,120,128,0.32)",
+        "createdAt": "2026-10-06T20:55:06.202Z",
+        "reason": "spec design-reference/expensebro-modales-prompt.md 2.5: IOSSwitch apagado rgba(120,120,128,0.32)"
       }
     ]
   }

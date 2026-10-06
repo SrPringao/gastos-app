@@ -98,27 +98,36 @@ export function AccountCard({
   );
 }
 
-/** Miniatura de 46x30 de la tarjeta, para listas (seccion A.1) */
+/** Miniatura de 46x30 de la tarjeta, para listas (seccion A.1); "sm" mide 38x25 (selector de metodo) */
 export function AccountThumb({
   color,
   isCash = false,
   chip = "gold",
+  size = "md",
 }: {
   color: string | null;
   isCash?: boolean;
   chip?: AccountChip;
+  size?: "md" | "sm";
 }) {
+  const sm = size === "sm";
   return (
     <div
       aria-hidden="true"
-      className="relative flex h-[30px] w-[46px] flex-none items-center justify-center rounded-[6px]"
+      className={cn(
+        "relative flex flex-none items-center justify-center",
+        sm ? "h-[25px] w-[38px] rounded-[5px]" : "h-[30px] w-[46px] rounded-[6px]"
+      )}
       style={cardSurface(color, "thumb")}
     >
       {isCash ? (
-        <BanknoteIcon size={16} strokeWidth={2} color="var(--ink)" />
+        <BanknoteIcon size={sm ? 14 : 16} strokeWidth={2} color="var(--ink)" />
       ) : (
         <span
-          className="absolute top-[9px] left-[6px] h-[7px] w-[9px] rounded-[2px]"
+          className={cn(
+            "absolute rounded-[2px]",
+            sm ? "top-[8px] left-[5px] h-[6px] w-[8px]" : "top-[9px] left-[6px] h-[7px] w-[9px]"
+          )}
           style={{ background: CHIPS[chip] }}
         />
       )}

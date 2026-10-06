@@ -31,8 +31,12 @@ export default async function DashboardLayout({
 
   return (
     <MobileMenuProvider>
+      {/* Movil: fixed + inset 0 (con ! para ganarle al position: relative de
+          .eb-page). Asi mide exactamente el viewport donde se pega la tab bar
+          (fixed, bottom 0); con 100dvh, en la PWA de iPhone quedaba mas alto
+          que la pantalla y el final del scroll se perdia debajo de la tab bar. */}
       <div
-        className="eb-page h-screen h-[100dvh] flex w-full max-w-full overflow-hidden md:flex-row md:pl-[17rem]"
+        className="eb-page h-screen h-[100dvh] max-md:fixed! max-md:inset-0 max-md:h-auto! flex w-full max-w-full overflow-hidden md:flex-row md:pl-[17rem]"
         style={{
           touchAction: 'none',
           overscrollBehavior: 'none'

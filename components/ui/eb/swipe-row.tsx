@@ -82,10 +82,16 @@ export function SwipeRow({ actions, open, onOpenChange, children, className }: S
         className="relative w-full select-none"
         style={{
           transform: `translateX(${offset}px)`,
-          transition: dragX === null ? "transform .25s cubic-bezier(.2,.8,.2,1)" : "none",
+          // Fondo y sombra se quitan hasta que la fila termina de regresar (.25s,
+          // igual que las acciones): si se quitaran al soltar, la fila regresaria
+          // transparente y se verian Editar/Borrar a traves de ella
+          transition: [
+            dragX === null ? "transform .25s cubic-bezier(.2,.8,.2,1)" : "transform 0s",
+            offset < 0 ? "background-color 0s, box-shadow 0s" : "background-color 0s linear .25s, box-shadow 0s linear .25s",
+          ].join(", "),
           touchAction: "pan-y",
-          background: offset < 0 ? "var(--eb-row-raised)" : undefined,
-          boxShadow: offset < 0 ? "8px 0 16px -6px rgba(0,0,0,.6)" : undefined,
+          backgroundColor: offset < 0 ? "var(--eb-row-raised)" : "transparent",
+          boxShadow: offset < 0 ? "8px 0 16px -6px rgba(0,0,0,.6)" : "none",
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
