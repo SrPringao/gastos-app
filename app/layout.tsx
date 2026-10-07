@@ -77,7 +77,7 @@ export default async function RootLayout({
   const userId = await getCurrentUserId();
   const preferences: UserPreferencesData = userId
     ? await getUserPreferences(userId)
-    : { theme: "dark", hideNetWorthAmounts: false, mobileNavHrefs: null };
+    : { theme: "dark", hideNetWorthAmounts: false, mobileNavHrefs: null, accountsView: null };
 
   return (
     <html

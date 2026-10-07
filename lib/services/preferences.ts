@@ -4,17 +4,23 @@ import { eq } from "drizzle-orm";
 
 export type Theme = "dark" | "light";
 
+/** Vista de "Cuentas" en Inicio: saldos de Patrimonio o lo gastado en el mes */
+export type AccountsView = "balance" | "spent";
+
 export type UserPreferencesData = {
   theme: Theme;
   hideNetWorthAmounts: boolean;
   /** Hrefs (en orden) de las secciones elegidas para la tab bar movil; null = default */
   mobileNavHrefs: string[] | null;
+  /** null = automatica (saldos si hay alguno; si no, gastado) */
+  accountsView: AccountsView | null;
 };
 
 const DEFAULT_PREFERENCES: UserPreferencesData = {
   theme: "dark",
   hideNetWorthAmounts: false,
   mobileNavHrefs: null,
+  accountsView: null,
 };
 
 export async function getUserPreferences(
@@ -33,6 +39,7 @@ export async function getUserPreferences(
     theme: row.theme as Theme,
     hideNetWorthAmounts: row.hideNetWorthAmounts,
     mobileNavHrefs: row.mobileNavItems ?? null,
+    accountsView: (row.accountsView as AccountsView | null) ?? null,
   };
 }
 

@@ -332,6 +332,20 @@ export function buildAccountBalances<A extends AccountLike>(
   return balances.filter((b) => keep.has(b.entryId));
 }
 
+/**
+ * Para quien no registra saldos en Patrimonio: todas sus cuentas activas con
+ * lo gastado en el mes, de mayor a menor gasto (luego por nombre).
+ */
+export function buildAccountSpending<A extends AccountLike>(
+  accounts: A[],
+  spentByAccount: { accountId: number; total: number }[]
+): { account: A; spent: number }[] {
+  const spentOf = new Map(spentByAccount.map((s) => [s.accountId, s.total]));
+  return accounts
+    .map((account) => ({ account, spent: spentOf.get(account.id) ?? 0 }))
+    .sort((a, b) => b.spent - a.spent || a.account.name.localeCompare(b.account.name, "es-MX"));
+}
+
 export function countCreditAccounts(accounts: AccountLike[]): number {
   return accounts.filter((a) => a.type === "credit").length;
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircleIcon, ArrowUpRightIcon, CheckIcon, PencilIcon } from "lucide-react";
 import { Money } from "@/components/ui/eb/money";
 import { showToast } from "@/components/ui/eb/toast";
+import { ActionSheet } from "@/components/ui/eb/sheet";
 import { usePrivacy } from "@/components/privacy";
 import { formatMoney } from "@/lib/utils/money";
 import { cn } from "@/lib/utils";
@@ -144,7 +145,7 @@ function BalanceRow({
   item,
   variant,
 }: {
-  method: { name: string; type: PaymentMethodType };
+  method: { id?: number; name: string; type: PaymentMethodType };
   item: { id: number; amount: number };
   variant: Variant;
 }) {
@@ -154,9 +155,51 @@ function BalanceRow({
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const copy = COPY[method.type];
   const mobile = variant === "mobile";
   const cents = parseAmountInput(value);
+
+  /**
+   * Quita el saldo de Patrimonio (borra solo ese item; el metodo y sus
+   * gastos no se tocan). "Deshacer" lo vuelve a crear con el mismo monto.
+   */
+  async function remove() {
+    setConfirmRemove(false);
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/net-worth/entries/${item.id}`, { method: "DELETE" });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setError(data?.error || "No se pudo quitar de Patrimonio");
+      return;
+    }
+    router.refresh();
+    const previous = item.amount;
+    showToast({
+      message: `${method.name} ya no tiene saldo en Patrimonio`,
+      ...(method.id && {
+        action: {
+          label: "Deshacer",
+          onClick: async () => {
+            await fetch("/api/net-worth/entries", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                label: method.name,
+                kind: method.type === "credit" ? "debt" : "asset",
+                accountId: method.id,
+                amount: previous,
+                ...(method.type !== "credit" && { assetKind: "account" }),
+              }),
+            });
+            router.refresh();
+          },
+        },
+      }),
+    });
+  }
 
   function startEditing() {
     // Con "ocultar saldos" activo en Patrimonio, el campo arranca vacio
@@ -257,6 +300,25 @@ function BalanceRow({
           </Link>
         </div>
       )}
+      {!editing && (
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => setConfirmRemove(true)}
+          className={cn("text-eb-red flex min-h-11 w-full items-center text-[14px] disabled:opacity-40", pad)}
+        >
+          Quitar de Patrimonio
+        </button>
+      )}
+      {!editing && error && <p className={cn("text-eb-red py-2 text-[13px]", pad)}>{error}</p>}
+      <ActionSheet
+        open={confirmRemove}
+        message={`¿Quitar el saldo de ${method.name} de Patrimonio? La ${
+          method.type === "credit" ? "tarjeta" : "cuenta"
+        } y sus gastos se conservan.`}
+        actions={[{ label: "Quitar de Patrimonio", destructive: true, onSelect: remove }]}
+        onCancel={() => setConfirmRemove(false)}
+      />
     </div>
   );
 }

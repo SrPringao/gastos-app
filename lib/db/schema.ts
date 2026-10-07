@@ -246,6 +246,8 @@ export const userPreferences = pgTable("user_preferences", {
   mobileNavItems: text("mobile_nav_items").array(),
   // Presupuesto por defecto (centavos): lo usan los meses sin presupuesto propio
   defaultBudget: integer("default_budget"),
+  // Vista de "Cuentas" en Inicio: saldos de Patrimonio o gastado del mes. Null = automatica
+  accountsView: text("accounts_view", { enum: ["balance", "spent"] }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

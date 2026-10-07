@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { WalletIcon, CreditCardIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { CheckIcon, ChevronRightIcon, CreditCardIcon } from "lucide-react";
+import { EbSheet } from "@/components/ui/eb/sheet";
+import { AmountHero, FormSection, GroupBox, SwitchRow, parseAmount } from "@/components/ui/eb/form-kit";
+import { showToast } from "@/components/ui/eb/toast";
+import { monthName } from "@/lib/utils/dates";
 
 const DISMISS_KEY = "gastos-setup-prompt-dismissed";
 
@@ -23,54 +16,63 @@ type SetupReminderPromptProps = {
   monthKey: string;
 };
 
-export function SetupReminderPrompt({
-  hasBudget,
-  hasAccount,
-  monthKey,
-}: SetupReminderPromptProps) {
+/**
+ * "Termina de configurar tu cuenta": misma hoja y piezas que el modal de
+ * Presupuesto. Pide el presupuesto del mes y/o una cuenta; "Cancelar" lo
+ * oculta por esta sesion.
+ */
+export function SetupReminderPrompt({ hasBudget, hasAccount, monthKey }: SetupReminderPromptProps) {
   const router = useRouter();
+  const switchId = useId();
   const [open, setOpen] = useState(false);
   const [budgetAmount, setBudgetAmount] = useState("");
+  const [useAsDefault, setUseAsDefault] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedBudget, setSavedBudget] = useState(hasBudget);
 
   const needsSetup = !savedBudget || !hasAccount;
+  const month = monthName(monthKey).toLocaleLowerCase("es-MX");
+  const cents = parseAmount(budgetAmount);
+  const valid = cents !== null && cents > 0;
 
   useEffect(() => {
     if (!needsSetup) return;
-    if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
+    try {
+      if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
+    } catch {
+      // Sin sessionStorage (modo privado): se muestra igual
+    }
     const timer = setTimeout(() => setOpen(true), 800);
     return () => clearTimeout(timer);
   }, [needsSetup]);
 
   function handleDismiss() {
-    sessionStorage.setItem(DISMISS_KEY, "1");
+    try {
+      sessionStorage.setItem(DISMISS_KEY, "1");
+    } catch {
+      // Sin sessionStorage: solo se cierra
+    }
     setOpen(false);
   }
 
   async function handleSaveBudget() {
-    const parsed = Number(budgetAmount);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      setError("Ingresa un monto valido");
-      return;
-    }
+    if (!valid || cents === null) return;
     setSaving(true);
     setError(null);
     try {
       const res = await fetch("/api/monthly-budget", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month: monthKey, amount: parsed }),
+        body: JSON.stringify({ month: monthKey, amount: cents / 100, ...(useAsDefault && { useAsDefault: true }) }),
       });
       if (!res.ok) {
         setError("No se pudo guardar el presupuesto");
         return;
       }
       setSavedBudget(true);
-      if (hasAccount) {
-        setOpen(false);
-      }
+      showToast({ message: "Presupuesto guardado" });
+      if (hasAccount) setOpen(false);
       router.refresh();
     } finally {
       setSaving(false);
@@ -82,85 +84,89 @@ export function SetupReminderPrompt({
     router.push("/cuentas");
   }
 
-  if (!needsSetup) return null;
-
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : handleDismiss())}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader className="text-left">
-          <DialogTitle className="flex items-center gap-2">
-            <WalletIcon className="size-5" />
-            Termina de configurar tu cuenta
-          </DialogTitle>
-          <DialogDescription>
-            La app funciona mejor con un presupuesto mensual y al menos una
-            cuenta o tarjeta registrada.
-          </DialogDescription>
-        </DialogHeader>
+    <EbSheet
+      open={open}
+      onClose={handleDismiss}
+      title="Configura tu cuenta"
+      ariaLabel="Termina de configurar tu cuenta"
+      action={
+        savedBudget
+          ? undefined
+          : { label: saving ? "Guardando..." : "Guardar", onClick: handleSaveBudget, disabled: !valid || saving }
+      }
+    >
+      <p className="text-eb-text-tertiary px-4 text-center text-[13px] leading-[1.4]">
+        La app funciona mejor con un presupuesto mensual y al menos una cuenta o tarjeta registrada.
+      </p>
 
-        <div className="space-y-4">
-          {!savedBudget && (
-            <div className="space-y-1.5">
-              <Label htmlFor="setup-budget" className="text-sm font-medium">
-                Presupuesto mensual
-              </Label>
-              <Input
-                id="setup-budget"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={budgetAmount}
-                onChange={(e) => setBudgetAmount(e.target.value)}
-                autoFocus
-              />
-            </div>
-          )}
-
-          {!hasAccount && (
-            <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
-              <CreditCardIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-              <p className="text-muted-foreground text-xs">
-                Aun no tienes ninguna cuenta o tarjeta registrada.
-              </p>
-            </div>
-          )}
-
-          {error && <p className="text-destructive text-sm">{error}</p>}
-        </div>
-
-        <DialogFooter className="flex-col gap-2 sm:flex-col">
-          {!savedBudget && (
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handleSaveBudget}
-              disabled={saving}
+      {savedBudget ? (
+        <GroupBox variant="mobile">
+          <div className="flex min-h-[52px] items-center gap-3 px-4">
+            <span
+              aria-hidden="true"
+              className="flex size-[30px] flex-none items-center justify-center rounded-full text-white"
+              style={{ background: "#30D158" }}
             >
-              {saving ? "Guardando..." : "Guardar presupuesto"}
-            </Button>
-          )}
-          {!hasAccount && (
-            <Button
+              <CheckIcon size={16} strokeWidth={2.6} />
+            </span>
+            <span className="text-[16px]">Presupuesto de {month} guardado</span>
+          </div>
+        </GroupBox>
+      ) : (
+        <>
+          <AmountHero
+            label={`¿Cuánto planeas gastar en ${month}?`}
+            ariaLabel="Presupuesto mensual"
+            value={budgetAmount}
+            onChange={setBudgetAmount}
+            onEnter={handleSaveBudget}
+            tint="indigo"
+          />
+          <GroupBox variant="mobile">
+            <SwitchRow
+              id={switchId}
+              label="Usar para los siguientes meses"
+              subtitle="Puedes cambiarlo cuando quieras"
+              checked={useAsDefault}
+              onChange={setUseAsDefault}
+            />
+          </GroupBox>
+        </>
+      )}
+
+      {!hasAccount && (
+        <FormSection
+          title="Cuentas"
+          variant="mobile"
+          footer="Registra la tarjeta o cuenta con la que pagas para empezar a capturar gastos."
+        >
+          <GroupBox variant="mobile">
+            <div className="flex min-h-[52px] items-center gap-3 px-4">
+              <span
+                aria-hidden="true"
+                className="text-eb-text-tertiary flex size-[30px] flex-none items-center justify-center rounded-[8px]"
+                style={{ background: "var(--eb-neutral-tile)" }}
+              >
+                <CreditCardIcon size={16} strokeWidth={2} />
+              </span>
+              <span className="text-eb-text-secondary text-[15px]">
+                Aún no tienes ninguna cuenta o tarjeta registrada.
+              </span>
+            </div>
+            <button
               type="button"
-              variant={savedBudget ? "default" : "outline"}
-              className="w-full"
               onClick={handleGoToAccounts}
+              className="text-eb-link flex min-h-12 w-full items-center justify-between px-4 text-left text-[16px]"
             >
               Agregar cuenta o tarjeta
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={handleDismiss}
-            disabled={saving}
-          >
-            Ahora no
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+              <ChevronRightIcon size={14} strokeWidth={2.4} className="text-eb-chevron" aria-hidden="true" />
+            </button>
+          </GroupBox>
+        </FormSection>
+      )}
+
+      {error && <p className="text-eb-red px-4 text-center text-[14px]">{error}</p>}
+    </EbSheet>
   );
 }

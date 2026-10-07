@@ -14,6 +14,7 @@ import {
 } from "@/lib/services/dashboard";
 import {
   buildAccountBalances,
+  buildAccountSpending,
   buildBudgetSummary,
   buildSpendSegments,
   buildUpcomingPayments,
@@ -125,6 +126,16 @@ export default async function DashboardPage({
   const allAccountBalances = buildAccountBalances(netWorthEntries, accounts, Infinity).map(
     toBalanceItem,
   );
+  // Vista "gastado del mes": todas las cuentas activas (la tarjeta se voltea
+  // entre saldos y gastado; sin saldos en Patrimonio solo existe esta)
+  const spendItems = buildAccountSpending(accounts, spentByAccount).map(({ account, spent }) => ({
+    entryId: account.id,
+    label: account.name,
+    balance: spent,
+    accountId: account.id,
+    accountType: account.type,
+    color: account.color,
+  }));
   const editAccounts = allAccounts.map((a) => ({
     id: a.id,
     name: a.name,
@@ -189,7 +200,7 @@ export default async function DashboardPage({
             categories={editCategories}
           />
 
-          <AccountsCarousel items={accountBalances} />
+          <AccountsCarousel balanceItems={accountBalances} spendItems={spendItems} monthLabel={month} />
         </div>
       </div>
 
@@ -240,7 +251,9 @@ export default async function DashboardPage({
               className="col-span-12 min-[1000px]:col-span-7"
             />
             <AccountsOverviewCard
-              items={allAccountBalances}
+              balanceItems={allAccountBalances}
+              spendItems={spendItems}
+              monthLabel={month}
               creditCount={countCreditAccounts(accounts)}
               className="col-span-12 min-[1000px]:col-span-5"
             />

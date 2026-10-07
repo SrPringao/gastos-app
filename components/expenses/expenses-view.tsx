@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { NewExpenseButton } from "@/components/dashboard/new-expense-button";
 import { SpentKpi, TransactionsKpi, LargestKpi } from "@/components/expenses/expenses-kpis";
 import { DailySpendCard } from "@/components/expenses/daily-spend-chart";
+import { DayExpensesModal } from "@/components/expenses-dashboard/day-expenses-modal";
 import { PaceCard } from "@/components/expenses/pace-card";
 import { HistoryDesktop, HistoryMobile, MobileFilterControls } from "@/components/expenses/expenses-history";
 import { useExpenseFilters } from "@/components/expenses/use-expense-filters";
@@ -74,9 +75,11 @@ export function ExpensesView({
     onChanged: () => router.refresh(),
   };
 
+  // Tocar un dia lo resalta y abre su desglose (no filtra el Historial)
+  const [dayModal, setDayModal] = useState<string | null>(null);
   function selectDay(date: string) {
     setPickedDay(date);
-    filters.setDateRange(date, "");
+    setDayModal(date);
   }
 
   const historyProps = {
@@ -185,6 +188,8 @@ export function ExpensesView({
           </div>
         </div>
       </div>
+
+      <DayExpensesModal date={dayModal} onOpenChange={(open) => !open && setDayModal(null)} />
     </>
   );
 }

@@ -33,7 +33,15 @@ export async function PATCH(request: NextRequest) {
       theme?: "dark" | "light";
       hideNetWorthAmounts?: boolean;
       mobileNavHrefs?: string[] | null;
+      accountsView?: "balance" | "spent" | null;
     } = {};
+
+    if (body.accountsView !== undefined) {
+      if (body.accountsView !== null && body.accountsView !== "balance" && body.accountsView !== "spent") {
+        return NextResponse.json({ error: "accountsView invalido" }, { status: 400 });
+      }
+      updates.accountsView = body.accountsView;
+    }
 
     if (body.theme !== undefined) {
       if (body.theme !== "dark" && body.theme !== "light") {

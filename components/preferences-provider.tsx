@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import type { UserPreferencesData, Theme } from "@/lib/services/preferences";
+import type { AccountsView, UserPreferencesData, Theme } from "@/lib/services/preferences";
 
 type PreferencesContextValue = {
   theme: Theme;
@@ -17,6 +17,9 @@ type PreferencesContextValue = {
   /** Hrefs (en orden) de las secciones elegidas para la tab bar movil; null = default */
   mobileNavHrefs: string[] | null;
   setMobileNavHrefs: (hrefs: string[]) => void;
+  /** Vista de "Cuentas" en Inicio; null = automatica */
+  accountsView: AccountsView | null;
+  setAccountsView: (view: AccountsView) => void;
 };
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
@@ -55,6 +58,8 @@ export function PreferencesProvider({
     initial.mobileNavHrefs
   );
 
+  const [accountsView, setAccountsViewState] = useState<AccountsView | null>(initial.accountsView);
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
@@ -74,6 +79,11 @@ export function PreferencesProvider({
     patchPreferences({ mobileNavHrefs: next });
   }, []);
 
+  const setAccountsView = useCallback((next: AccountsView) => {
+    setAccountsViewState(next);
+    patchPreferences({ accountsView: next });
+  }, []);
+
   return (
     <PreferencesContext.Provider
       value={{
@@ -83,6 +93,8 @@ export function PreferencesProvider({
         setHideNetWorthAmounts,
         mobileNavHrefs,
         setMobileNavHrefs,
+        accountsView,
+        setAccountsView,
       }}
     >
       {children}

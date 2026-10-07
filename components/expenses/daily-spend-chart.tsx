@@ -10,6 +10,19 @@ import { cn } from "@/lib/utils";
 
 type Variant = "desktop" | "mobile";
 
+/** Minimo de columnas en el mes en curso (dias 1 a 6 no quedan como barras enormes) */
+const MIN_VISIBLE_DAYS = 7;
+
+/**
+ * Dias que se dibujan: en el mes en curso, del 1 a hoy (minimo 7); en meses
+ * pasados, el mes completo. Asi las barras no se encogen con dias vacios.
+ */
+function visibleDays(days: DayPoint[]): DayPoint[] {
+  const todayIndex = days.findIndex((d) => d.isToday);
+  if (todayIndex === -1) return days;
+  return days.slice(0, Math.min(days.length, Math.max(todayIndex + 1, MIN_VISIBLE_DAYS)));
+}
+
 const SPEC = {
   desktop: { height: 210, gap: 4, axisGap: 44, axisWidth: 38, axisFont: 11, topRadius: "3px 3px 2px 2px", radius: 2 },
   mobile: { height: 150, gap: 3, axisGap: 30, axisWidth: 26, axisFont: 10, topRadius: "2px 2px 1px 1px", radius: 1 },
@@ -56,6 +69,7 @@ function xLabels(days: DayPoint[], selected: string | null) {
   }
   const placed: typeof candidates = [];
   for (const c of candidates) {
+    if (c.day > last) continue;
     if (placed.some((p) => p.day === c.day || Math.abs(p.day - c.day) < 3)) continue;
     placed.push(c);
   }
@@ -79,10 +93,11 @@ export function DailySpendCard({
   const spec = SPEC[variant];
   const desktop = variant === "desktop";
   const [hovered, setHovered] = useState<number | null>(null);
-  const selectedPoint = series.days.find((d) => d.date === selected) ?? null;
+  const days = visibleDays(series.days);
+  const selectedPoint = days.find((d) => d.date === selected) ?? null;
   const axisMax = Math.max(series.axisMax, 1);
-  const columns = `repeat(${series.days.length}, minmax(0, 1fr))`;
-  const hoveredPoint = hovered !== null ? series.days[hovered] : null;
+  const columns = `repeat(${days.length}, minmax(0, 1fr))`;
+  const hoveredPoint = hovered !== null ? days[hovered] : null;
 
   return (
     <EbCard
@@ -133,7 +148,7 @@ export function DailySpendCard({
           style={{ right: spec.axisGap, gridTemplateColumns: columns, gap: spec.gap }}
           onMouseLeave={() => setHovered(null)}
         >
-          {series.days.map((point, index) => {
+          {days.map((point, index) => {
             const isSelected = point.date === selected;
             const empty = point.total === 0;
             return (
@@ -197,9 +212,9 @@ export function DailySpendCard({
             role="tooltip"
             className="eb-card pointer-events-none absolute z-10 flex w-max min-w-[160px] flex-col gap-1.5 rounded-[12px] px-3 py-2.5"
             style={{
-              left: `calc((100% - ${spec.axisGap}px) * ${(hovered! + 0.5) / series.days.length})`,
+              left: `calc((100% - ${spec.axisGap}px) * ${(hovered! + 0.5) / days.length})`,
               // Cerca de los bordes se ancla al lado contrario para no cortarse
-              transform: `translateX(${tooltipShift(hovered!, series.days.length)})`,
+              transform: `translateX(${tooltipShift(hovered!, days.length)})`,
               bottom: `calc(${Math.min((hoveredPoint.total / axisMax) * 100, 100)}% + 10px)`,
             }}
           >
@@ -232,7 +247,7 @@ export function DailySpendCard({
           fontSize: spec.axisFont,
         }}
       >
-        {xLabels(series.days, selected).map((label) => (
+        {xLabels(days, selected).map((label) => (
           <span
             key={`${label.kind}-${label.day}`}
             className={cn(
@@ -241,7 +256,11 @@ export function DailySpendCard({
               label.kind === "selected" && "text-eb-text font-semibold"
             )}
             style={{
-              gridColumn: label.kind === "today" ? `${Math.max(label.day - 1, 1)} / span 3` : label.day,
+              // "Hoy" ocupa 3 columnas centradas en su dia, sin salirse de la grafica
+              gridColumn:
+                label.kind === "today"
+                  ? `${Math.max(Math.min(label.day - 1, days.length - 2), 1)} / span ${Math.min(3, days.length)}`
+                  : label.day,
               gridRow: 1,
             }}
           >
