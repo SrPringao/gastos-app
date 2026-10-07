@@ -85,6 +85,9 @@ export function AmountHero({
   footer,
   ariaLabel = "Monto",
   autoFocus = true,
+  size = "md",
+  onEnter,
+  children,
 }: {
   label: React.ReactNode;
   value: string;
@@ -93,8 +96,17 @@ export function AmountHero({
   footer?: React.ReactNode;
   ariaLabel?: string;
   autoFocus?: boolean;
+  /** "lg": paso 1 de Nuevo gasto (56px, radio 22) */
+  size?: "md" | "lg";
+  /** Enter en el monto (ej. "Siguiente") */
+  onEnter?: () => void;
+  /** Contenido extra dentro de la tarjeta (botones rapidos) */
+  children?: React.ReactNode;
 }) {
-  const { color, glow } = TINTS[tint];
+  const lg = size === "lg";
+  const { color } = TINTS[tint];
+  const glow = lg && tint === "indigo" ? "rgba(94,107,255,0.16)" : TINTS[tint].glow;
+  const valueClass = lg ? "text-[56px] tracking-[-0.03em]" : "text-[44px] tracking-[-0.02em]";
   const inputRef = useRef<HTMLInputElement>(null);
   const showCents = !value.includes(".");
 
@@ -115,7 +127,10 @@ export function AmountHero({
 
   return (
     <label
-      className="flex flex-col items-center gap-1.5 rounded-[18px] px-4 pt-5 pb-[18px]"
+      className={cn(
+        "flex flex-col items-center px-4",
+        lg ? "gap-2.5 rounded-[22px] pt-7 pb-[22px]" : "gap-1.5 rounded-[18px] pt-5 pb-[18px]"
+      )}
       style={{
         background: `radial-gradient(100% 120% at 50% 0%, ${glow}, transparent 65%), var(--eb-group-solid)`,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.04)",
@@ -123,13 +138,13 @@ export function AmountHero({
     >
       <span className="text-eb-text-tertiary flex items-center gap-1.5 text-[13px]">{label}</span>
       <span className="flex max-w-full items-baseline gap-0.5" style={{ fontFamily: "var(--eb-font-rounded)" }}>
-        <span className="text-[30px] font-bold" style={{ color }}>
+        <span className={cn("font-bold", lg ? "text-[34px]" : "text-[30px]")} style={{ color }}>
           $
         </span>
         <span className="inline-grid min-w-0">
           <span
             aria-hidden="true"
-            className="invisible col-start-1 row-start-1 overflow-hidden px-0.5 text-[44px] font-bold tracking-[-0.02em] whitespace-pre"
+            className={cn("invisible col-start-1 row-start-1 overflow-hidden px-0.5 font-bold whitespace-pre", valueClass)}
           >
             {value || "0"}
           </span>
@@ -144,13 +159,25 @@ export function AmountHero({
             placeholder="0"
             value={value}
             onChange={handleChange}
-            className="placeholder:text-eb-chevron col-start-1 row-start-1 w-full min-w-0 border-0 bg-transparent p-0 text-center text-[44px] font-bold tracking-[-0.02em] outline-none"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && onEnter) {
+                e.preventDefault();
+                onEnter();
+              }
+            }}
+            className={cn(
+              "placeholder:text-eb-chevron col-start-1 row-start-1 w-full min-w-0 border-0 bg-transparent p-0 text-center font-bold outline-none",
+              valueClass
+            )}
             style={{ fontFamily: "inherit", color: "var(--eb-text-strong)", caretColor: color }}
           />
         </span>
-        {showCents && <span className="text-eb-chevron text-[22px] font-semibold">.00</span>}
+        {showCents && (
+          <span className={cn("text-eb-chevron font-semibold", lg ? "text-[26px]" : "text-[22px]")}>.00</span>
+        )}
       </span>
       {footer && <span className="text-eb-text-tertiary text-center text-[12px]">{footer}</span>}
+      {children}
     </label>
   );
 }

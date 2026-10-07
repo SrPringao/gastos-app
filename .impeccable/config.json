@@ -38,6 +38,18 @@
         "value": "rgba(120,120,128,0.32)",
         "createdAt": "2026-10-06T20:55:06.202Z",
         "reason": "spec design-reference/expensebro-modales-prompt.md 2.5: IOSSwitch apagado rgba(120,120,128,0.32)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "56px",
+        "createdAt": "2026-10-07T00:24:10.218Z",
+        "reason": "spec design-reference/expensebro-nuevo-gasto-prompt.md 2.1: AmountHero grande, valor en 56px/700"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "26px",
+        "createdAt": "2026-10-07T00:24:10.267Z",
+        "reason": "spec design-reference/expensebro-nuevo-gasto-prompt.md 2.1: AmountHero grande, '.00' en 26px/600"
       }
     ]
   }

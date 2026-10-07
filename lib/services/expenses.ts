@@ -110,7 +110,7 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
     await maybeNotifyBudget(userId, monthKey, newSpent - amountCents, newSpent);
   }
 
-  return { success: true };
+  return { success: true, id: created?.id };
 }
 
 export async function getExpenseById(id: number) {

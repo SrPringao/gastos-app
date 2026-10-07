@@ -11,7 +11,7 @@ const CHIPS = {
 export type AccountChip = keyof typeof CHIPS;
 
 /** Fondo y sombra de tarjeta fisica: degradado diagonal + reflejo */
-function cardSurface(color: string | null, shadow: "card" | "thumb") {
+export function cardSurface(color: string | null, shadow: "card" | "thumb") {
   const tone = accountTone(color);
   return {
     "--ink": tone.ink,

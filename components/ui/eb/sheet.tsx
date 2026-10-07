@@ -180,6 +180,12 @@ export function EbSheet({
   dirty = false,
   nested = false,
   contentClassName,
+  leftAction,
+  headerExtra,
+  contentPadding,
+  bottomPadding = 40,
+  desktopHeight,
+  discardLabel = "Descartar cambios",
   children,
 }: {
   open: boolean;
@@ -194,6 +200,18 @@ export function EbSheet({
   /** Hoja secundaria (sobre otra hoja): no vuelve a reducir la pagina */
   nested?: boolean;
   contentClassName?: string;
+  /** Reemplaza "Cancelar" (ej. "‹ Atrás" en un flujo de pasos) */
+  leftAction?: { label: string; onClick: () => void; chevron?: boolean };
+  /** Contenido fijo bajo la barra superior (ej. indicador de pasos) */
+  headerExtra?: React.ReactNode;
+  /** Padding superior y lateral del contenido (px); el inferior va en bottomPadding */
+  contentPadding?: { top: number; x: number };
+  /** Padding inferior del contenido (se suma el alto del teclado) */
+  bottomPadding?: number;
+  /** Alto fijo en escritorio (la ventana no cambia de tamano entre pasos) */
+  desktopHeight?: string;
+  /** Texto de la accion destructiva al cerrar con cambios */
+  discardLabel?: string;
   children: React.ReactNode;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -318,6 +336,7 @@ export function EbSheet({
         top: "50%",
         width: "min(480px, calc(100vw - 32px))",
         maxHeight: "min(760px, 90vh)",
+        height: desktopHeight,
         borderRadius: 26,
         transform: `translate(-50%, -50%) scale(${visible ? 1 : 0.96})`,
         opacity: visible ? 1 : 0,
@@ -386,13 +405,41 @@ export function EbSheet({
             className="grid items-center"
             style={{ gridTemplateColumns: "1fr auto 1fr", padding: isDesktop ? "10px 8px 0" : "6px 8px 0" }}
           >
-            <button
-              type="button"
-              onClick={requestClose}
-              className="text-eb-link min-h-11 justify-self-start px-2.5 py-3 text-[17px]"
-            >
-              Cancelar
-            </button>
+            {leftAction ? (
+              <button
+                type="button"
+                onClick={leftAction.onClick}
+                className={cn(
+                  "text-eb-link flex min-h-11 items-center gap-0.5 justify-self-start py-3 text-[17px]",
+                  leftAction.chevron ? "px-1.5" : "px-2.5"
+                )}
+              >
+                {leftAction.chevron && (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                )}
+                {leftAction.label}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={requestClose}
+                className="text-eb-link min-h-11 justify-self-start px-2.5 py-3 text-[17px]"
+              >
+                Cancelar
+              </button>
+            )}
             <span id={titleId} className="max-w-[52vw] truncate text-[17px] font-semibold md:max-w-[260px]">
               {title}
             </span>
@@ -410,6 +457,7 @@ export function EbSheet({
               <span />
             )}
           </div>
+          {headerExtra}
         </div>
 
         <div
@@ -417,7 +465,12 @@ export function EbSheet({
             "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             contentClassName
           )}
-          style={{ paddingBottom: `calc(40px + ${keyboard}px)` }}
+          style={{
+            ...(contentPadding
+              ? { paddingTop: contentPadding.top, paddingLeft: contentPadding.x, paddingRight: contentPadding.x }
+              : null),
+            paddingBottom: `calc(${bottomPadding}px + ${keyboard}px)`,
+          }}
         >
           {children}
         </div>
@@ -427,7 +480,7 @@ export function EbSheet({
         open={confirmDiscard}
         actions={[
           {
-            label: "Descartar cambios",
+            label: discardLabel,
             destructive: true,
             onSelect: () => {
               setConfirmDiscard(false);

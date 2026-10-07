@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { QuickAddExpense } from "@/components/quick-add-expense";
+import { AddExpenseFlow } from "@/components/expense-flow/add-expense-flow";
 import { ExpensesRangeModal } from "@/components/expenses-dashboard/day-expenses-modal";
 import type { QuickActionKind } from "@/lib/nav-config";
 import {
@@ -33,9 +33,7 @@ export function QuickActionOverlays({
 
   return (
     <>
-      {active === "add-expense" && (
-        <QuickAddExpense open onOpenChange={(open) => !open && onClose()} />
-      )}
+      <AddExpenseFlow open={active === "add-expense"} onClose={onClose} />
       {rangeModalProps && (
         <ExpensesRangeModal
           from={rangeModalProps.from}
