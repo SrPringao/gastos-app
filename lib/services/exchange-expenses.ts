@@ -9,6 +9,16 @@ import {
   type ExchangeExpenseItem,
 } from "@/lib/exchange";
 import { parseAmountInput } from "@/lib/utils/parse-amount";
+import { getEurToMxnRate } from "@/lib/services/fx-rates";
+
+const toYmd = (date: Date) => date.toISOString().slice(0, 10);
+
+/** Columnas de tipo de cambio para un gasto: pesos no lleva; euros se consulta */
+async function fxFor(currency: ExchangeCurrency, date: Date) {
+  if (currency === "MXN") return { fxRate: null, fxDate: null };
+  const fx = await getEurToMxnRate(toYmd(date));
+  return { fxRate: fx ? String(fx.rate) : null, fxDate: fx?.date ?? null };
+}
 
 export async function getExchangeExpenses(userId: string): Promise<ExchangeExpenseItem[]> {
   const rows = await db
@@ -17,16 +27,35 @@ export async function getExchangeExpenses(userId: string): Promise<ExchangeExpen
     .where(eq(exchangeExpenses.userId, userId))
     .orderBy(desc(exchangeExpenses.date), desc(exchangeExpenses.createdAt));
 
-  return rows.map((r) => ({
-    id: r.id,
-    amount: r.amount,
-    currency: r.currency as ExchangeCurrency,
-    reason: r.reason,
-    category: r.category as ExchangeCategory,
-    // Fechas guardadas a medianoche UTC: la parte de calendario es la del ISO
-    date: r.date.toISOString().slice(0, 10),
-    note: r.note,
-  }));
+  // Gastos en euros sin tipo de cambio (anteriores a la conversion o la API
+  // no respondio al guardar): se completan ahora y quedan guardados
+  await Promise.all(
+    rows
+      .filter((r) => r.currency !== "MXN" && r.fxRate === null)
+      .map(async (r) => {
+        const fx = await fxFor(r.currency as ExchangeCurrency, r.date);
+        if (fx.fxRate === null) return;
+        await db.update(exchangeExpenses).set(fx).where(eq(exchangeExpenses.id, r.id));
+        Object.assign(r, fx);
+      })
+  );
+
+  return rows.map((r) => {
+    const fxRate = r.fxRate === null ? null : Number(r.fxRate);
+    return {
+      id: r.id,
+      amount: r.amount,
+      currency: r.currency as ExchangeCurrency,
+      reason: r.reason,
+      category: r.category as ExchangeCategory,
+      // Fechas guardadas a medianoche UTC: la parte de calendario es la del ISO
+      date: toYmd(r.date),
+      note: r.note,
+      mxnAmount: r.currency === "MXN" ? r.amount : fxRate === null ? null : Math.round(r.amount * fxRate),
+      fxRate,
+      fxDate: r.fxDate,
+    };
+  });
 }
 
 export type ExchangeExpenseInput = {
@@ -92,7 +121,8 @@ export async function createExchangeExpense(userId: string, input: ExchangeExpen
   if ("error" in parsed) return { error: parsed.error };
   const data = parsed.data as Parsed;
 
-  await db.insert(exchangeExpenses).values({ userId, ...data, note: data.note ?? null });
+  const fx = await fxFor(data.currency, data.date);
+  await db.insert(exchangeExpenses).values({ userId, ...data, note: data.note ?? null, ...fx });
   return { success: true };
 }
 
@@ -100,13 +130,24 @@ export async function updateExchangeExpense(userId: string, id: number, input: E
   const parsed = parseInput(input, true);
   if ("error" in parsed) return { error: parsed.error };
 
-  const result = await db
-    .update(exchangeExpenses)
-    .set({ ...parsed.data, updatedAt: new Date() })
+  const [existing] = await db
+    .select()
+    .from(exchangeExpenses)
     .where(and(eq(exchangeExpenses.id, id), eq(exchangeExpenses.userId, userId)))
-    .returning({ id: exchangeExpenses.id });
+    .limit(1);
+  if (!existing) return { error: "Gasto no encontrado" };
 
-  if (result.length === 0) return { error: "Gasto no encontrado" };
+  // Otra moneda u otro dia: otro tipo de cambio
+  const currency = parsed.data.currency ?? (existing.currency as ExchangeCurrency);
+  const date = parsed.data.date ?? existing.date;
+  const fxChanged = currency !== existing.currency || toYmd(date) !== toYmd(existing.date);
+  const fx = fxChanged ? await fxFor(currency, date) : {};
+
+  await db
+    .update(exchangeExpenses)
+    .set({ ...parsed.data, ...fx, updatedAt: new Date() })
+    .where(eq(exchangeExpenses.id, id));
+
   return { success: true };
 }
 

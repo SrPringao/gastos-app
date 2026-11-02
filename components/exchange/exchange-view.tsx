@@ -18,18 +18,13 @@ type Totals = Record<ExchangeCurrency, number>;
 
 const emptyTotals = (): Totals => ({ MXN: 0, EUR: 0 });
 
-/** "$12,000.00 + €350.00"; solo las monedas usadas */
-function joinTotals(totals: Totals): string {
-  const used = EXCHANGE_CURRENCIES.filter((c) => totals[c] > 0);
-  return used.length === 0
-    ? formatExchangeMoney(0, "MXN")
-    : used.map((c) => formatExchangeMoney(totals[c], c)).join(" + ");
-}
+const mxn = (cents: number) => formatExchangeMoney(cents, "MXN");
 
 /**
  * Intercambio: registro de gastos del viaje, independiente del Dashboard,
- * presupuesto y Patrimonio. Pesos y euros se suman por separado (sin
- * conversion). Tocar un gasto lo abre para editar o eliminar.
+ * presupuesto y Patrimonio. El total va en pesos: cada gasto en euros se
+ * convierte al tipo de cambio del dia en que se hizo (guardado en el
+ * gasto). Tocar un gasto lo abre para editar o eliminar.
  */
 export function ExchangeView({ expenses }: { expenses: ExchangeExpenseItem[] }) {
   // key se incrementa en cada apertura: remonta la hoja con el formulario
@@ -39,16 +34,25 @@ export function ExchangeView({ expenses }: { expenses: ExchangeExpenseItem[] }) 
   );
   const lastCurrency = expenses[0]?.currency ?? "MXN";
 
+  // Totales por moneda original y total en pesos (euros ya convertidos)
   const totals = emptyTotals();
-  const byCategory = new Map<string, Totals>();
+  let totalMxn = 0;
+  let eurInMxn = 0;
+  let pendingFx = 0;
+  const mxnByCategory = new Map<string, number>();
   for (const e of expenses) {
     totals[e.currency] += e.amount;
-    const t = byCategory.get(e.category) ?? emptyTotals();
-    t[e.currency] += e.amount;
-    byCategory.set(e.category, t);
+    if (e.mxnAmount === null) {
+      pendingFx += 1;
+      continue;
+    }
+    totalMxn += e.mxnAmount;
+    if (e.currency === "EUR") eurInMxn += e.mxnAmount;
+    mxnByCategory.set(e.category, (mxnByCategory.get(e.category) ?? 0) + e.mxnAmount);
   }
-  const categories = EXCHANGE_CATEGORIES.filter((c) => byCategory.has(c.value));
+  const categories = EXCHANGE_CATEGORIES.filter((c) => mxnByCategory.has(c.value));
   const usedCurrencies = EXCHANGE_CURRENCIES.filter((c) => totals[c] > 0);
+  const hasEur = totals.EUR > 0;
 
   // Agrupado por dia (ya viene ordenado del mas reciente al mas viejo)
   const days: { date: string; items: ExchangeExpenseItem[] }[] = [];
@@ -104,19 +108,38 @@ export function ExchangeView({ expenses }: { expenses: ExchangeExpenseItem[] }) 
           {/* Resumen */}
           <EbCard variant="hero" className="flex flex-col gap-5 p-6">
             <div className="flex flex-col gap-3">
-              <span className="text-eb-text-tertiary text-[13px]">Total del intercambio</span>
-              {usedCurrencies.map((c) => (
-                <span
-                  key={c}
-                  className="eb-rounded text-[34px] leading-none font-bold tracking-[-0.03em] tabular-nums"
-                >
-                  {formatExchangeMoney(totals[c], c)}
-                </span>
-              ))}
+              <span className="text-eb-text-tertiary text-[13px]">
+                Total del intercambio{hasEur && " en pesos"}
+              </span>
+              <span className="eb-rounded text-[34px] leading-none font-bold tracking-[-0.03em] tabular-nums">
+                {mxn(totalMxn)}
+              </span>
+              {usedCurrencies.length > 1 || hasEur ? (
+                <div className="flex flex-col gap-1 text-[14px]">
+                  {totals.MXN > 0 && (
+                    <span className="flex justify-between gap-3">
+                      <span className="text-eb-text-tertiary">Pagado en pesos</span>
+                      <span className="text-eb-text-secondary tabular-nums">{mxn(totals.MXN)}</span>
+                    </span>
+                  )}
+                  <span className="flex justify-between gap-3">
+                    <span className="text-eb-text-tertiary">
+                      Pagado en euros · {formatExchangeMoney(totals.EUR, "EUR")}
+                    </span>
+                    <span className="text-eb-text-secondary tabular-nums">≈ {mxn(eurInMxn)}</span>
+                  </span>
+                </div>
+              ) : null}
               <span className="text-eb-text-tertiary text-[13px]">
                 {expenses.length === 1 ? "1 gasto" : `${expenses.length} gastos`}
-                {usedCurrencies.length > 1 && " · pesos y euros por separado"}
+                {hasEur && " · euros al tipo de cambio del día de cada gasto"}
               </span>
+              {pendingFx > 0 && (
+                <span className="text-eb-orange text-[13px]">
+                  {pendingFx === 1 ? "1 gasto en euros" : `${pendingFx} gastos en euros`} sin tipo de cambio
+                  todavía; no se suma. Recarga en un rato.
+                </span>
+              )}
             </div>
 
             <ul className="border-eb-separator flex flex-col gap-2.5 border-t pt-4">
@@ -127,7 +150,7 @@ export function ExchangeView({ expenses }: { expenses: ExchangeExpenseItem[] }) 
                     <span className="truncate">{c.label}</span>
                   </span>
                   <span className="text-eb-text-secondary text-right tabular-nums">
-                    {joinTotals(byCategory.get(c.value)!)}
+                    {mxn(mxnByCategory.get(c.value)!)}
                   </span>
                 </li>
               ))}
@@ -167,8 +190,15 @@ export function ExchangeView({ expenses }: { expenses: ExchangeExpenseItem[] }) 
                                 {e.note ? `${meta.label} · ${e.note}` : meta.label}
                               </span>
                             </span>
-                            <span className="flex-none text-[15px] font-semibold tabular-nums">
-                              {formatExchangeMoney(e.amount, e.currency)}
+                            <span className="flex flex-none flex-col items-end">
+                              <span className="text-[15px] font-semibold tabular-nums">
+                                {formatExchangeMoney(e.amount, e.currency)}
+                              </span>
+                              {e.currency !== "MXN" && (
+                                <span className="text-eb-text-tertiary text-[13px] tabular-nums">
+                                  {e.mxnAmount !== null ? `≈ ${mxn(e.mxnAmount)}` : "Sin tipo de cambio"}
+                                </span>
+                              )}
                             </span>
                           </button>
                         </li>

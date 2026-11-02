@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { EbSheet } from "@/components/ui/eb/sheet";
+import { GroupBox } from "@/components/payment-methods/method-form";
 import { cn } from "@/lib/utils";
 import { monthName, todayDateString } from "@/lib/utils/dates";
 
@@ -116,25 +118,52 @@ export function MonthSwitcher({ className }: { className?: string }) {
 
 /**
  * Titulo movil con chevron que abre la lista de meses: "Octubre ⌄" en
- * Inicio, "Gastos ⌄" en Gastos (`title`).
+ * Inicio, "Gastos ⌄" en Gastos (`title`). La lista es una hoja desde
+ * abajo: el menu desplegable quedaba suelto en la esquina del celular.
  */
 export function MonthTitleSelect({ title, className }: { title?: string; className?: string }) {
   const { selected, options, goTo } = useMonthNavigation();
+  const [open, setOpen] = useState(false);
+
+  function pick(monthKey: string) {
+    setOpen(false);
+    if (monthKey !== selected) goTo(monthKey);
+  }
+
   return (
     <h1 className={cn("m-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em]", className)}>
-      <Select value={selected} onValueChange={goTo}>
-        <SelectTrigger
-          aria-label={`${title ?? monthName(selected)}, elegir mes`}
-          className="text-eb-text h-auto gap-1.5 rounded-none border-0 bg-transparent p-0 text-[34px] leading-[1.1] font-bold tracking-[-0.025em] shadow-none dark:bg-transparent dark:hover:bg-transparent [&>svg]:hidden"
-        >
-          {title ?? monthName(selected)}
-          {/* En un span: el trigger oculta sus svg directos (el icono de Radix) */}
-          <span className="flex" aria-hidden="true">
-            <ChevronDownIcon size={18} strokeWidth={2.4} className="text-eb-text-tertiary" />
-          </span>
-        </SelectTrigger>
-        <MonthOptions options={options} />
-      </Select>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-label={`${title ?? monthName(selected)}, elegir mes`}
+        onClick={() => setOpen(true)}
+        className="text-eb-text flex items-center gap-1.5"
+      >
+        {title ?? monthName(selected)}
+        <ChevronDownIcon size={18} strokeWidth={2.4} className="text-eb-text-tertiary" aria-hidden="true" />
+      </button>
+
+      <EbSheet open={open} onClose={() => setOpen(false)} title="Mes">
+        <GroupBox variant="mobile">
+          {options.map((key) => {
+            const active = key === selected;
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={active}
+                onClick={() => pick(key)}
+                className="text-eb-text flex min-h-[52px] w-full items-center justify-between gap-3 px-4 text-left text-[16px] font-normal tracking-normal"
+              >
+                <span className={cn(active && "font-semibold")}>
+                  {monthName(key)} <span className="text-eb-text-tertiary">{key.slice(0, 4)}</span>
+                </span>
+                {active && <CheckIcon size={18} strokeWidth={2.6} className="text-eb-link flex-none" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </GroupBox>
+      </EbSheet>
     </h1>
   );
 }

@@ -13,14 +13,16 @@ import {
   parseAmount,
 } from "@/components/ui/eb/form-kit";
 import { showToast } from "@/components/ui/eb/toast";
+import { DateRow } from "@/components/ui/eb/date-row";
 import {
   CURRENCY_SYMBOL,
   EXCHANGE_CATEGORIES,
+  formatExchangeMoney,
   type ExchangeCategory,
   type ExchangeCurrency,
   type ExchangeExpenseItem,
 } from "@/lib/exchange";
-import { todayDateString } from "@/lib/utils/dates";
+import { formatDayMonth, todayDateString } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 
 type Draft = {
@@ -80,6 +82,20 @@ export function ExchangeExpenseSheet({
   const cents = parseAmount(draft.amount);
   const valid = cents !== null && cents > 0 && draft.reason.trim() !== "" && draft.date !== "";
   const dirty = (Object.keys(initial) as (keyof Draft)[]).some((k) => initial[k] !== draft[k]);
+
+  // Euros: el tipo guardado sirve mientras no cambien moneda ni fecha;
+  // si cambian, el servidor consulta el del nuevo dia al guardar
+  let amountFooter: string | undefined;
+  if (draft.currency === "EUR") {
+    const savedRate =
+      item?.fxRate && item.fxDate && item.currency === "EUR" && item.date === draft.date ? item : null;
+    amountFooter = savedRate
+      ? `${cents ? `≈ ${formatExchangeMoney(Math.round(cents * savedRate.fxRate!), "MXN")} · ` : ""}${formatExchangeMoney(
+          Math.round(savedRate.fxRate! * 100),
+          "MXN"
+        )} por euro (BCE, ${formatDayMonth(savedRate.fxDate!)})`
+      : "Se convierte a pesos con el tipo de cambio de ese día";
+  }
 
   function update(patch: Partial<Draft>) {
     setDraft((d) => ({ ...d, ...patch }));
@@ -156,6 +172,7 @@ export function ExchangeExpenseSheet({
           symbol={CURRENCY_SYMBOL[draft.currency]}
           tint="indigo"
           autoFocus={!isEditing}
+          footer={amountFooter}
         >
           <div className="mt-2 w-full max-w-[220px]">
             <Segmented<ExchangeCurrency>
@@ -178,16 +195,7 @@ export function ExchangeExpenseSheet({
               placeholder="Ej: Vuelo CDMX - Madrid"
               onChange={(reason) => update({ reason })}
             />
-            <label className="flex min-h-[52px] items-center justify-between gap-3 px-4">
-              <span className="text-[16px]">Fecha</span>
-              <input
-                type="date"
-                aria-label="Fecha"
-                value={draft.date}
-                onChange={(e) => update({ date: e.target.value })}
-                className="text-eb-text-secondary min-w-0 border-0 bg-transparent text-right text-[16px] outline-none"
-              />
-            </label>
+            <DateRow value={draft.date} onChange={(date) => update({ date })} />
             <TextRow
               label="Nota"
               value={draft.note}

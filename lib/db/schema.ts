@@ -64,6 +64,10 @@ export const exchangeExpenses = pgTable(
       .notNull(),
     date: timestamp("date").notNull(),
     note: text("note"),
+    // Pesos por 1 unidad de la moneda el dia del gasto (BCE via Frankfurter).
+    // Null en pesos o si la API no respondio (se completa al abrir la pagina).
+    fxRate: decimal("fx_rate", { precision: 12, scale: 6 }),
+    fxDate: date("fx_date", { mode: "string" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

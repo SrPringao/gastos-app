@@ -58,4 +58,10 @@ export type ExchangeExpenseItem = {
   /** YYYY-MM-DD */
   date: string;
   note: string | null;
+  /** Monto en centavos de peso (al tipo de cambio del dia); null si falta el tipo */
+  mxnAmount: number | null;
+  /** Pesos por 1 unidad de la moneda; null en pesos o si falta */
+  fxRate: number | null;
+  /** Dia del tipo de cambio que se uso (el habil anterior en fin de semana) */
+  fxDate: string | null;
 };
