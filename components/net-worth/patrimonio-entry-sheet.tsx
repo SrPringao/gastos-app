@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/eb/form-kit";
 import { ContactChips, type ContactOption } from "@/components/net-worth/contact-chips";
 import { PaymentDayRow } from "@/components/payment-methods/method-form";
+import { DateRow } from "@/components/ui/eb/date-row";
 import { showToast } from "@/components/ui/eb/toast";
 import {
   daysBetween,
@@ -439,19 +440,15 @@ export function PatrimonioEntrySheet({
               />
             )}
             {draft.kind === "debt" && !isCreditDebt && (
-              <label className="flex min-h-[52px] items-center justify-between gap-3 px-4">
-                <div className="flex flex-col gap-px">
-                  <span className="text-[16px]">Fecha límite</span>
-                  <span className="text-eb-text-tertiary text-[12px]">Opcional</span>
-                </div>
-                <input
-                  type="date"
-                  aria-label="Fecha límite"
-                  value={draft.dueDate}
-                  onChange={(e) => update({ dueDate: e.target.value })}
-                  className="text-eb-text-secondary min-w-0 border-0 bg-transparent text-right text-[16px] outline-none"
-                />
-              </label>
+              <DateRow
+                label="Fecha límite"
+                subtitle="Opcional"
+                placeholder="Sin fecha"
+                value={draft.dueDate}
+                onChange={(dueDate) => update({ dueDate })}
+                shortcuts={false}
+                clearable
+              />
             )}
           </GroupBox>
         </FormSection>

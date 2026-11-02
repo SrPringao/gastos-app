@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckIcon, ClockIcon, Loader2Icon } from "lucide-react";
 import { AccountThumb } from "@/components/ui/eb/account-card";
 import { EbSheet } from "@/components/ui/eb/sheet";
 import { FormSection, GroupBox, Segmented, parseAmount } from "@/components/ui/eb/form-kit";
+import { DatePickerSheet } from "@/components/ui/eb/date-row";
 import { formatMoney } from "@/lib/utils/money";
 import { FlowChip, FlowHeader, FlowTile } from "./parts";
 import type { BudgetImpact } from "@/lib/expense-suggestions";
@@ -54,7 +55,9 @@ export function StepConfirm({
 }) {
   const cents = parseAmount(draft.amount) ?? 0;
   const method = methods.find((m) => m.id === draft.methodId) ?? null;
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  // Contador de aperturas: remonta el calendario en el mes de la fecha elegida
+  const [calendarOpen, setCalendarOpen] = useState(0);
+  const [calendarVisible, setCalendarVisible] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [query, setQuery] = useState("");
   const [impact, setImpact] = useState<{ key: string; value: BudgetImpact | null } | null>(null);
@@ -88,7 +91,20 @@ export function StepConfirm({
   function pickDateMode(mode: ExpenseDraft["dateMode"]) {
     if (mode === "today") update({ dateMode: mode, date: today });
     else if (mode === "yesterday") update({ dateMode: mode, date: yesterday });
-    // "Otra fecha" la maneja el input nativo que esta encima del segmento
+    else {
+      setCalendarOpen((n) => n + 1);
+      setCalendarVisible(true);
+    }
+  }
+
+  function pickOtherDate(value: string) {
+    // Sin fechas futuras
+    if (!value || value > today) return;
+    update({
+      date: value,
+      dateMode: value === today ? "today" : value === yesterday ? "yesterday" : "other",
+    });
+    setCalendarVisible(false);
   }
 
   const whole = Math.trunc(cents / 100).toLocaleString("en-US");
@@ -131,47 +147,31 @@ export function StepConfirm({
           className="flex flex-col gap-2.5 rounded-[14px] px-4 py-3"
           style={{ background: "var(--eb-group-solid)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}
         >
-          <div className="relative">
-            <Segmented<ExpenseDraft["dateMode"]>
-              ariaLabel="Fecha"
-              value={draft.dateMode}
-              onChange={pickDateMode}
-              options={[
-                { value: "today", label: "Hoy" },
-                { value: "yesterday", label: "Ayer" },
-                { value: "other", label: "Otra fecha" },
-              ]}
-            />
-            {/* Input nativo transparente sobre "Otra fecha": el toque abre el selector
-                del sistema (en iPhone no se puede abrir de forma confiable desde codigo) */}
-            <input
-              ref={dateInputRef}
-              type="date"
-              aria-label="Otra fecha"
-              max={today}
-              onClick={(e) => {
-                try {
-                  e.currentTarget.showPicker();
-                } catch {
-                  // Sin showPicker: el navegador abre su selector con el toque
-                }
-              }}
-            value={draft.date}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Sin fechas futuras
-              if (!value || value > today) return;
-              update({
-                date: value,
-                dateMode: value === today ? "today" : value === yesterday ? "yesterday" : "other",
-              });
-            }}
-              className="absolute inset-y-0 right-0 w-1/3 cursor-pointer opacity-0"
-            />
-          </div>
+          {/* "Otra fecha" abre el calendario de la app (antes el selector nativo) */}
+          <Segmented<ExpenseDraft["dateMode"]>
+            ariaLabel="Fecha"
+            value={draft.dateMode}
+            onChange={pickDateMode}
+            options={[
+              { value: "today", label: "Hoy" },
+              { value: "yesterday", label: "Ayer" },
+              { value: "other", label: "Otra fecha" },
+            ]}
+          />
           <p className="text-eb-text-tertiary text-center text-[13px]">{fullDateLabel(draft.date)}</p>
         </div>
       </FormSection>
+
+      <DatePickerSheet
+        key={calendarOpen}
+        open={calendarVisible}
+        value={draft.date}
+        onClose={() => setCalendarVisible(false)}
+        onPick={pickOtherDate}
+        title="Otra fecha"
+        shortcuts={false}
+        max={today}
+      />
 
       {categories.length > 0 && (
         <section className="flex flex-col gap-2">

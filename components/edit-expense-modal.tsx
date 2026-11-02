@@ -110,7 +110,8 @@ export function EditExpenseModal({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      {/* max-h + scroll: con el calendario desplegado no cabe en pantallas bajas */}
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Editar gasto</DialogTitle>
         </DialogHeader>
