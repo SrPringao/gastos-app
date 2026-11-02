@@ -35,6 +35,8 @@ import {
   initialOf,
   resolveAssetKind,
   effectiveDueDate,
+  isCurrentCutPaid,
+  paymentScheduleByAccount,
 } from "@/lib/dashboard-metrics";
 import { formatMoney } from "@/lib/utils/money";
 import { todayDateString } from "@/lib/utils/dates";
@@ -309,10 +311,8 @@ export function NetWorthView({
 
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   // Los dias restantes de una deuda salen del dia de pago de su tarjeta
-  const paymentDayByAccount = useMemo(
-    () => new Map(accounts.map((a) => [a.id, a.paymentDay])),
-    [accounts]
-  );
+  // (saltando el corte que ya se marco como pagado)
+  const scheduleByAccount = useMemo(() => paymentScheduleByAccount(accounts), [accounts]);
   const assets = entries.filter((e) => e.kind === "asset");
   const debts = entries.filter((e) => e.kind === "debt");
   const accountEntries = assets.filter((e) => resolveAssetKind(e) === "account");
@@ -395,9 +395,10 @@ export function NetWorthView({
   const edit = (entry: NetWorthEntry) => () => openEntry(entry.kind, entry);
 
   function debtRow(entry: NetWorthEntry, section: NetWorthEntry[], index: number, indent = false) {
-    const due = effectiveDueDate(entry, paymentDayByAccount, today);
+    const due = effectiveDueDate(entry, scheduleByAccount, today);
     const days = due ? daysBetween(today, due) : null;
-    const soon = days !== null && days <= 16;
+    const cutPaid = entry.accountId != null && isCurrentCutPaid(scheduleByAccount.get(entry.accountId), today);
+    const soon = days !== null && days <= 16 && !cutPaid;
     return (
       <NetWorthRow
         key={entry.id}
@@ -423,7 +424,7 @@ export function NetWorthView({
                 />
               </div>
               <span className={cn("text-[13px]", soon ? "text-eb-orange" : "text-eb-text-tertiary")}>
-                {dueText(days)}
+                {cutPaid ? `Corte pagado · ${dueText(days).toLocaleLowerCase("es-MX")}` : dueText(days)}
               </span>
             </>
           ) : undefined
@@ -437,7 +438,7 @@ export function NetWorthView({
   }
 
   const nearestZero = zeroDebts
-    .map((e) => ({ entry: e, due: effectiveDueDate(e, paymentDayByAccount, today) }))
+    .map((e) => ({ entry: e, due: effectiveDueDate(e, scheduleByAccount, today) }))
     .filter((x): x is { entry: NetWorthEntry; due: string } => x.due !== null)
     .map(({ entry, due }) => ({ entry, days: daysBetween(today, due) }))
     .sort((a, b) => a.days - b.days)[0];

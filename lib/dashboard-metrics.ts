@@ -191,11 +191,26 @@ export type UpcomingPayment<T extends DebtLike = DebtLike> = {
   isSoon: boolean;
 };
 
+/** Dia de pago de una tarjeta y la ultima fecha de pago que ya se cubrio */
+export type PaymentSchedule = { paymentDay: number | null; paidDueDate: string | null };
+
+export function paymentScheduleByAccount(
+  accounts: { id: number; paymentDay: number | null; paidDueDate: string | null }[]
+): Map<number, PaymentSchedule> {
+  return new Map(accounts.map((a) => [a.id, { paymentDay: a.paymentDay, paidDueDate: a.paidDueDate }]));
+}
+
+function dayAfter(ymd: string): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+}
+
 /**
  * Proximo dia de pago a partir de hoy (incluido). Si el mes no tiene ese
- * dia (31 en noviembre) se usa su ultimo dia.
+ * dia (31 en noviembre) se usa su ultimo dia. Con `paidDueDate`, una fecha
+ * ya pagada se salta y se devuelve la del mes siguiente.
  */
-export function nextPaymentDate(paymentDay: number, today: string): string {
+export function nextPaymentDate(paymentDay: number, today: string, paidDueDate?: string | null): string {
   const [y, m, d] = today.split("-").map(Number);
   const build = (year: number, month: number) => {
     const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -203,31 +218,39 @@ export function nextPaymentDate(paymentDay: number, today: string): string {
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   };
   const thisMonth = build(y, m);
-  if (Number(thisMonth.slice(8, 10)) >= d) return thisMonth;
-  return m === 12 ? build(y + 1, 1) : build(y, m + 1);
+  const due = Number(thisMonth.slice(8, 10)) >= d ? thisMonth : m === 12 ? build(y + 1, 1) : build(y, m + 1);
+  if (paidDueDate && due <= paidDueDate) return nextPaymentDate(paymentDay, dayAfter(paidDueDate));
+  return due;
+}
+
+/** El corte que toca pagar ahora (sin saltar pagos) ya esta marcado como pagado */
+export function isCurrentCutPaid(schedule: PaymentSchedule | undefined, today: string): boolean {
+  if (!schedule?.paymentDay || !schedule.paidDueDate) return false;
+  return nextPaymentDate(schedule.paymentDay, today) <= schedule.paidDueDate;
 }
 
 /**
  * Fecha de pago efectiva de una deuda: el dia de pago del metodo ligado
- * si lo tiene; si no, la fecha limite guardada en Patrimonio.
+ * si lo tiene (saltando el corte ya pagado); si no, la fecha limite
+ * guardada en Patrimonio.
  */
 export function effectiveDueDate(
   entry: { dueDate: Date | string | null; accountId: number | null },
-  paymentDayByAccount: Map<number, number | null>,
+  scheduleByAccount: Map<number, PaymentSchedule>,
   today: string
 ): string | null {
-  const paymentDay = entry.accountId != null ? paymentDayByAccount.get(entry.accountId) : null;
-  if (paymentDay) return nextPaymentDate(paymentDay, today);
+  const schedule = entry.accountId != null ? scheduleByAccount.get(entry.accountId) : undefined;
+  if (schedule?.paymentDay) return nextPaymentDate(schedule.paymentDay, today, schedule.paidDueDate);
   return entry.dueDate ? toCalendarDate(entry.dueDate) : null;
 }
 
 export function buildUpcomingPayments<T extends DebtLike>(
   debts: T[],
   today: string,
-  paymentDayByAccount: Map<number, number | null> = new Map()
+  scheduleByAccount: Map<number, PaymentSchedule> = new Map()
 ): UpcomingPayment<T>[] {
   return debts
-    .map((entry) => ({ entry, due: effectiveDueDate(entry, paymentDayByAccount, today) }))
+    .map((entry) => ({ entry, due: effectiveDueDate(entry, scheduleByAccount, today) }))
     .filter((x): x is { entry: T; due: string } => x.due !== null)
     .map(({ entry, due }) => {
       const dueDate = due;

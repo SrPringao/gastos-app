@@ -58,6 +58,7 @@ export async function PATCH(
       imageUrl: body.imageUrl,
       cutoffDay: body.cutoffDay,
       paymentDay: body.paymentDay,
+      paidDueDate: body.paidDueDate,
       creditLimit: body.creditLimit,
       archived: typeof body.archived === "boolean" ? body.archived : undefined,
     });

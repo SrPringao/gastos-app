@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  date,
   decimal,
   integer,
   index,
@@ -82,6 +83,9 @@ export const accounts = pgTable("accounts", {
   // Obsoleto: ya no se usa el dia de corte (solo paymentDay). Se conserva la columna.
   cutoffDay: integer("cutoff_day"),
   paymentDay: integer("payment_day"),
+  // Fecha de pago (YYYY-MM-DD) que el usuario ya marco como pagada: mientras
+  // la siguiente fecha de pago no la rebase, se muestra la del mes siguiente.
+  paidDueDate: date("paid_due_date", { mode: "string" }),
   creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
   isPlaceholder: boolean("is_placeholder").default(false).notNull(),
   // Archivado: se oculta del catalogo y de "Agregar gasto"; sus gastos se conservan

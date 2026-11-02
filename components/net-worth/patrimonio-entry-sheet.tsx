@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { LinkIcon } from "lucide-react";
 import { ActionSheet, EbSheet } from "@/components/ui/eb/sheet";
 import {
   AmountHero,
@@ -16,15 +15,17 @@ import {
   type PickerMethod,
 } from "@/components/ui/eb/form-kit";
 import { ContactChips, type ContactOption } from "@/components/net-worth/contact-chips";
+import { PaymentDayRow } from "@/components/payment-methods/method-form";
 import { showToast } from "@/components/ui/eb/toast";
 import {
   daysBetween,
   inferAssetKind,
+  isCurrentCutPaid,
   nextPaymentDate,
   resolveAssetKind,
   type AssetKind,
 } from "@/lib/dashboard-metrics";
-import { dbDateToInputValue, todayDateString } from "@/lib/utils/dates";
+import { dbDateToInputValue, formatDayMonth, todayDateString } from "@/lib/utils/dates";
 import { formatMoney } from "@/lib/utils/money";
 import type { Account, Contact, NetWorthEntry } from "@/lib/db/schema";
 
@@ -54,10 +55,15 @@ type Draft = {
   syncEnabled: boolean;
   /** yyyy-mm-dd; solo deudas sin tarjeta de credito */
   dueDate: string;
+  /** Dia de pago de la tarjeta ligada (vive en la cuenta, no en el elemento) */
+  paymentDay: number | null;
+  /** El corte que toca pagar ahora ya se pago (tambien vive en la cuenta) */
+  cutPaid: boolean;
 };
 
-function initialDraft(entry: NetWorthEntry | undefined, kind: Kind): Draft {
+function initialDraft(entry: NetWorthEntry | undefined, kind: Kind, accounts: Account[]): Draft {
   if (entry) {
+    const account = accounts.find((a) => a.id === entry.accountId);
     return {
       kind: entry.kind,
       amount: centsToAmountInput(entry.amount),
@@ -67,6 +73,8 @@ function initialDraft(entry: NetWorthEntry | undefined, kind: Kind): Draft {
       accountId: entry.accountId ?? null,
       syncEnabled: entry.syncEnabled,
       dueDate: entry.dueDate ? dbDateToInputValue(entry.dueDate) : "",
+      paymentDay: account?.paymentDay ?? null,
+      cutPaid: account ? isCurrentCutPaid(account, todayDateString()) : false,
     };
   }
   return {
@@ -78,6 +86,8 @@ function initialDraft(entry: NetWorthEntry | undefined, kind: Kind): Draft {
     accountId: null,
     syncEnabled: false,
     dueDate: "",
+    paymentDay: null,
+    cutPaid: false,
   };
 }
 
@@ -115,7 +125,7 @@ export function PatrimonioEntrySheet({
   onSaved: () => void;
 }) {
   const isEditing = !!entry;
-  const [initial] = useState(() => initialDraft(entry, initialKind));
+  const [initial] = useState(() => initialDraft(entry, initialKind, accounts));
   const [draft, setDraft] = useState<Draft>(initial);
   // Mientras el usuario no elija seccion, se infiere del nombre y el metodo
   const [sectionTouched, setSectionTouched] = useState(isEditing);
@@ -124,6 +134,7 @@ export function PatrimonioEntrySheet({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const syncId = useId();
+  const cutPaidId = useId();
   const today = todayDateString();
 
   const amountCents = parseAmount(draft.amount);
@@ -196,6 +207,8 @@ export function PatrimonioEntrySheet({
       accountId: id,
       label: autoName ? nextMethod.name : draft.label,
       syncEnabled: id === null ? false : draft.syncEnabled,
+      paymentDay: nextMethod?.paymentDay ?? null,
+      cutPaid: nextMethod ? isCurrentCutPaid(nextMethod, today) : false,
     });
   }
 
@@ -217,6 +230,25 @@ export function PatrimonioEntrySheet({
           contactId: draft.assetKind === "receivable" ? draft.contactId : null,
         }),
       };
+      // Dia de pago y corte pagado son de la tarjeta: se guardan en la cuenta
+      // y los ven Cuentas, Proximos pagos y el Dashboard
+      const paymentDayChanged = draft.paymentDay !== (method?.paymentDay ?? null);
+      const cutPaidChanged = method ? draft.cutPaid !== isCurrentCutPaid(method, today) : false;
+      if (isCreditDebt && method && (paymentDayChanged || cutPaidChanged)) {
+        const accountRes = await fetch(`/api/accounts/${method.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentDay: draft.paymentDay,
+            paidDueDate: draft.cutPaid && currentCut ? currentCut : null,
+          }),
+        });
+        if (!accountRes.ok) {
+          const data = await accountRes.json().catch(() => null);
+          setError(data?.error || "Error al guardar el día de pago");
+          return;
+        }
+      }
       const res = await fetch(isEditing ? `/api/net-worth/entries/${entry.id}` : "/api/net-worth/entries", {
         method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,10 +313,14 @@ export function PatrimonioEntrySheet({
   }
 
   // --- Fecha de pago (deuda con tarjeta) ---------------------------------
-  let paymentValue = "Sin día de pago";
-  if (isCreditDebt && method?.paymentDay) {
-    const days = daysBetween(today, nextPaymentDate(method.paymentDay, today));
-    paymentValue = `Día ${method.paymentDay} · ${daysText(days)}`;
+  // currentCut: la fecha que toca pagar ahora, sin saltar el corte pagado
+  const currentCut = isCreditDebt && draft.paymentDay ? nextPaymentDate(draft.paymentDay, today) : null;
+  const followingCut =
+    currentCut && draft.paymentDay ? nextPaymentDate(draft.paymentDay, today, currentCut) : null;
+  let paymentSubtitle = "También se cambia en la tarjeta";
+  if (currentCut && followingCut) {
+    const due = draft.cutPaid ? followingCut : currentCut;
+    paymentSubtitle = `Próximo pago ${daysText(daysBetween(today, due))} · también en la tarjeta`;
   }
 
   const methodName = method?.name ?? "el método";
@@ -370,7 +406,7 @@ export function PatrimonioEntrySheet({
           variant="mobile"
           footer={
             isCreditDebt
-              ? "El día de pago se edita en Cuentas."
+              ? "El día de pago y el corte pagado son de la tarjeta: también se actualizan en Cuentas y Próximos pagos."
               : "Opcional. Lígalo a una cuenta para poder sincronizarlo con tus gastos."
           }
         >
@@ -382,16 +418,25 @@ export function PatrimonioEntrySheet({
               unavailable={unavailable}
             />
             {isCreditDebt && (
-              <div className="flex min-h-[52px] items-center justify-between gap-3 px-4">
-                <div className="flex flex-col gap-px">
-                  <span className="text-[16px]">Fecha de pago</span>
-                  <span className="text-eb-text-tertiary text-[12px]">Tomada de la tarjeta</span>
-                </div>
-                <span className="text-eb-text-secondary flex items-center gap-1.5 text-[16px]">
-                  <LinkIcon size={14} strokeWidth={2} className="text-eb-text-tertiary" aria-hidden="true" />
-                  {paymentValue}
-                </span>
-              </div>
+              <PaymentDayRow
+                variant="mobile"
+                value={draft.paymentDay}
+                onChange={(paymentDay) => update({ paymentDay })}
+                subtitle={paymentSubtitle}
+              />
+            )}
+            {currentCut && followingCut && (
+              <SwitchRow
+                id={cutPaidId}
+                label="Ya pagué este corte"
+                subtitle={
+                  draft.cutPaid
+                    ? `Pago del ${formatDayMonth(currentCut)} listo · sigue el ${formatDayMonth(followingCut)}`
+                    : `El del ${formatDayMonth(currentCut)}; lo que quede pasa al ${formatDayMonth(followingCut)}`
+                }
+                checked={draft.cutPaid}
+                onChange={(cutPaid) => update({ cutPaid })}
+              />
             )}
             {draft.kind === "debt" && !isCreditDebt && (
               <label className="flex min-h-[52px] items-center justify-between gap-3 px-4">

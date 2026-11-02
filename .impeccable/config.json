@@ -50,6 +50,18 @@
         "value": "26px",
         "createdAt": "2026-10-07T00:24:10.267Z",
         "reason": "spec design-reference/expensebro-nuevo-gasto-prompt.md 2.1: AmountHero grande, '.00' en 26px/600"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffd60a",
+        "createdAt": "2026-11-02T01:18:47.187Z",
+        "reason": "Claude triage: tonos del circulo arcoiris 'Elegir cualquier color' (conic-gradient en method-form.tsx, commit bd06b6a); representan el espectro completo, no son colores de UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#bf5af2",
+        "createdAt": "2026-11-02T01:18:47.249Z",
+        "reason": "Claude triage: tonos del circulo arcoiris 'Elegir cualquier color' (conic-gradient en method-form.tsx, commit bd06b6a); representan el espectro completo, no son colores de UI"
       }
     ]
   }

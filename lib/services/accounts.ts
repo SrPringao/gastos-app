@@ -86,6 +86,8 @@ export type UpdateAccountInput = {
   imageUrl?: string | null;
   cutoffDay?: number | null;
   paymentDay?: number | null;
+  /** YYYY-MM-DD de la fecha de pago ya cubierta; null la desmarca */
+  paidDueDate?: string | null;
   creditLimit?: string | null;
 };
 
@@ -141,11 +143,14 @@ export async function updateAccount(
     return { error: "No autorizado" };
   }
 
-  const { name, type, color, imageUrl, cutoffDay, paymentDay, creditLimit, archived } =
+  const { name, type, color, imageUrl, cutoffDay, paymentDay, paidDueDate, creditLimit, archived } =
     input;
 
   if (paymentDay != null && !isValidDay(paymentDay)) {
     return { error: "Dia de pago invalido" };
+  }
+  if (paidDueDate != null && !/^\d{4}-\d{2}-\d{2}$/.test(paidDueDate)) {
+    return { error: "Fecha de pago invalida" };
   }
 
   if (name !== undefined && !name?.trim()) {
@@ -168,8 +173,11 @@ export async function updateAccount(
       ...(paymentDay !== undefined && {
         paymentDay: (type ?? existing.type) === "credit" ? paymentDay : null,
       }),
+      ...(paidDueDate !== undefined && {
+        paidDueDate: (type ?? existing.type) === "credit" ? paidDueDate : null,
+      }),
       // Al dejar de ser credito, el dia de pago ya no aplica
-      ...(type !== undefined && type !== "credit" && { paymentDay: null }),
+      ...(type !== undefined && type !== "credit" && { paymentDay: null, paidDueDate: null }),
       ...(archived !== undefined && { archivedAt: archived ? new Date() : null }),
       ...(creditLimit !== undefined && {
         creditLimit:

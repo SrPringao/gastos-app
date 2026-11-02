@@ -18,6 +18,7 @@ import {
   buildBudgetSummary,
   buildSpendSegments,
   buildUpcomingPayments,
+  paymentScheduleByAccount,
   countCreditAccounts,
   nextPaymentWithBalance,
 } from "@/lib/dashboard-metrics";
@@ -101,7 +102,7 @@ export default async function DashboardPage({
   const payments = buildUpcomingPayments(
     netWorthEntries.filter((e) => e.kind === "debt"),
     today,
-    new Map(allAccounts.map((a) => [a.id, a.paymentDay])),
+    paymentScheduleByAccount(allAccounts),
   );
   const toItem = (p: (typeof payments)[number]) => ({
     id: p.entry.id,

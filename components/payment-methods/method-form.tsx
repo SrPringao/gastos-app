@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronsUpDownIcon, CreditCardIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { EbSheet } from "@/components/ui/eb/sheet";
 import { PAYMENT_METHOD_PALETTE, paletteEntry } from "@/lib/account-colors";
 import { cn } from "@/lib/utils";
 import type { PaymentMethodType } from "@/lib/payment-methods";
@@ -292,21 +293,129 @@ export function GeneralSection({
 // Dia de pago (solo credito)
 // ---------------------------------------------------------------------------
 
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+/**
+ * Hoja secundaria con los dias en cuadricula (7 columnas, como calendario):
+ * en el celular una lista de 32 renglones tapaba toda la pantalla.
+ */
+function PaymentDaySheet({
+  open,
+  value,
+  onClose,
+  onPick,
+}: {
+  open: boolean;
+  value: number | null;
+  onClose: () => void;
+  onPick: (day: number | null) => void;
+}) {
+  return (
+    <EbSheet open={open} onClose={onClose} title="Día de pago" nested>
+      <div
+        role="radiogroup"
+        aria-label="Día de pago"
+        className="grid grid-cols-7 gap-1.5 rounded-[14px] p-3"
+        style={{ background: "var(--eb-group-solid)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)" }}
+      >
+        {DAYS.map((day) => {
+          const selected = day === value;
+          return (
+            <button
+              key={day}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={`Día ${day}`}
+              onClick={() => onPick(day)}
+              className={cn(
+                "flex aspect-square items-center justify-center rounded-full text-[16px] tabular-nums transition-colors",
+                selected ? "font-semibold text-white" : "text-eb-text hover:bg-[var(--eb-fill-subtle)]"
+              )}
+              style={
+                selected
+                  ? {
+                      background: "linear-gradient(180deg, var(--eb-accent-light), var(--eb-accent))",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 10px -4px var(--eb-accent-glow)",
+                    }
+                  : undefined
+              }
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-eb-text-tertiary px-4 text-[13px]">
+        Si un mes no tiene ese día (31 en noviembre), se usa su último día.
+      </p>
+      <GroupBox variant="mobile">
+        <button
+          type="button"
+          onClick={() => onPick(null)}
+          aria-pressed={value === null}
+          className={cn(
+            "min-h-12 w-full px-4 text-center text-[16px]",
+            value === null ? "text-eb-text-tertiary" : "text-eb-link"
+          )}
+        >
+          {value === null ? "Sin día de pago" : "Quitar día de pago"}
+        </button>
+      </GroupBox>
+    </EbSheet>
+  );
+}
+
 export function PaymentDayRow({
   value,
   onChange,
   variant,
+  subtitle = "Aparece en Próximos pagos",
 }: {
   value: number | null;
   onChange: (day: number | null) => void;
   variant: Variant;
+  subtitle?: string;
 }) {
   const mobile = variant === "mobile";
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  if (mobile) {
+    return (
+      <>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => setSheetOpen(true)}
+          className="text-eb-text flex min-h-[52px] w-full items-center justify-between gap-3 px-4 text-left"
+        >
+          <span className="flex flex-col gap-px">
+            <span className="text-[16px]">Día de pago</span>
+            <span className="text-eb-text-tertiary text-[12px]">{subtitle}</span>
+          </span>
+          <span className="text-eb-text-secondary flex flex-none items-center gap-1.5 text-[16px]">
+            {value ? `Día ${value}` : "Sin definir"}
+            <ChevronsUpDownIcon size={12} strokeWidth={2.6} className="text-eb-chevron" aria-hidden="true" />
+          </span>
+        </button>
+        <PaymentDaySheet
+          open={sheetOpen}
+          value={value}
+          onClose={() => setSheetOpen(false)}
+          onPick={(day) => {
+            onChange(day);
+            setSheetOpen(false);
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <Row variant={variant} className={mobile ? "min-h-[52px]" : undefined}>
       <div className="flex flex-col gap-px">
         <span className={mobile ? "text-[16px]" : "text-[15px]"}>Día de pago</span>
-        <span className="text-eb-text-tertiary text-[12px]">Aparece en Próximos pagos</span>
+        <span className="text-eb-text-tertiary text-[12px]">{subtitle}</span>
       </div>
       <Select
         value={value ? String(value) : "none"}
@@ -322,9 +431,9 @@ export function PaymentDayRow({
           {value ? (mobile ? `Día ${value}` : `Día ${value} de cada mes`) : "Sin definir"}
           <ChevronsUpDownIcon size={12} strokeWidth={2.6} className="text-eb-chevron" aria-hidden="true" />
         </SelectTrigger>
-        <SelectContent className="max-h-72">
+        <SelectContent align="end" className="max-h-72">
           <SelectItem value="none">Sin definir</SelectItem>
-          {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+          {DAYS.map((day) => (
             <SelectItem key={day} value={String(day)}>
               Día {day}
             </SelectItem>
