@@ -20,9 +20,56 @@ export const users = pgTable("users", {
   email: text("email"),
   displayName: text("display_name"),
   passwordHash: text("password_hash"),
+  // Acceso al panel de Super admin (usuarios y funciones especiales)
+  isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Funciones especiales encendidas por usuario (lib/features.ts, USER_FEATURES).
+// Que exista el registro = la funcion esta activa para ese usuario.
+export const userFeatures = pgTable(
+  "user_features",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    feature: text("feature", { enum: ["exchange"] }).notNull(),
+    enabledBy: uuid("enabled_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userFeatureUnique: uniqueIndex("user_features_user_feature_unique").on(table.userId, table.feature),
+  })
+);
+
+// Gastos del intercambio: totalmente aparte de expenses (no cuentan en el
+// Dashboard, presupuesto ni Patrimonio). Monto en centavos de su moneda.
+export const exchangeExpenses = pgTable(
+  "exchange_expenses",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    currency: text("currency", { enum: ["MXN", "EUR"] }).default("MXN").notNull(),
+    reason: text("reason").notNull(),
+    category: text("category", {
+      enum: ["flights", "lodging", "school", "paperwork", "transport", "food", "other"],
+    })
+      .default("other")
+      .notNull(),
+    date: timestamp("date").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userDateIdx: index("exchange_expenses_user_date_idx").on(table.userId, table.date),
+  })
+);
 
 // Cuentas / Metodos de pago (tarjetas, debito, efectivo)
 export const accounts = pgTable("accounts", {
@@ -420,5 +467,8 @@ export type CardNameMapping = InferSelectModel<typeof cardNameMappings>;
 export type NewCardNameMapping = InferInsertModel<typeof cardNameMappings>;
 export type PushSubscriptionRow = InferSelectModel<typeof pushSubscriptions>;
 export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+export type UserFeature = InferSelectModel<typeof userFeatures>;
+export type ExchangeExpense = InferSelectModel<typeof exchangeExpenses>;
+export type NewExchangeExpense = InferInsertModel<typeof exchangeExpenses>;
 export type UserPreferences = InferSelectModel<typeof userPreferences>;
 export type NewUserPreferences = InferInsertModel<typeof userPreferences>;

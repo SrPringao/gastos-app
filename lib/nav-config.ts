@@ -12,9 +12,18 @@ import {
   PlusCircleIcon,
   CalendarDaysIcon,
   CalendarRangeIcon,
+  PlaneIcon,
+  UsersIcon,
   type LucideIcon,
 } from "lucide-react";
-import { FEATURES, type FeatureKey } from "@/lib/features";
+import {
+  FEATURES,
+  hasAccess,
+  NO_ACCESS,
+  type AccessRequirement,
+  type FeatureKey,
+  type UserAccess,
+} from "@/lib/features";
 
 /**
  * Fuente unica de verdad para la navegacion de la app: sidebar (desktop),
@@ -51,6 +60,8 @@ export type NavItem = {
   activePrefix?: string;
   /** Si la funcion esta apagada en lib/features.ts, el item no aparece en ningun lado */
   feature?: FeatureKey;
+  /** Solo para super admins o usuarios con esa funcion especial encendida */
+  access?: AccessRequirement;
 };
 
 const allNavGroups: NavGroup[] = [
@@ -74,6 +85,7 @@ const allNavGroups: NavGroup[] = [
     items: [
       { href: "/gastos-fijos", label: "Gastos Fijos", mobileLabel: "Fijos", icon: ReceiptTextIcon },
       { href: "/categorias", label: "Categorias", icon: PieChartIcon },
+      { href: "/intercambio", label: "Intercambio", icon: PlaneIcon, access: "exchange" },
     ],
   },
   {
@@ -102,34 +114,61 @@ const allNavGroups: NavGroup[] = [
       },
     ],
   },
+  {
+    label: "Super admin",
+    items: [{ href: "/admin", label: "Usuarios", icon: UsersIcon, access: "superAdmin" }],
+  },
 ];
 
-/** Navegacion visible: sin los items de funciones apagadas */
-export const navGroups: NavGroup[] = allNavGroups
-  .map((group) => ({
-    ...group,
-    items: group.items.filter((item) => !item.feature || FEATURES[item.feature]),
-  }))
-  .filter((group) => group.items.length > 0);
+/**
+ * Navegacion visible para un usuario: sin funciones apagadas ni secciones
+ * a las que no tiene acceso (Super admin, funciones especiales).
+ */
+export function navGroupsFor(access: UserAccess): NavGroup[] {
+  return allNavGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => (!item.feature || FEATURES[item.feature]) && hasAccess(access, item.access)
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+function flattenNavItems(groups: NavGroup[]): NavItem[] {
+  return groups.flatMap((group) =>
+    group.items.flatMap((item) =>
+      item.subItems && item.subItems.length > 0
+        ? item.subItems.map((sub) => ({
+            href: sub.href,
+            label: sub.label,
+            mobileLabel: sub.mobileLabel,
+            icon: sub.icon,
+            access: item.access,
+          }))
+        : [item]
+    )
+  );
+}
 
 /**
- * Todas las secciones/paginas navegables del sidebar, aplanadas: cada item
- * de primer nivel de cada grupo, MAS los subitems reales (Preferencias,
- * Agregar automatizacion) que tienen su propia ruta. Es el catalogo
- * completo elegible para "Secciones" en el menu rapido del celular.
+ * Todas las secciones/paginas navegables del sidebar para un usuario,
+ * aplanadas: cada item de primer nivel de cada grupo, MAS los subitems
+ * reales (Preferencias, Agregar automatizacion) que tienen su propia ruta.
+ * Es el catalogo elegible para "Secciones" en el menu rapido del celular.
+ * Super admin queda fuera: solo se entra desde el menu lateral.
  */
-export const allMobileNavCandidates: NavItem[] = navGroups.flatMap((group) =>
-  group.items.flatMap((item) =>
-    item.subItems && item.subItems.length > 0
-      ? item.subItems.map((sub) => ({
-          href: sub.href,
-          label: sub.label,
-          mobileLabel: sub.mobileLabel,
-          icon: sub.icon,
-        }))
-      : [item]
-  )
-);
+export function mobileNavCandidatesFor(access: UserAccess): NavItem[] {
+  return flattenNavItems(navGroupsFor(access)).filter((item) => item.access !== "superAdmin");
+}
+
+/** Catalogo sin secciones restringidas (lo que ve cualquier usuario) */
+export const allMobileNavCandidates: NavItem[] = mobileNavCandidatesFor(NO_ACCESS);
+
+/** Label de la seccion de una ruta (header movil generico), sin filtrar por acceso */
+export function findNavLabel(pathname: string): string | undefined {
+  return flattenNavItems(allNavGroups).find((item) => isNavItemActive(pathname, item))?.label;
+}
 
 /** Default de la tab bar movil cuando el usuario no configuro nada en Preferencias */
 export const DEFAULT_MOBILE_NAV_HREFS = ["/", "/gastos", "/cuentas", "/patrimonio"];
@@ -198,7 +237,8 @@ export type MobileNavEntry =
  * null/undefined = default. [] = el usuario apago la barra.
  */
 export function resolveMobileNavEntries(
-  ids: string[] | null | undefined
+  ids: string[] | null | undefined,
+  candidates: NavItem[] = allMobileNavCandidates
 ): MobileNavEntry[] {
   if (ids && ids.length === 0) return [];
 
@@ -209,7 +249,7 @@ export function resolveMobileNavEntries(
         const action = findQuickAction(id);
         return action ? ({ type: "action", action } as const) : null;
       }
-      const item = allMobileNavCandidates.find((candidate) => candidate.href === id);
+      const item = candidates.find((candidate) => candidate.href === id);
       return item ? ({ type: "section", item } as const) : null;
     })
     .filter((entry): entry is NonNullable<typeof entry> => !!entry);
@@ -231,13 +271,14 @@ export function resolveMobileNavEntries(
  * el menu ([]), tampoco aparece. Si personalizo la lista, se usa tal cual.
  */
 export function resolveDesktopQuickEntries(
-  ids: string[] | null | undefined
+  ids: string[] | null | undefined,
+  candidates: NavItem[] = allMobileNavCandidates
 ): MobileNavEntry[] {
   if (ids && ids.length === 0) return [];
   if (ids == null) {
     return quickActions.map((action) => ({ type: "action" as const, action }));
   }
-  return resolveMobileNavEntries(ids);
+  return resolveMobileNavEntries(ids, candidates);
 }
 
 function matchesPath(pathname: string, href: string): boolean {
@@ -254,10 +295,13 @@ export function isNavItemActive(pathname: string, item: NavItem): boolean {
  * gasto" se omite porque ya es el boton central. La tab bar es la
  * navegacion principal en movil, asi que una lista vacia usa el default.
  */
-export function resolveTabBarEntries(ids: string[] | null | undefined): MobileNavEntry[] {
+export function resolveTabBarEntries(
+  ids: string[] | null | undefined,
+  candidates: NavItem[] = allMobileNavCandidates
+): MobileNavEntry[] {
   const withoutAdd = (list: MobileNavEntry[]) =>
     list.filter((entry) => !(entry.type === "action" && entry.action.kind === "add-expense"));
-  const custom = ids && ids.length > 0 ? withoutAdd(resolveMobileNavEntries(ids)) : [];
+  const custom = ids && ids.length > 0 ? withoutAdd(resolveMobileNavEntries(ids, candidates)) : [];
   const entries = custom.length > 0 ? custom : withoutAdd(resolveMobileNavEntries(null));
   return entries.slice(0, TAB_BAR_SLOTS);
 }

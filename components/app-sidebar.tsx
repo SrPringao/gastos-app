@@ -6,8 +6,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LogOut, RefreshCw, ChevronDownIcon, MoonIcon, SunIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { navGroups, isNavItemActive, type NavItem, type NavSubItem } from "@/lib/nav-config";
+import { isNavItemActive, type NavItem, type NavSubItem } from "@/lib/nav-config";
 import { usePreferences } from "@/components/preferences-provider";
+import { useNavForUser } from "@/components/user-access-provider";
 import { Logo } from "@/components/logo";
 
 /**
@@ -232,7 +233,8 @@ export function useSessionActions() {
 }
 
 /**
- * Secciones del sidebar (Principal, Cuentas, Gestion, Sistema) con su
+ * Secciones del sidebar (Principal, Cuentas, Gestion, Sistema y, para
+ * super admins, Super admin) con su
  * estado activo segun la ruta. La reutiliza el menu lateral movil.
  */
 export function SidebarNav({ className }: { className?: string }) {
@@ -240,6 +242,7 @@ export function SidebarNav({ className }: { className?: string }) {
   const searchParams = useSearchParams();
   const [manuallyOpen, setManuallyOpen] = useState<Record<string, boolean>>({});
   const activeTab = searchParams.get("tab") ?? undefined;
+  const { groups: navGroups } = useNavForUser();
 
   return (
     <nav aria-label="Principal" className={className}>

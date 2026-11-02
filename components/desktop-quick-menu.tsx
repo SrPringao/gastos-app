@@ -11,6 +11,7 @@ import {
   type QuickActionKind,
 } from "@/lib/nav-config";
 import { usePreferences } from "@/components/preferences-provider";
+import { useNavForUser } from "@/components/user-access-provider";
 import { QuickActionOverlays } from "@/components/quick-action-overlays";
 
 /**
@@ -20,7 +21,8 @@ import { QuickActionOverlays } from "@/components/quick-action-overlays";
 export function DesktopQuickMenu() {
   const pathname = usePathname();
   const { mobileNavHrefs } = usePreferences();
-  const entries = resolveDesktopQuickEntries(mobileNavHrefs);
+  const { candidates } = useNavForUser();
+  const entries = resolveDesktopQuickEntries(mobileNavHrefs, candidates);
   const [open, setOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<QuickActionKind | null>(null);
   const closeTimer = useRef<number | null>(null);

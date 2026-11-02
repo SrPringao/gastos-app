@@ -6,8 +6,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/components/preferences-provider";
+import { useNavForUser } from "@/components/user-access-provider";
 import {
-  allMobileNavCandidates,
   quickActions,
   resolveMobileNavEntries,
   DEFAULT_MOBILE_NAV_HREFS,
@@ -21,19 +21,11 @@ type Candidate =
   | { id: string; kind: "section"; item: NavItem }
   | { id: string; kind: "action"; item: QuickAction };
 
-const sectionCandidates: Candidate[] = allMobileNavCandidates.map((item) => ({
-  id: item.href,
-  kind: "section",
-  item,
-}));
-
 const actionCandidates: Candidate[] = quickActions.map((action) => ({
   id: action.id,
   kind: "action",
   item: action,
 }));
-
-const allCandidates: Candidate[] = [...sectionCandidates, ...actionCandidates];
 
 /**
  * Elige que aparece en la tab bar movil (0 a 4, alrededor del boton +):
@@ -42,7 +34,15 @@ const allCandidates: Candidate[] = [...sectionCandidates, ...actionCandidates];
  */
 export function MobileNavPreference() {
   const { mobileNavHrefs, setMobileNavHrefs } = usePreferences();
-  const selected = resolveMobileNavEntries(mobileNavHrefs).map((entry) =>
+  // Secciones que ve este usuario (incluye funciones especiales encendidas)
+  const { candidates } = useNavForUser();
+  const sectionCandidates: Candidate[] = candidates.map((item) => ({
+    id: item.href,
+    kind: "section",
+    item,
+  }));
+  const allCandidates: Candidate[] = [...sectionCandidates, ...actionCandidates];
+  const selected = resolveMobileNavEntries(mobileNavHrefs, candidates).map((entry) =>
     entry.type === "action" ? entry.action.id : entry.item.href
   );
 

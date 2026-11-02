@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronRightIcon, LogOutIcon, MoonIcon, RefreshCwIcon, SunIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { usePreferences } from "@/components/preferences-provider";
-import { allMobileNavCandidates, isNavItemActive } from "@/lib/nav-config";
+import { isNavItemActive } from "@/lib/nav-config";
+import { useNavForUser } from "@/components/user-access-provider";
 import { initialOf } from "@/lib/dashboard-metrics";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ export function ProfileMenu({ name }: { name: string }) {
   const { theme, setTheme } = usePreferences();
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { candidates } = useNavForUser();
 
   function handleRefresh() {
     setRefreshing(true);
@@ -59,7 +61,7 @@ export function ProfileMenu({ name }: { name: string }) {
         </SheetHeader>
 
         <nav aria-label="Secciones" className="eb-card mx-4 overflow-hidden rounded-[18px]">
-          {allMobileNavCandidates.map((item) => {
+          {candidates.map((item) => {
             const active = isNavItemActive(pathname, item);
             return (
               <Link

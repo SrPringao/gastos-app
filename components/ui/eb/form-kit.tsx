@@ -87,6 +87,7 @@ export function AmountHero({
   autoFocus = true,
   size = "md",
   onEnter,
+  symbol = "$",
   children,
 }: {
   label: React.ReactNode;
@@ -100,6 +101,8 @@ export function AmountHero({
   size?: "md" | "lg";
   /** Enter en el monto (ej. "Siguiente") */
   onEnter?: () => void;
+  /** Simbolo de moneda antes del monto ("€" en Intercambio) */
+  symbol?: string;
   /** Contenido extra dentro de la tarjeta (botones rapidos) */
   children?: React.ReactNode;
 }) {
@@ -139,7 +142,7 @@ export function AmountHero({
       <span className="text-eb-text-tertiary flex items-center gap-1.5 text-[13px]">{label}</span>
       <span className="flex max-w-full items-baseline gap-0.5" style={{ fontFamily: "var(--eb-font-rounded)" }}>
         <span className={cn("font-bold", lg ? "text-[34px]" : "text-[30px]")} style={{ color }}>
-          $
+          {symbol}
         </span>
         <span className="inline-grid min-w-0">
           <span

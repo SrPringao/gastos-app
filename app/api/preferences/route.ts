@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserPreferences, upsertUserPreferences } from "@/lib/services/preferences";
 import { getCurrentUserId } from "@/lib/auth";
-import { allMobileNavCandidates, quickActions } from "@/lib/nav-config";
+import { mobileNavCandidatesFor, quickActions } from "@/lib/nav-config";
+import { getUserAccess } from "@/lib/services/access";
 
 export async function GET() {
   try {
@@ -62,7 +63,8 @@ export async function PATCH(request: NextRequest) {
 
     if (body.mobileNavHrefs !== undefined) {
       if (body.mobileNavHrefs !== null) {
-        const validHrefs = new Set(allMobileNavCandidates.map((item) => item.href));
+        const access = await getUserAccess(userId);
+        const validHrefs = new Set(mobileNavCandidatesFor(access).map((item) => item.href));
         const validActionIds = new Set(quickActions.map((action) => action.id));
         const ids = body.mobileNavHrefs;
         if (

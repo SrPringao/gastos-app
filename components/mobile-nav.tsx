@@ -6,13 +6,14 @@ import { usePathname } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  allMobileNavCandidates,
+  findNavLabel,
   isNavItemActive,
   resolveTabBarEntries,
   type MobileNavEntry,
   type QuickActionKind,
 } from "@/lib/nav-config";
 import { usePreferences } from "@/components/preferences-provider";
+import { useNavForUser } from "@/components/user-access-provider";
 import { QuickActionOverlays } from "@/components/quick-action-overlays";
 import { MobileHeader } from "@/components/mobile-header";
 
@@ -27,7 +28,7 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
   // El resto de pantallas recibe el mismo header flotante, solo con el boton de menu
   const genericTitle = ROUTES_WITH_OWN_HEADER.has(pathname)
     ? null
-    : (allMobileNavCandidates.find((item) => isNavItemActive(pathname, item))?.label ?? "ExpenseBro");
+    : (findNavLabel(pathname) ?? "ExpenseBro");
 
   return (
     <main
@@ -98,7 +99,8 @@ function TabItem({
 export function MobileNav() {
   const pathname = usePathname();
   const { mobileNavHrefs } = usePreferences();
-  const entries = resolveTabBarEntries(mobileNavHrefs);
+  const { candidates } = useNavForUser();
+  const entries = resolveTabBarEntries(mobileNavHrefs, candidates);
   const [activeModal, setActiveModal] = useState<QuickActionKind | null>(null);
   const half = Math.ceil(entries.length / 2);
   const left = entries.slice(0, half);
